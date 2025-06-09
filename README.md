@@ -48,10 +48,75 @@ This project is currently in development. Once initial implementation is complet
 
 ## Current Status
 
-**In Development**
+**In Development** - GitHub webhook parser completed with diff data extraction
 
+### Running the Example
 
-## Key technologies
+The webhook parser is functional and can be tested locally:
+
+#### Prerequisites
+```bash
+# Clone the repository
+git clone <repo-url>
+cd coderipple
+
+# Set up Python virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies (if any)
+pip install -r requirements.txt
+```
+
+#### Basic Usage
+```bash
+# Test webhook parsing (basic)
+python3 examples/test_webhook.py examples/sample.json push
+
+# Test with diff data fetching (requires internet access)
+python3 examples/test_webhook.py examples/sample.json push --fetch-diff
+```
+
+#### For Private Repositories
+```bash
+# Set GitHub token for API access
+export GITHUB_TOKEN=your_github_personal_access_token
+python3 examples/test_webhook.py examples/sample.json push --fetch-diff
+```
+
+#### Running Tests
+```bash
+# Run unit tests
+python3 -m unittest tests.test_webhook_parser -v
+
+# Run specific test
+python3 -m unittest tests.test_webhook_parser.TestGitHubWebhookParser.test_parse_push_event_success
+```
+
+#### Example Output
+```
+Event: push
+Repository: robertoallende/coderipple
+Branch: main
+Summary: 1 commit by Roberto+Allende: Test+webhook+payload+capture...
+Changed files: ['.idea/vcs.xml', '.idea/misc.xml', '.idea/.gitignore']
+
+Fetching diff data...
+--- Commit 1: 3fc833ab ---
+Diff data length: 2847 characters
+First 200 characters of diff:
+diff --git a/.idea/.gitignore b/.idea/.gitignore
+new file mode 100644
+index 0000000..13566b8
+--- /dev/null
++++ b/.idea/.gitignore
+@@ -0,0 +1,8 @@
++# Default ignored files
++/shelf/
++/workspace.xml...
+```
+
+## Key Technologies
 AWS Lambda, AWS Strands, Amazon Bedrock, GitHub Webhooks, Terraform
 
 ---
