@@ -1,4 +1,6 @@
 import json
+import urllib.request
+import urllib.parse
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 from datetime import datetime
@@ -14,6 +16,7 @@ class CommitInfo:
     modified_files: List[str]
     removed_files: List[str]
     url: str
+    diff_data: Optional[str] = None
 
 @dataclass
 class WebhookEvent:
@@ -140,9 +143,60 @@ class GitHubWebhookParser:
         
         authors = set(commit.author for commit in webhook_event.commits)
         return f"{len(webhook_event.commits)} commits by {len(authors)} author(s)"
+    
+    def fetch_commit_diff(self, repository_name: str, commit_sha: str, github_token: Optional[str] = None) -> Optional[str]:
+        """
+        Fetch raw git diff data for a specific commit from GitHub API
+        
+        Args:
+            repository_name: Repository name in format 'owner/repo'
+            commit_sha: Commit SHA to fetch diff for
+            github_token: Optional GitHub token for authenticated requests
+            
+        Returns:
+            Raw diff data as string or None if failed
+        """
+        try:
+            url = f"https://api.github.com/repos/{repository_name}/commits/{commit_sha}"
+            
+            # Create request with Accept header for diff format
+            req = urllib.request.Request(url)
+            req.add_header('Accept', 'application/vnd.github.diff')
+            req.add_header('User-Agent', 'CodeRipple-Webhook-Parser/1.0')
+            
+            # Add authorization header if token provided
+            if github_token:
+                req.add_header('Authorization', f'token {github_token}')
+            
+            with urllib.request.urlopen(req) as response:
+                if response.status == 200:
+                    return response.read().decode('utf-8')
+                else:
+                    print(f"Failed to fetch diff for commit {commit_sha}: HTTP {response.status}")
+                    return None
+                    
+        except Exception as e:
+            print(f"Error fetching diff for commit {commit_sha}: {e}")
+            return None
+    
+    def enrich_commits_with_diff_data(self, webhook_event: WebhookEvent, github_token: Optional[str] = None) -> None:
+        """
+        Fetch and add diff data to all commits in the webhook event
+        
+        Args:
+            webhook_event: WebhookEvent to enrich with diff data
+            github_token: Optional GitHub token for authenticated requests
+        """
+        for commit in webhook_event.commits:
+            if commit.diff_data is None:  # Only fetch if not already present
+                commit.diff_data = self.fetch_commit_diff(
+                    webhook_event.repository_name, 
+                    commit.id, 
+                    github_token
+                )
 
 # Example usage function
-def process_webhook(payload: str, event_type: str) -> None:
+def process_webhook(payload: str, event_type: str, fetch_diff: bool = False, github_token: Optional[str] = None) -> None:
     """Example function showing how to use the parser"""
     parser = GitHubWebhookParser()
     
@@ -154,6 +208,19 @@ def process_webhook(payload: str, event_type: str) -> None:
         print(f"Branch: {webhook_event.branch}")
         print(f"Summary: {parser.get_commit_summary(webhook_event)}")
         print(f"Changed files: {parser.extract_changed_files(webhook_event)}")
+        
+        if fetch_diff:
+            print("\nFetching diff data...")
+            parser.enrich_commits_with_diff_data(webhook_event, github_token)
+            
+            for i, commit in enumerate(webhook_event.commits):
+                print(f"\n--- Commit {i+1}: {commit.id[:8]} ---")
+                if commit.diff_data:
+                    print(f"Diff data length: {len(commit.diff_data)} characters")
+                    print("First 200 characters of diff:")
+                    print(commit.diff_data[:200] + "..." if len(commit.diff_data) > 200 else commit.diff_data)
+                else:
+                    print("No diff data available")
     else:
         print("Failed to parse webhook payload")
 
