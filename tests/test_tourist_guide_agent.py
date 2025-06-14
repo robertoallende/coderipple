@@ -65,7 +65,87 @@ def test_tourist_guide():
         print(f"\n{i}. {update.section} ({update.action}) - Priority {update.priority}")
         print(f"   Reason: {update.reason}")
         print(f"   Content Preview: {update.content[:100]}...")
+    
+    # Clean up
+    if os.path.exists("coderipple"):
+        import shutil
+        shutil.rmtree("coderipple")
+    
+    print("All Tourist Guide Agent tests passed!")
+
+
+def test_readme_generation():
+    """Test README.md generation functionality"""
+    print("Testing README generation...")
+    
+    from tourist_guide_agent import generate_main_readme, write_documentation_file
+    
+    # Clean up any existing test directory
+    if os.path.exists("coderipple"):
+        import shutil
+        shutil.rmtree("coderipple")
+    
+    try:
+        # Create some sample documentation first
+        os.makedirs("coderipple/decisions", exist_ok=True)
+        
+        # Write sample discovery.md
+        sample_discovery = """# Project Discovery
+
+*This document is automatically maintained by CodeRipple Tourist Guide Agent*  
+*Repository: test-repo*  
+*Last updated: 2025-06-14 12:00:00*
+
+---
+
+Welcome to our project! This is a sample discovery document.
+"""
+        write_documentation_file("discovery.md", sample_discovery, "create")
+        
+        # Write sample decision document
+        sample_decision = """# Architecture Decisions
+
+*This document is automatically maintained by CodeRipple Historian Agent*  
+*Repository: test-repo*  
+*Last updated: 2025-06-14 12:00:00*
+
+---
+
+This document contains our architectural decisions.
+"""
+        write_documentation_file("decisions/architecture.md", sample_decision, "create")
+        
+        # Generate README
+        readme_result = generate_main_readme("test-repo", "https://github.com/user/test-repo")
+        
+        # Verify README generation
+        assert readme_result['status'] == 'success', f"README generation failed: {readme_result.get('error', 'Unknown error')}"
+        assert 'test-repo Documentation Hub' in readme_result['content'], "README should contain repository name"
+        assert 'layered documentation structure' in readme_result['content'], "README should mention layered structure"
+        assert 'discovery.md' in readme_result['content'], "README should list discovery.md"
+        assert 'architecture.md' in readme_result['content'], "README should list decision docs"
+        
+        # Write README and verify it exists
+        readme_write_result = write_documentation_file("README.md", readme_result['content'], "create")
+        assert readme_write_result['status'] == 'success', f"README writing failed: {readme_write_result.get('error', 'Unknown error')}"
+        assert os.path.exists("coderipple/README.md"), "README.md should be created"
+        
+        # Verify README content on disk
+        with open("coderipple/README.md", 'r') as f:
+            readme_content = f.read()
+        
+        assert 'test-repo Documentation Hub' in readme_content, "Written README should contain repository name"
+        assert 'discovery.md' in readme_content, "Written README should list existing docs"
+        
+        print("✓ README generation test passed")
+        
+    finally:
+        # Clean up
+        if os.path.exists("coderipple"):
+            import shutil
+            shutil.rmtree("coderipple")
 
 
 if __name__ == "__main__":
     test_tourist_guide()
+    test_readme_generation()

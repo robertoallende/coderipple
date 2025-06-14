@@ -122,6 +122,78 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
         }
 
 
+@tool
+def generate_main_readme(repository_name: str, repository_url: str) -> Dict[str, Any]:
+    """
+    Generate main README.md that serves as documentation hub for all agent-generated docs.
+    
+    Args:
+        repository_name: Repository name for context
+        repository_url: Repository URL for links
+        
+    Returns:
+        Dictionary with README content and metadata
+    """
+    try:
+        # Discover all existing documentation
+        existing_docs = _discover_all_documentation()
+        
+        # Generate comprehensive README content
+        readme_content = _generate_hub_readme_content(repository_name, repository_url, existing_docs)
+        
+        return {
+            'status': 'success',
+            'content': readme_content,
+            'docs_discovered': len(existing_docs),
+            'sections': list(existing_docs.keys())
+        }
+        
+    except Exception as e:
+        return {
+            'status': 'error',
+            'error': str(e),
+            'content': ''
+        }
+
+
+@tool
+def update_readme_navigation(existing_readme: str, new_docs: List[str], repository_name: str) -> Dict[str, Any]:
+    """
+    Update README navigation when new documentation files are created.
+    
+    Args:
+        existing_readme: Current README content
+        new_docs: List of newly created documentation files
+        repository_name: Repository name for context
+        
+    Returns:
+        Dictionary with updated README content
+    """
+    try:
+        # Re-discover all documentation to get latest state
+        all_docs = _discover_all_documentation()
+        
+        # Check if we need to regenerate navigation section
+        if _should_regenerate_navigation(existing_readme, all_docs):
+            updated_content = _update_navigation_section(existing_readme, all_docs, repository_name)
+        else:
+            updated_content = existing_readme
+        
+        return {
+            'status': 'success',
+            'content': updated_content,
+            'updated': len(new_docs),
+            'total_docs': len([doc for section in all_docs.values() for doc in section])
+        }
+        
+    except Exception as e:
+        return {
+            'status': 'error',
+            'error': str(e),
+            'content': existing_readme
+        }
+
+
 @tool  
 def read_existing_documentation(file_path: str) -> Dict[str, Any]:
     """
@@ -186,6 +258,14 @@ def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any
     
     # Write documentation files
     write_results = _write_documentation_files(updates, webhook_event.repository_name)
+    
+    # Generate or update main README.md hub
+    readme_result = generate_main_readme(webhook_event.repository_name, webhook_event.repository_url or f"https://github.com/{webhook_event.repository_name}")
+    if readme_result['status'] == 'success':
+        readme_write_result = write_documentation_file("README.md", readme_result['content'], "create")
+        write_results['README'] = readme_write_result
+        if readme_write_result['status'] == 'success':
+            print(f"✓ {readme_write_result['operation'].title()} {readme_write_result['file_path']}")
     
     # Create summary and user impact assessment
     summary = _generate_summary(updates, change_type, affected_files, write_results)
@@ -559,5 +639,205 @@ def _assess_user_impact(workflow_analysis: Dict[str, Any], change_type: str) -> 
         return f"Medium impact: {change_type} changes may affect some user workflows. Documentation should be updated soon."
     else:
         return f"Low impact: {change_type} changes have minimal effect on user workflows. Documentation updates can be deferred."
+
+
+def _discover_all_documentation() -> Dict[str, List[Dict[str, Any]]]:
+    """Discover all documentation files in coderipple directory"""
+    import glob
+    from datetime import datetime
+    
+    coderipple_dir = "coderipple"
+    if not os.path.exists(coderipple_dir):
+        return {}
+    
+    docs = {
+        'user': [],
+        'system': [],
+        'decisions': []
+    }
+    
+    # User documentation (Tourist Guide files)
+    user_patterns = ['discovery.md', 'getting_started.md', 'patterns.md', 'troubleshooting.md', 'advanced.md']
+    for pattern in user_patterns:
+        files = glob.glob(os.path.join(coderipple_dir, pattern))
+        for file_path in files:
+            docs['user'].append(_get_file_info(file_path, 'user'))
+    
+    # System documentation (Building Inspector files)
+    system_patterns = ['system/*.md', 'architecture.md', 'capabilities.md']
+    for pattern in system_patterns:
+        files = glob.glob(os.path.join(coderipple_dir, pattern))
+        for file_path in files:
+            docs['system'].append(_get_file_info(file_path, 'system'))
+    
+    # Decision documentation (Historian files)
+    decision_patterns = ['decisions/*.md', 'adrs/*.md']
+    for pattern in decision_patterns:
+        files = glob.glob(os.path.join(coderipple_dir, pattern))
+        for file_path in files:
+            docs['decisions'].append(_get_file_info(file_path, 'decisions'))
+    
+    return docs
+
+
+def _get_file_info(file_path: str, category: str) -> Dict[str, Any]:
+    """Get file information including description and timestamp"""
+    try:
+        stat = os.stat(file_path)
+        modified_time = datetime.fromtimestamp(stat.st_mtime)
+        
+        # Extract description from file
+        description = _extract_description_from_file(file_path)
+        
+        return {
+            'path': file_path,
+            'name': os.path.basename(file_path),
+            'category': category,
+            'description': description,
+            'last_modified': modified_time.strftime("%Y-%m-%d %H:%M:%S"),
+            'size': stat.st_size
+        }
+    except Exception as e:
+        return {
+            'path': file_path,
+            'name': os.path.basename(file_path),
+            'category': category,
+            'description': 'Unable to read file description',
+            'last_modified': 'Unknown',
+            'size': 0,
+            'error': str(e)
+        }
+
+
+def _extract_description_from_file(file_path: str) -> str:
+    """Extract description from documentation file"""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        lines = content.split('\n')
+        
+        # Look for description patterns
+        for line in lines:
+            line = line.strip()
+            if line.startswith('#') and not line.startswith('##'):
+                # Main title
+                return line.replace('#', '').strip()
+            elif line.startswith('*This document') and 'Agent' in line:
+                # Agent-maintained description
+                continue
+            elif line and not line.startswith('*') and not line.startswith('#') and len(line) > 20:
+                # First substantial content line
+                return line[:100] + '...' if len(line) > 100 else line
+        
+        return "Documentation file"
+    except Exception:
+        return "Unable to read description"
+
+
+def _generate_hub_readme_content(repository_name: str, repository_url: str, existing_docs: Dict[str, List[Dict[str, Any]]]) -> str:
+    """Generate content for the main README.md hub"""
+    from datetime import datetime
+    
+    content = f"""# {repository_name} Documentation Hub
+
+*Auto-generated documentation hub maintained by CodeRipple Tourist Guide Agent*  
+*Last updated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}*
+
+---
+
+Welcome to the {repository_name} documentation! This hub provides access to all automatically maintained documentation organized by a **layered documentation structure** - three layers that handle different depths of understanding.
+
+## Documentation Layers
+
+### 🎯 User Documentation (How to ENGAGE)
+*Start here if you want to use or contribute to {repository_name}*
+
+"""
+    
+    if existing_docs.get('user'):
+        for doc in existing_docs['user']:
+            content += f"- **[{doc['name']}]({doc['path']})**: {doc['description']}\n"
+            content += f"  *Updated: {doc['last_modified']}*\n\n"
+    else:
+        content += "*No user documentation available yet*\n\n"
+    
+    content += """### 🏗️ System Documentation (What it IS)
+*Current system architecture, capabilities, and technical specifications*
+
+"""
+    
+    if existing_docs.get('system'):
+        for doc in existing_docs['system']:
+            content += f"- **[{doc['name']}]({doc['path']})**: {doc['description']}\n"
+            content += f"  *Updated: {doc['last_modified']}*\n\n"
+    else:
+        content += "*No system documentation available yet*\n\n"
+    
+    content += """### 📚 Decision Documentation (Why it BECAME this way)
+*Historical context, architectural decisions, and evolution story*
+
+"""
+    
+    if existing_docs.get('decisions'):
+        for doc in existing_docs['decisions']:
+            content += f"- **[{doc['name']}]({doc['path']})**: {doc['description']}\n"
+            content += f"  *Updated: {doc['last_modified']}*\n\n"
+    else:
+        content += "*No decision documentation available yet*\n\n"
+    
+    total_docs = sum(len(docs) for docs in existing_docs.values())
+    
+    content += f"""---
+
+## Quick Navigation
+
+- **[Repository]({repository_url})** - Source code and issues
+- **Documentation Status**: {total_docs} files across {len([k for k, v in existing_docs.items() if v])} layers
+- **Framework**: [Layered Documentation Structure](https://github.com/robertoallende/coderipple#documentation-layers)
+
+## About This Documentation
+
+This documentation is automatically maintained by **CodeRipple**, a multi-agent system that updates documentation based on code changes. Each layer serves a different purpose:
+
+- **User docs** help you discover, learn, and use the system
+- **System docs** explain what currently exists and how it works  
+- **Decision docs** preserve why things were built this way
+
+*Documentation automatically updates when code changes. If you notice gaps or issues, please [create an issue]({repository_url}/issues).*
+"""
+    
+    return content
+
+
+def _should_regenerate_navigation(existing_readme: str, all_docs: Dict[str, List[Dict[str, Any]]]) -> bool:
+    """Check if README navigation section needs to be regenerated"""
+    if not existing_readme:
+        return True
+    
+    # Count current docs vs what's in README
+    total_current_docs = sum(len(docs) for docs in all_docs.values())
+    
+    # Look for doc count in existing README
+    import re
+    doc_count_match = re.search(r'Documentation Status.*?(\d+) files', existing_readme)
+    if doc_count_match:
+        existing_count = int(doc_count_match.group(1))
+        return existing_count != total_current_docs
+    
+    return True
+
+
+def _update_navigation_section(existing_readme: str, all_docs: Dict[str, List[Dict[str, Any]]], repository_name: str) -> str:
+    """Update the navigation section of existing README"""
+    # For now, regenerate the entire README to ensure consistency
+    # In a more sophisticated implementation, we could parse and update specific sections
+    
+    # Extract repository URL from existing content if available
+    import re
+    url_match = re.search(r'\[Repository\]\((.*?)\)', existing_readme)
+    repository_url = url_match.group(1) if url_match else f"https://github.com/{repository_name}"
+    
+    return _generate_hub_readme_content(repository_name, repository_url, all_docs)
 
 

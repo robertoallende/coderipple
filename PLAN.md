@@ -52,9 +52,9 @@ Returns structured analysis (change type, scope, components affected)
 Test tool independently with sample git diffs
 
 
-## Step 3: Multi-Agent System with Strands (Role-Based Onion Framework)
+## Step 3: Multi-Agent System with Strands (Role-Based Layered Structure)
 
-This step involves creating the core multi-agent architecture using AWS Strands, structured around the three layers of the Onion Documentation Framework with clear job roles:
+This step involves creating the core multi-agent architecture using AWS Strands, structured around the three layers of the layered documentation structure with clear job roles:
 
 ### Orchestrator Agent:
 
@@ -103,12 +103,17 @@ This step involves creating the core multi-agent architecture using AWS Strands,
 - **Historian** preserves evolution context with version context
 - Each role follows framework's temporal handling and update patterns
 
-## Step 4: Documentation Generation Tools
+### Step 4: Enhanced Documentation Generation 
+Enhanced Documentation Generation is about upgrading your working multi-agent system from basic content generation to intelligent, context-aware documentation. Instead of using generic templates, agents will analyze actual code changes to create targeted, accurate documentation that references real system capabilities and maintains consistency across all documentation layers.
+The step is divided into five focused sections:
 
-Each specialist agent has documentation generation tools
-Tools create/update specific documentation types using templates + AI
-Results stored in agent conversation history and external storage
-Test end-to-end: webhook → analysis → agent coordination → documentation
+Step 4A: Intelligent Content Generation - Replace generic templates with analysis-driven content
+Step 4B: Cross-Agent Context Flow - Enable agents to reference each other's current state
+Step 4C: Amazon Bedrock Integration - Use AI to enhance content quality and detect gaps
+Step 4D: Content Validation Pipeline - Ensure generated documentation meets quality standards
+Step 4E: Real Diff Integration - Use detailed git analysis for specific, targeted documentation
+
+Each section can be implemented independently while building toward a more sophisticated documentation system that understands what actually changed and generates precise, contextual documentation accordingly.
 
 ## Step 5: Infrastructure & Integration
 
@@ -185,3 +190,146 @@ Create simple Strands agents with basic tools
 Test agent coordination with sample data
 Add documentation generation capabilities
 Deploy to AWS Lambda with full infrastructure
+
+
+# Detailed Plan
+
+# Step 4: Enhanced Documentation Generation
+
+## Step 4A: Main README.md Generation
+
+### Objective
+Tourist Guide Agent creates and maintains main README.md as documentation hub and entry point.
+
+### Tasks
+- [ ] Generate main `coderipple/README.md` with project overview
+- [ ] Create navigation links to all agent-generated documentation
+- [ ] Show documentation status and last update times
+- [ ] Explain what each documentation section contains
+- [ ] Update README when other agents create/modify files
+
+### Implementation
+```python
+@tool
+def generate_main_readme(existing_docs: dict, repository_info: dict) -> str:
+    """Generate main README.md that serves as documentation hub"""
+    pass
+
+@tool
+def update_readme_navigation(readme_content: str, new_docs: list) -> str:
+    """Update README navigation when new docs are created"""
+    pass
+```
+
+## Step 4B: Intelligent Content Generation
+
+### Objective
+Replace generic content templates with context-aware generation using git analysis results.
+
+### Tasks
+- [ ] Enhance `_generate_content_for_section()` functions to use specific change details
+- [ ] Generate code examples from actual file changes in git diff
+- [ ] Create targeted documentation based on change patterns (API changes → API docs)
+- [ ] Use commit messages and file paths to infer user impact
+
+### Implementation
+```python
+# Replace generic templates with analysis-driven content
+@tool
+def generate_context_aware_content(section: str, git_analysis: dict, file_changes: list):
+    """Generate content based on actual changes rather than generic templates"""
+    pass
+```
+
+## Step 4C: Cross-Agent Context Flow
+
+### Objective
+Enable agents to reference each other's current state for consistency.
+
+### Tasks
+- [ ] Building Inspector shares system state via Strands conversation
+- [ ] Tourist Guide references current capabilities from Building Inspector
+- [ ] Historian preserves version context with cross-references
+
+### Implementation
+```python
+# Share context through Strands conversation state
+def share_agent_context(agent_results: dict, conversation_state: dict):
+    """Make agent outputs available to subsequent agents"""
+    pass
+```
+
+## Step 4D: Amazon Bedrock Integration
+
+### Objective
+Use AI to enhance content quality and detect documentation gaps.
+
+### Tasks
+- [ ] Add Bedrock tools for content improvement
+- [ ] Implement consistency checking across documentation layers
+- [ ] Generate dynamic examples based on actual code structure
+
+### Implementation
+```python
+@tool 
+def enhance_content_with_bedrock(content: str, context: dict) -> str:
+    """Use Bedrock to improve documentation quality"""
+    pass
+```
+
+## Step 4E: Content Validation Pipeline
+
+### Objective
+Ensure generated documentation meets quality standards.
+
+### Tasks
+- [ ] Validate markdown syntax and formatting
+- [ ] Check that examples reference current system capabilities
+- [ ] Verify cross-references between documentation layers work
+
+### Implementation
+```python
+@tool
+def validate_documentation_quality(file_path: str, content: str) -> dict:
+    """Validate generated content meets quality standards"""
+    pass
+```
+
+## Step 4F: Real Diff Integration
+
+### Objective
+Use detailed git analysis to create specific, targeted documentation.
+
+### Tasks
+- [ ] Parse git diff to extract specific API changes
+- [ ] Generate file-specific documentation updates
+- [ ] Create examples from actual code patterns in changes
+
+### Implementation
+```python
+@tool
+def extract_specific_changes(git_diff: str, change_type: str) -> dict:
+    """Extract specific changes for targeted documentation"""
+    pass
+```
+
+## Success Criteria
+- [ ] Content generation uses actual change details, not generic templates
+- [ ] Agents reference each other's current state appropriately
+- [ ] Documentation quality improves through AI enhancement
+- [ ] Examples reflect actual system capabilities
+- [ ] Generated content passes validation checks
+
+## Testing Strategy
+1. Test with real git diffs containing API changes
+2. Verify cross-agent context sharing works
+3. Validate that enhanced content is more accurate
+4. Check that examples are executable/correct
+5. Ensure validation catches quality issues
+
+## Key Deliverables
+- Enhanced content generation tools for each agent
+- Cross-agent context sharing mechanism
+- Bedrock integration for content improvement
+- Validation pipeline for quality assurance
+- Integration with detailed git analysis

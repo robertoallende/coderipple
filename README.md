@@ -2,7 +2,7 @@
 
 **Multi-Agent Documentation System** (Work in Progress)
 
-CodeRipple is an experimental system that aims to automatically maintain software documentation by analyzing code changes through different perspectives using AWS Lambda and AWS Strands for agent orchestration. The system is built around the **Onion Documentation Framework**, which organizes documentation into three interconnected layers that handle the temporal relativity of software projects.
+CodeRipple is an experimental system that aims to automatically maintain software documentation by analyzing code changes through different perspectives using AWS Lambda and AWS Strands for agent orchestration. The system is built around a **layered documentation structure**, which organizes documentation into three interconnected layers that handle the temporal relativity of software projects.
 
 ## Overview
 
@@ -10,7 +10,7 @@ This project explores the idea that documentation could evolve alongside code ch
 
 **Note: This is an active experiment and not ready for production use.**
 
-## The Onion Documentation Framework
+## The Layered Documentation Structure
 
 Like an onion, software systems have natural layers of understanding. Each layer serves a distinct purpose, and you don't always need to peel back to the core. The framework organizes documentation into three interconnected layers:
 
@@ -43,7 +43,7 @@ Like an onion, software systems have natural layers of understanding. Each layer
 
 ## Agent Architecture (Role-Based)
 
-The system uses role-based agents that correspond to the Onion Documentation Framework layers:
+The system uses role-based agents that correspond to the layered documentation structure:
 
 ### **Orchestrator Agent**
 - Receives webhook data from GitHub
@@ -94,7 +94,7 @@ Built with:
 
 ## Current Implementation Status
 
-**Step 3: Multi-Agent System with Strands (Role-Based Onion Framework)** - In Development
+**Step 3: Multi-Agent System with Strands (Role-Based Layered Structure)** - In Development
 
 ### Completed:
 - ✅ **Step 1**: GitHub webhook payload parsing with diff data extraction
@@ -177,7 +177,7 @@ A successful implementation should result in:
 
 ## Key Technologies
 
-AWS Lambda, AWS Strands, Amazon Bedrock, GitHub Webhooks, Terraform, Onion Documentation Framework
+AWS Lambda, AWS Strands, Amazon Bedrock, GitHub Webhooks, Terraform, Layered Documentation Structure
 
 ## Demo Scenario (Planned)
 

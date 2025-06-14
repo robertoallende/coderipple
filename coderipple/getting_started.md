@@ -1,100 +1,67 @@
 # Getting Started
 
 *This document is automatically maintained by CodeRipple Tourist Guide Agent*  
-*Repository: user/repo*  
-*Last updated: 2025-06-14 16:54:08*
+*Repository: coderipple*  
+*Last updated: 2025-06-14 18:03:07*
 
 ---
 
-## Setup Notes
+## Installation
 
-### Recent Changes (feature)
-Due to recent feature changes, please note:
+```bash
+# Clone the repository
+git clone https://github.com/robertoallende/coderipple.git
+cd coderipple
 
-- Update installation and setup instructions
-- Add new feature to quick start guide
+# Set up Python virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-### Quick Start
-1. Follow standard installation process
-2. Review updated configuration options
-3. Test new functionality
+# Install dependencies
+pip install -r requirements.txt
+```
 
+## Quick Start
 
-## Update: 2025-06-14 16:08:48
+### 1. Test the Webhook Parser
+```bash
+# Test with sample webhook data
+python3 examples/test_webhook.py examples/sample.json push
 
-## Setup Notes
+# Test with diff fetching (requires internet)
+python3 examples/test_webhook.py examples/sample.json push --fetch-diff
+```
 
-### Recent Changes (feature)
-Due to recent feature changes, please note:
+### 2. Run Individual Agent Tests
+```bash
+# Test each agent component
+python3 tests/test_webhook_parser.py
+python3 tests/test_tourist_guide_agent.py
+python3 tests/test_building_inspector_agent.py
+python3 tests/test_historian_agent.py
+python3 tests/test_orchestrator_agent.py
+```
 
-- Update installation and setup instructions
-- Add new feature to quick start guide
+### 3. Run All Tests
+```bash
+# Using unittest discovery
+python3 -m unittest discover tests/
 
-### Quick Start
-1. Follow standard installation process
-2. Review updated configuration options
-3. Test new functionality
+# Or with pytest (recommended)
+pip install pytest
+pytest tests/ -v
+```
 
+## Configuration
 
-## Update: 2025-06-14 16:12:57
+For private repositories, set your GitHub token:
+```bash
+export GITHUB_TOKEN=your_github_personal_access_token
+```
 
-## Setup Notes
+## Next Steps
 
-### Recent Changes (feature)
-Due to recent feature changes, please note:
-
-- Update installation and setup instructions
-- Add new feature to quick start guide
-
-### Quick Start
-1. Follow standard installation process
-2. Review updated configuration options
-3. Test new functionality
-
-
-## Update: 2025-06-14 16:13:06
-
-## Setup Notes
-
-### Recent Changes (feature)
-Due to recent feature changes, please note:
-
-- Update installation and setup instructions
-- Add new feature to quick start guide
-
-### Quick Start
-1. Follow standard installation process
-2. Review updated configuration options
-3. Test new functionality
-
-
-## Update: 2025-06-14 16:23:20
-
-## Setup Notes
-
-### Recent Changes (feature)
-Due to recent feature changes, please note:
-
-- Update installation and setup instructions
-- Add new feature to quick start guide
-
-### Quick Start
-1. Follow standard installation process
-2. Review updated configuration options
-3. Test new functionality
-
-
-## Update: 2025-06-14 16:54:08
-
-## Setup Notes
-
-### Recent Changes (feature)
-Due to recent feature changes, please note:
-
-- Update installation and setup instructions
-- Add new feature to quick start guide
-
-### Quick Start
-1. Follow standard installation process
-2. Review updated configuration options
-3. Test new functionality
+1. Review the [system architecture](system/architecture.md)
+2. Understand the [decision rationale](decisions/architecture_decisions.md)
+3. Explore the multi-agent implementation
+4. Consider AWS deployment (Step 5 in PLAN.md)
