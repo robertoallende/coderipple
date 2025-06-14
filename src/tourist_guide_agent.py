@@ -13,6 +13,7 @@ Core Elements:
 - Troubleshooting: Common issues and solutions
 """
 
+import os
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from strands import tool
@@ -64,6 +65,102 @@ def analyze_user_workflow_impact(change_type: str, affected_files: List[str], co
     }
 
 
+@tool
+def write_documentation_file(file_path: str, content: str, action: str = "create") -> Dict[str, Any]:
+    """
+    Write or update documentation files in the coderipple directory.
+    
+    Args:
+        file_path: Relative path within coderipple directory (e.g., "discovery.md")
+        content: Content to write
+        action: "create", "update", or "append"
+        
+    Returns:
+        Dictionary with operation status and details
+    """
+    try:
+        # Ensure coderipple directory exists
+        coderipple_dir = "coderipple"
+        if not os.path.exists(coderipple_dir):
+            os.makedirs(coderipple_dir)
+        
+        full_path = os.path.join(coderipple_dir, file_path)
+        
+        # Ensure subdirectories exist
+        dir_path = os.path.dirname(full_path)
+        if dir_path and not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+        
+        if action == "create":
+            with open(full_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            operation = "created"
+            
+        elif action == "append":
+            with open(full_path, 'a', encoding='utf-8') as f:
+                f.write("\n\n" + content)
+            operation = "appended to"
+            
+        elif action == "update":
+            # For update, we'll overwrite the file
+            with open(full_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            operation = "updated"
+        
+        return {
+            'status': 'success',
+            'operation': operation,
+            'file_path': full_path,
+            'content_length': len(content)
+        }
+        
+    except Exception as e:
+        return {
+            'status': 'error',
+            'error': str(e),
+            'file_path': file_path
+        }
+
+
+@tool  
+def read_existing_documentation(file_path: str) -> Dict[str, Any]:
+    """
+    Read existing documentation file to check current content.
+    
+    Args:
+        file_path: Relative path within coderipple directory
+        
+    Returns:
+        Dictionary with file content or error
+    """
+    try:
+        full_path = os.path.join("coderipple", file_path)
+        
+        if not os.path.exists(full_path):
+            return {
+                'status': 'not_found',
+                'content': '',
+                'file_path': full_path
+            }
+        
+        with open(full_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+            
+        return {
+            'status': 'success',
+            'content': content,
+            'file_path': full_path,
+            'length': len(content)
+        }
+        
+    except Exception as e:
+        return {
+            'status': 'error',
+            'error': str(e),
+            'file_path': file_path
+        }
+
+
 def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any], context: Dict[str, Any]) -> TouristGuideResult:
     """
     Tourist Guide Agent that updates user-facing documentation based on code changes.
@@ -87,8 +184,11 @@ def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any
     # Generate documentation updates
     updates = _generate_documentation_updates(workflow_analysis, change_type, affected_files)
     
+    # Write documentation files
+    write_results = _write_documentation_files(updates, webhook_event.repository_name)
+    
     # Create summary and user impact assessment
-    summary = _generate_summary(updates, change_type, affected_files)
+    summary = _generate_summary(updates, change_type, affected_files, write_results)
     user_impact = _assess_user_impact(workflow_analysis, change_type)
     
     return TouristGuideResult(
@@ -259,6 +359,90 @@ def _generate_documentation_updates(workflow_analysis: Dict[str, Any], change_ty
     return updates
 
 
+def _write_documentation_files(updates: List[DocumentationUpdate], repository_name: str) -> Dict[str, Any]:
+    """Write documentation updates to files in coderipple directory"""
+    write_results = {}
+    
+    for update in updates:
+        file_name = f"{update.section}.md"
+        
+        # Check if file exists to determine action
+        existing_doc = read_existing_documentation(file_name)
+        
+        if existing_doc['status'] == 'not_found':
+            # Create new file with header
+            content = _create_document_with_header(update, repository_name)
+            action = "create"
+        else:
+            # Update existing file
+            content = _update_existing_document(existing_doc['content'], update)
+            action = "update"
+        
+        # Write the file
+        result = write_documentation_file(file_name, content, action)
+        write_results[update.section] = result
+        
+        if result['status'] == 'success':
+            print(f"✓ {result['operation'].title()} {result['file_path']}")
+        else:
+            print(f"✗ Failed to write {file_name}: {result.get('error', 'Unknown error')}")
+    
+    return write_results
+
+
+def _create_document_with_header(update: DocumentationUpdate, repository_name: str) -> str:
+    """Create a new document with proper header and content"""
+    section_titles = {
+        'discovery': 'Project Discovery',
+        'getting_started': 'Getting Started',
+        'patterns': 'Usage Patterns',
+        'advanced': 'Advanced Usage',
+        'troubleshooting': 'Troubleshooting'
+    }
+    
+    title = section_titles.get(update.section, update.section.replace('_', ' ').title())
+    
+    header = f"""# {title}
+
+*This document is automatically maintained by CodeRipple Tourist Guide Agent*  
+*Repository: {repository_name}*  
+*Last updated: {_get_current_timestamp()}*
+
+---
+
+"""
+    
+    return header + update.content
+
+
+def _update_existing_document(existing_content: str, update: DocumentationUpdate) -> str:
+    """Update existing document while preserving structure"""
+    lines = existing_content.split('\n')
+    
+    # Update timestamp if it exists
+    updated_lines = []
+    for line in lines:
+        if line.startswith('*Last updated:'):
+            updated_lines.append(f"*Last updated: {_get_current_timestamp()}*")
+        else:
+            updated_lines.append(line)
+    
+    # Add new content at the end
+    updated_content = '\n'.join(updated_lines)
+    
+    if update.action == "append":
+        return updated_content + "\n\n---\n\n" + update.content
+    else:
+        # For "update" action, we'll append with a section header
+        return updated_content + f"\n\n## Update: {_get_current_timestamp()}\n\n" + update.content
+
+
+def _get_current_timestamp() -> str:
+    """Get current timestamp for documentation headers"""
+    from datetime import datetime
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 def _generate_content_for_section(section: str, change_type: str, affected_files: List[str], recommendations: List[str]) -> str:
     """Generate actual content for documentation sections"""
     
@@ -337,7 +521,7 @@ def _calculate_priority(change_type: str, user_facing_changes: Dict[str, Any]) -
         return 3  # Low priority
 
 
-def _generate_summary(updates: List[DocumentationUpdate], change_type: str, affected_files: List[str]) -> str:
+def _generate_summary(updates: List[DocumentationUpdate], change_type: str, affected_files: List[str], write_results: Dict[str, Any] = None) -> str:
     """Generate summary of Tourist Guide analysis"""
     
     if not updates:
@@ -346,13 +530,19 @@ def _generate_summary(updates: List[DocumentationUpdate], change_type: str, affe
     sections = list(set(update.section for update in updates))
     high_priority = sum(1 for update in updates if update.priority == 1)
     
-    summary = f"Tourist Guide recommends {len(updates)} documentation updates for {change_type} changes. "
+    summary = f"Tourist Guide processed {len(updates)} documentation updates for {change_type} changes. "
     summary += f"Affected sections: {', '.join(sections)}. "
     
     if high_priority > 0:
-        summary += f"{high_priority} high-priority updates identified."
+        summary += f"{high_priority} high-priority updates identified. "
     else:
-        summary += "All updates are medium/low priority."
+        summary += "All updates are medium/low priority. "
+    
+    # Add file writing results
+    if write_results:
+        successful_writes = sum(1 for result in write_results.values() if result.get('status') == 'success')
+        total_writes = len(write_results)
+        summary += f"Files written: {successful_writes}/{total_writes} successful."
     
     return summary
 
@@ -371,62 +561,3 @@ def _assess_user_impact(workflow_analysis: Dict[str, Any], change_type: str) -> 
         return f"Low impact: {change_type} changes have minimal effect on user workflows. Documentation updates can be deferred."
 
 
-# Test function
-def test_tourist_guide():
-    """Test the Tourist Guide agent with sample data"""
-    
-    from webhook_parser import CommitInfo, WebhookEvent
-    from datetime import datetime
-    
-    # Create sample webhook event
-    sample_commit = CommitInfo(
-        id="abc123",
-        message="Add new CLI command for user authentication",
-        author="Developer",
-        timestamp=datetime.now(),
-        added_files=["src/cli.py", "README.md"],
-        modified_files=["src/main.py"],
-        removed_files=[],
-        url="https://github.com/user/repo/commit/abc123"
-    )
-    
-    sample_event = WebhookEvent(
-        event_type="push",
-        repository_name="user/repo",
-        repository_url="https://github.com/user/repo",
-        branch="main",
-        commits=[sample_commit],
-        before_sha="before123",
-        after_sha="abc123"
-    )
-    
-    sample_git_analysis = {
-        'change_type': 'feature',
-        'affected_components': ['src/cli.py', 'README.md', 'src/main.py'],
-        'confidence': 0.8,
-        'summary': 'Detected feature changes in 3 files'
-    }
-    
-    sample_context = {
-        'change_type': 'feature',
-        'affected_files': ['src/cli.py', 'README.md', 'src/main.py'],
-        'focus': 'user_workflows'
-    }
-    
-    print("Testing Tourist Guide Agent...")
-    print("=" * 50)
-    
-    result = tourist_guide_agent(sample_event, sample_git_analysis, sample_context)
-    
-    print(f"Summary: {result.summary}")
-    print(f"User Impact: {result.user_impact}")
-    print(f"Documentation Updates ({len(result.updates)}):")
-    
-    for i, update in enumerate(result.updates, 1):
-        print(f"\n{i}. {update.section} ({update.action}) - Priority {update.priority}")
-        print(f"   Reason: {update.reason}")
-        print(f"   Content Preview: {update.content[:100]}...")
-
-
-if __name__ == "__main__":
-    test_tourist_guide()
