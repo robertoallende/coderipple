@@ -12,6 +12,7 @@ from webhook_parser import GitHubWebhookParser, WebhookEvent
 from git_analysis_tool import analyze_git_diff
 from tourist_guide_agent import tourist_guide_agent
 from building_inspector_agent import building_inspector_agent
+from historian_agent import historian_agent
 
 
 @dataclass
@@ -180,9 +181,9 @@ def _execute_selected_agents(webhook_event: WebhookEvent, git_analysis: Dict[str
                 print(f"Building Inspector Agent executed: {result.summary}")
                 
             elif decision.agent_type == 'historian':
-                # Placeholder for Historian Agent  
-                print(f"Historian Agent would be executed (not implemented yet)")
-                agent_results['historian'] = {"status": "placeholder"}
+                result = historian_agent(webhook_event, git_analysis, decision.context)
+                agent_results['historian'] = result
+                print(f"Historian Agent executed: {result.summary}")
                 
         except Exception as e:
             print(f"Error executing {decision.agent_type} agent: {e}")
