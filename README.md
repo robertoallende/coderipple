@@ -26,7 +26,7 @@ Like an onion, software systems have natural layers of understanding. Each layer
 - **Content**: Purpose & Problem Solved, Architecture & Design, Interfaces & Usage, Current Capabilities, Technology Stack
 - **Update Pattern**: Incremental rewrites - sections updated as they change, no historical preservation
 
-###git  **Inner Layer: Why it BECAME this way**
+### **Inner Layer: Why it BECAME this way**
 *The core that holds the foundational reasoning*
 - **Purpose**: Preserve the reasoning behind how the system evolved through different versions
 - **Content**: Architectural Decision Records (ADRs), Problem Evolution, Major Refactors, Technology Migrations, Failed Experiments
