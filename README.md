@@ -14,19 +14,19 @@ This project explores the idea that documentation could evolve alongside code ch
 
 Like an onion, software systems have natural layers of understanding. Each layer serves a distinct purpose, and you don't always need to peel back to the core. The framework organizes documentation into three interconnected layers:
 
-### 🧅 **Outer Layer: How to ENGAGE**
+### **Outer Layer: How to ENGAGE**
 *The protective skin that everyone encounters first*
 - **Purpose**: Guide people through different ways of interacting with the system
 - **Content**: Discovery, Getting Started, Common Patterns, Advanced Usage, Troubleshooting
 - **Update Pattern**: Task-oriented updates based on user feedback and workflow changes
 
-### 🧅 **Middle Layer: What it IS**
+### **Middle Layer: What it IS**
 *The substantial flesh that provides the current reality*
 - **Purpose**: Living snapshot of the system as it exists today
 - **Content**: Purpose & Problem Solved, Architecture & Design, Interfaces & Usage, Current Capabilities, Technology Stack
 - **Update Pattern**: Incremental rewrites - sections updated as they change, no historical preservation
 
-### 🧅 **Inner Layer: Why it BECAME this way**
+###git  **Inner Layer: Why it BECAME this way**
 *The core that holds the foundational reasoning*
 - **Purpose**: Preserve the reasoning behind how the system evolved through different versions
 - **Content**: Architectural Decision Records (ADRs), Problem Evolution, Major Refactors, Technology Migrations, Failed Experiments
