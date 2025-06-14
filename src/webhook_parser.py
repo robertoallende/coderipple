@@ -124,7 +124,8 @@ class GitHubWebhookParser:
     def extract_changed_files(self, webhook_event: WebhookEvent) -> List[str]:
         """Extract all changed files from the webhook event"""
         all_files = set()
-        
+
+
         for commit in webhook_event.commits:
             all_files.update(commit.added_files)
             all_files.update(commit.modified_files)
