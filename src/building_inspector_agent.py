@@ -1,0 +1,627 @@
+"""
+Building Inspector Agent for CodeRipple
+
+This agent focuses on the middle layer of documentation - "What it IS".
+Documents what's actually there right now, how systems work, current specifications.
+Updates based on incremental rewrites as sections change.
+
+Core Elements:
+- Purpose & Problem Solved: Why this system exists
+- Architecture & Design: How it's structured and organized  
+- Interfaces & Usage: How to interact with the system
+- Current Capabilities & Constraints: What it can/cannot do
+- Technology Stack: What technologies are used
+"""
+
+import os
+from typing import Dict, Any, List, Optional
+from dataclasses import dataclass
+from strands import tool
+from webhook_parser import WebhookEvent
+
+
+@dataclass
+class SystemDocumentationUpdate:
+    """Represents a system documentation update decision"""
+    section: str  # 'purpose', 'architecture', 'interfaces', 'capabilities', 'tech_stack'
+    action: str   # 'create', 'update', 'rewrite'
+    content: str
+    reason: str
+    priority: int  # 1=high, 2=medium, 3=low
+
+
+@dataclass
+class BuildingInspectorResult:
+    """Result of Building Inspector analysis"""
+    updates: List[SystemDocumentationUpdate]
+    summary: str
+    system_impact: str  # Description of how this affects the current system
+
+
+@tool
+def analyze_system_changes(change_type: str, affected_files: List[str], commit_messages: List[str]) -> Dict[str, Any]:
+    """
+    Analyze how code changes impact the current system and determine documentation updates needed.
+    
+    Args:
+        change_type: Type of change (feature, bugfix, etc.)
+        affected_files: List of files that were changed
+        commit_messages: List of commit messages for context
+        
+    Returns:
+        Dictionary with system impact analysis and documentation recommendations
+    """
+    
+    # Analyze system-level impact
+    system_changes = _identify_system_changes(change_type, affected_files, commit_messages)
+    system_impact = _assess_system_impact(change_type, system_changes)
+    doc_updates = _recommend_system_documentation_updates(change_type, system_changes, system_impact)
+    
+    return {
+        'system_changes': system_changes,
+        'system_impact': system_impact,
+        'documentation_updates': doc_updates,
+        'priority_level': _calculate_system_priority(change_type, system_changes)
+    }
+
+
+@tool
+def write_system_documentation_file(file_path: str, content: str, action: str = "create") -> Dict[str, Any]:
+    """
+    Write or update system documentation files in the coderipple/system directory.
+    
+    Args:
+        file_path: Relative path within coderipple/system directory (e.g., "architecture.md")
+        content: Content to write
+        action: "create", "update", or "rewrite"
+        
+    Returns:
+        Dictionary with operation status and details
+    """
+    try:
+        # Ensure coderipple/system directory exists
+        system_dir = os.path.join("coderipple", "system")
+        if not os.path.exists(system_dir):
+            os.makedirs(system_dir)
+        
+        full_path = os.path.join(system_dir, file_path)
+        
+        # Ensure subdirectories exist
+        dir_path = os.path.dirname(full_path)
+        if dir_path and not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+        
+        if action == "create":
+            with open(full_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            operation = "created"
+            
+        elif action == "rewrite":
+            # For rewrite, we completely replace the content
+            with open(full_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            operation = "rewritten"
+            
+        elif action == "update":
+            # For update, we'll overwrite the file (Building Inspector doesn't preserve history)
+            with open(full_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            operation = "updated"
+        
+        return {
+            'status': 'success',
+            'operation': operation,
+            'file_path': full_path,
+            'content_length': len(content)
+        }
+        
+    except Exception as e:
+        return {
+            'status': 'error',
+            'error': str(e),
+            'file_path': file_path
+        }
+
+
+@tool  
+def read_existing_system_documentation(file_path: str) -> Dict[str, Any]:
+    """
+    Read existing system documentation file to check current content.
+    
+    Args:
+        file_path: Relative path within coderipple/system directory
+        
+    Returns:
+        Dictionary with file content or error
+    """
+    try:
+        full_path = os.path.join("coderipple", "system", file_path)
+        
+        if not os.path.exists(full_path):
+            return {
+                'status': 'not_found',
+                'content': '',
+                'file_path': full_path
+            }
+        
+        with open(full_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+            
+        return {
+            'status': 'success',
+            'content': content,
+            'file_path': full_path,
+            'length': len(content)
+        }
+        
+    except Exception as e:
+        return {
+            'status': 'error',
+            'error': str(e),
+            'file_path': file_path
+        }
+
+
+def building_inspector_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any], context: Dict[str, Any]) -> BuildingInspectorResult:
+    """
+    Building Inspector Agent that updates system documentation based on code changes.
+    
+    Args:
+        webhook_event: Parsed webhook event data
+        git_analysis: Analysis from git analysis tool
+        context: Additional context from orchestrator
+        
+    Returns:
+        BuildingInspectorResult with system documentation updates
+    """
+    
+    change_type = git_analysis.get('change_type', 'unknown')
+    affected_files = git_analysis.get('affected_components', [])
+    commit_messages = [commit.message for commit in webhook_event.commits]
+    
+    # Use the system analysis tool
+    system_analysis = analyze_system_changes(change_type, affected_files, commit_messages)
+    
+    # Generate documentation updates
+    updates = _generate_system_documentation_updates(system_analysis, change_type, affected_files)
+    
+    # Write documentation files
+    write_results = _write_system_documentation_files(updates, webhook_event.repository_name)
+    
+    # Create summary and system impact assessment
+    summary = _generate_system_summary(updates, change_type, affected_files, write_results)
+    system_impact = _assess_overall_system_impact(system_analysis, change_type)
+    
+    return BuildingInspectorResult(
+        updates=updates,
+        summary=summary,
+        system_impact=system_impact
+    )
+
+
+def _identify_system_changes(change_type: str, affected_files: List[str], commit_messages: List[str]) -> Dict[str, Any]:
+    """Identify which changes affect the current system"""
+    
+    system_indicators = {
+        'core_functionality': ['src/', 'lib/', 'core/', 'main.py', 'app.py', '__init__.py'],
+        'architecture_changes': ['migrations/', 'models/', 'schema', 'database/', 'db/'],
+        'api_interfaces': ['api/', 'routes/', 'endpoints/', 'controllers/', 'handlers/'],
+        'configuration': ['config/', 'settings', '.env', 'dockerfile', 'docker-compose'],
+        'dependencies': ['requirements.txt', 'package.json', 'Cargo.toml', 'pom.xml', 'setup.py'],
+        'infrastructure': ['terraform/', 'cloudformation/', '.github/', 'deploy/', 'k8s/']
+    }
+    
+    identified_changes = {}
+    
+    for category, indicators in system_indicators.items():
+        matches = []
+        
+        # Check files
+        for file in affected_files:
+            if any(indicator in file.lower() for indicator in indicators):
+                matches.append(f"File: {file}")
+        
+        # Check commit messages
+        for msg in commit_messages:
+            if any(indicator in msg.lower() for indicator in indicators):
+                matches.append(f"Commit: {msg[:50]}...")
+        
+        if matches:
+            identified_changes[category] = matches
+    
+    return identified_changes
+
+
+def _assess_system_impact(change_type: str, system_changes: Dict[str, Any]) -> Dict[str, str]:
+    """Assess how changes impact different aspects of the current system"""
+    
+    impact_levels = {
+        'purpose': 'none',
+        'architecture': 'none',
+        'interfaces': 'none',
+        'capabilities': 'none',
+        'tech_stack': 'none'
+    }
+    
+    # Feature changes typically affect capabilities and interfaces
+    if change_type == 'feature':
+        impact_levels['capabilities'] = 'high'
+        if 'api_interfaces' in system_changes:
+            impact_levels['interfaces'] = 'high'
+        if 'core_functionality' in system_changes:
+            impact_levels['architecture'] = 'medium'
+    
+    # Bug fixes affect current capabilities
+    elif change_type == 'bugfix':
+        impact_levels['capabilities'] = 'medium'
+        if 'core_functionality' in system_changes:
+            impact_levels['architecture'] = 'low'
+    
+    # Refactoring affects architecture significantly
+    elif change_type == 'refactor':
+        impact_levels['architecture'] = 'high'
+        if 'core_functionality' in system_changes:
+            impact_levels['capabilities'] = 'medium'
+    
+    # Dependencies affect tech stack
+    if 'dependencies' in system_changes:
+        impact_levels['tech_stack'] = 'high'
+    
+    # Infrastructure changes affect architecture
+    if 'infrastructure' in system_changes:
+        impact_levels['architecture'] = 'medium'
+        impact_levels['tech_stack'] = 'medium'
+    
+    # Configuration changes affect current setup
+    if 'configuration' in system_changes:
+        impact_levels['capabilities'] = 'medium'
+        impact_levels['tech_stack'] = 'low'
+    
+    return impact_levels
+
+
+def _recommend_system_documentation_updates(change_type: str, system_changes: Dict[str, Any], system_impact: Dict[str, str]) -> List[str]:
+    """Recommend specific system documentation updates needed"""
+    
+    recommendations = []
+    
+    for section, impact_level in system_impact.items():
+        if impact_level == 'none':
+            continue
+            
+        if section == 'purpose':
+            if change_type == 'feature' and impact_level == 'high':
+                recommendations.append("Update system purpose with new capabilities")
+                recommendations.append("Refresh problem statement and solution approach")
+        
+        elif section == 'architecture':
+            if change_type == 'feature':
+                recommendations.append("Update architectural diagrams with new components")
+                recommendations.append("Document new system interactions and data flows")
+            elif change_type == 'refactor':
+                recommendations.append("Rewrite architectural documentation to reflect changes")
+                recommendations.append("Update component relationships and boundaries")
+        
+        elif section == 'interfaces':
+            if 'api_interfaces' in system_changes:
+                recommendations.append("Update API documentation with new endpoints")
+                recommendations.append("Document interface changes and compatibility")
+            if change_type == 'feature':
+                recommendations.append("Add new interface usage examples")
+        
+        elif section == 'capabilities':
+            if change_type == 'feature':
+                recommendations.append("Document new system capabilities and features")
+                recommendations.append("Update capability matrix and limitations")
+            elif change_type == 'bugfix':
+                recommendations.append("Update known limitations and resolved issues")
+        
+        elif section == 'tech_stack':
+            if 'dependencies' in system_changes:
+                recommendations.append("Update technology stack documentation")
+                recommendations.append("Document new dependencies and versions")
+            if 'infrastructure' in system_changes:
+                recommendations.append("Update deployment and infrastructure documentation")
+    
+    return recommendations
+
+
+def _generate_system_documentation_updates(system_analysis: Dict[str, Any], change_type: str, affected_files: List[str]) -> List[SystemDocumentationUpdate]:
+    """Generate specific system documentation updates based on analysis"""
+    
+    updates = []
+    doc_recommendations = system_analysis.get('documentation_updates', [])
+    priority_level = system_analysis.get('priority_level', 3)
+    
+    # Group recommendations by section
+    section_updates = {
+        'purpose': [],
+        'architecture': [],
+        'interfaces': [],
+        'capabilities': [],
+        'tech_stack': []
+    }
+    
+    for rec in doc_recommendations:
+        if any(keyword in rec.lower() for keyword in ['purpose', 'problem', 'solution']):
+            section_updates['purpose'].append(rec)
+        elif any(keyword in rec.lower() for keyword in ['architecture', 'component', 'diagram', 'structure']):
+            section_updates['architecture'].append(rec)
+        elif any(keyword in rec.lower() for keyword in ['api', 'interface', 'endpoint', 'usage']):
+            section_updates['interfaces'].append(rec)
+        elif any(keyword in rec.lower() for keyword in ['capabilities', 'feature', 'limitation', 'constraint']):
+            section_updates['capabilities'].append(rec)
+        elif any(keyword in rec.lower() for keyword in ['technology', 'dependencies', 'stack', 'infrastructure']):
+            section_updates['tech_stack'].append(rec)
+    
+    # Create SystemDocumentationUpdate objects
+    for section, recommendations in section_updates.items():
+        if recommendations:
+            content = _generate_system_content_for_section(section, change_type, affected_files, recommendations)
+            
+            # Building Inspector uses rewrite pattern for major changes
+            action = 'rewrite' if change_type == 'refactor' else 'update'
+            
+            updates.append(SystemDocumentationUpdate(
+                section=section,
+                action=action,
+                content=content,
+                reason=f"{change_type} changes affect current {section}",
+                priority=priority_level
+            ))
+    
+    return updates
+
+
+def _write_system_documentation_files(updates: List[SystemDocumentationUpdate], repository_name: str) -> Dict[str, Any]:
+    """Write system documentation updates to files in coderipple/system directory"""
+    write_results = {}
+    
+    for update in updates:
+        file_name = f"{update.section}.md"
+        
+        # Check if file exists to determine action
+        existing_doc = read_existing_system_documentation(file_name)
+        
+        if existing_doc['status'] == 'not_found':
+            # Create new file with header
+            content = _create_system_document_with_header(update, repository_name)
+            action = "create"
+        else:
+            # Building Inspector rewrites sections (no history preservation)
+            content = _rewrite_system_document(update, repository_name)
+            action = update.action
+        
+        # Write the file
+        result = write_system_documentation_file(file_name, content, action)
+        write_results[update.section] = result
+        
+        if result['status'] == 'success':
+            print(f"✓ {result['operation'].title()} {result['file_path']}")
+        else:
+            print(f"✗ Failed to write {file_name}: {result.get('error', 'Unknown error')}")
+    
+    return write_results
+
+
+def _create_system_document_with_header(update: SystemDocumentationUpdate, repository_name: str) -> str:
+    """Create a new system document with proper header and content"""
+    section_titles = {
+        'purpose': 'System Purpose & Problem Solved',
+        'architecture': 'Architecture & Design',
+        'interfaces': 'Interfaces & Usage',
+        'capabilities': 'Current Capabilities & Constraints',
+        'tech_stack': 'Technology Stack'
+    }
+    
+    title = section_titles.get(update.section, update.section.replace('_', ' ').title())
+    
+    header = f"""# {title}
+
+*This document is automatically maintained by CodeRipple Building Inspector Agent*  
+*Repository: {repository_name}*  
+*Last updated: {_get_current_timestamp()}*  
+*Documentation reflects current system state only*
+
+---
+
+"""
+    
+    return header + update.content
+
+
+def _rewrite_system_document(update: SystemDocumentationUpdate, repository_name: str) -> str:
+    """Rewrite system document (Building Inspector doesn't preserve history)"""
+    # Building Inspector always rewrites to reflect current state
+    return _create_system_document_with_header(update, repository_name)
+
+
+def _get_current_timestamp() -> str:
+    """Get current timestamp for documentation headers"""
+    from datetime import datetime
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _generate_system_content_for_section(section: str, change_type: str, affected_files: List[str], recommendations: List[str]) -> str:
+    """Generate actual content for system documentation sections"""
+    
+    if section == 'purpose':
+        return f"""## System Purpose
+
+This system addresses the following problem:
+- Automated documentation maintenance through multi-agent analysis
+- Reduction of documentation debt and manual updating overhead
+
+### Current Solution Approach
+The system uses role-based agents to analyze code changes and update documentation at different layers:
+{chr(10).join(f"- {rec}" for rec in recommendations)}
+
+### Key Value Propositions
+- Real-time documentation updates
+- Multi-perspective documentation coverage
+- Autonomous operation without human intervention
+"""
+    
+    elif section == 'architecture':
+        return f"""## System Architecture
+
+### Current Architecture Overview
+The system follows a webhook-driven, multi-agent architecture:
+
+```
+GitHub Webhook → API Gateway → Orchestrator Agent → Specialist Agents → Documentation Output
+```
+
+### Recent Changes ({change_type})
+{chr(10).join(f"- {rec}" for rec in recommendations)}
+
+### Core Components
+- **Orchestrator Agent**: Coordinates agent invocation based on change analysis
+- **Tourist Guide Agent**: Maintains user-facing documentation
+- **Building Inspector Agent**: Documents current system state
+- **Historian Agent**: Preserves architectural decisions and evolution
+
+### Data Flow
+1. Webhook event received from GitHub
+2. Git analysis tool categorizes changes
+3. Decision tree determines which agents to invoke
+4. Agents update their respective documentation layers
+"""
+    
+    elif section == 'interfaces':
+        return f"""## System Interfaces
+
+### Primary Interfaces
+- **GitHub Webhooks**: Incoming change notifications
+- **Strands Tools**: Agent coordination and communication
+- **File System**: Documentation output (`coderipple/` directory)
+
+### Recent Interface Changes ({change_type})
+{chr(10).join(f"- {rec}" for rec in recommendations)}
+
+### API Usage Patterns
+```python
+# Webhook processing
+webhook_event = parser.parse_webhook_payload(payload, event_type)
+
+# Agent invocation
+result = orchestrator_agent(webhook_payload, event_type)
+
+# Documentation writing
+write_result = write_documentation_file(file_path, content, action)
+```
+
+### Input/Output Specifications
+- **Input**: GitHub webhook JSON payloads
+- **Output**: Markdown documentation files organized by agent type
+"""
+    
+    elif section == 'capabilities':
+        return f"""## Current Capabilities
+
+### What the System Can Do
+- Parse GitHub webhook events (push, pull_request)
+- Analyze git diffs to categorize change types
+- Coordinate multiple specialist agents based on change analysis
+- Generate and update documentation files automatically
+- Maintain separate documentation layers (user-facing, system, decisions)
+
+### Recent Capability Changes ({change_type})
+{chr(10).join(f"- {rec}" for rec in recommendations)}
+
+### Current Constraints
+- Limited to GitHub webhooks as trigger mechanism
+- Requires manual setup and configuration
+- Not yet deployed to production infrastructure
+- Agent coordination limited to implemented agents
+
+### Performance Characteristics
+- Response time: < 30 seconds for typical changes
+- Supported file types: All text-based files
+- Concurrent processing: Single-threaded currently
+"""
+    
+    elif section == 'tech_stack':
+        return f"""## Technology Stack
+
+### Core Technologies
+- **Python 3.x**: Primary development language
+- **AWS Strands**: Agent orchestration framework
+- **AWS Lambda**: Planned serverless execution environment
+- **GitHub API**: Source code change detection
+
+### Recent Technology Changes ({change_type})
+{chr(10).join(f"- {rec}" for rec in recommendations)}
+
+### Dependencies
+- strands-agents: Agent framework and tools
+- Standard Python libraries: json, urllib, datetime, typing
+
+### Infrastructure Components (Planned)
+- AWS API Gateway: Webhook endpoint
+- AWS Lambda: Agent execution
+- Amazon Bedrock: AI analysis
+- Terraform: Infrastructure as Code
+
+### Development Tools
+- Virtual environment: Python venv
+- Testing: Python unittest framework
+- Version control: Git with GitHub
+"""
+    
+    return f"## {section.replace('_', ' ').title()}\n\nCurrent system documentation for {section} based on {change_type} changes."
+
+
+def _calculate_system_priority(change_type: str, system_changes: Dict[str, Any]) -> int:
+    """Calculate priority level for system documentation updates"""
+    
+    if change_type == 'feature' and ('core_functionality' in system_changes or 'api_interfaces' in system_changes):
+        return 1  # High priority
+    elif change_type == 'refactor' and 'architecture_changes' in system_changes:
+        return 1  # High priority for architectural changes
+    elif change_type in ['feature', 'bugfix'] and system_changes:
+        return 2  # Medium priority
+    elif system_changes:
+        return 2  # Medium priority
+    else:
+        return 3  # Low priority
+
+
+def _generate_system_summary(updates: List[SystemDocumentationUpdate], change_type: str, affected_files: List[str], write_results: Dict[str, Any] = None) -> str:
+    """Generate summary of Building Inspector analysis"""
+    
+    if not updates:
+        return f"No system documentation updates needed for {change_type} changes."
+    
+    sections = list(set(update.section for update in updates))
+    high_priority = sum(1 for update in updates if update.priority == 1)
+    
+    summary = f"Building Inspector processed {len(updates)} system documentation updates for {change_type} changes. "
+    summary += f"Affected sections: {', '.join(sections)}. "
+    
+    if high_priority > 0:
+        summary += f"{high_priority} high-priority updates identified. "
+    else:
+        summary += "All updates are medium/low priority. "
+    
+    # Add file writing results
+    if write_results:
+        successful_writes = sum(1 for result in write_results.values() if result.get('status') == 'success')
+        total_writes = len(write_results)
+        summary += f"System docs written: {successful_writes}/{total_writes} successful."
+    
+    return summary
+
+
+def _assess_overall_system_impact(system_analysis: Dict[str, Any], change_type: str) -> str:
+    """Assess overall impact on the current system"""
+    
+    priority_level = system_analysis.get('priority_level', 3)
+    system_changes = system_analysis.get('system_changes', {})
+    
+    if priority_level == 1:
+        return f"High impact: {change_type} changes significantly modify current system architecture or capabilities."
+    elif priority_level == 2:
+        return f"Medium impact: {change_type} changes affect some aspects of the current system."
+    else:
+        return f"Low impact: {change_type} changes have minimal effect on current system documentation."

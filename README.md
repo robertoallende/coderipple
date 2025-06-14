@@ -144,16 +144,17 @@ python3 examples/test_webhook.py examples/sample.json push --fetch-diff
 ### Running Tests
 ```bash
 # Run individual test files
-python tests/test_webhook_parser.py
-python tests/test_tourist_guide_agent.py
-python tests/test_orchestrator_agent.py
+python3 tests/test_webhook_parser.py
+python3 tests/test_tourist_guide_agent.py
+python3 tests/test_orchestrator_agent.py
+python3 tests/test_building_inspector_agent.py 
 
 # Run all tests with unittest discovery
-python -m unittest discover tests/
+python3 -m unittest discover tests/
 
 # Or install and use pytest (recommended)
 pip install pytest
-pytest tests/
+pytest3 tests/
 
 # Run specific test file with pytest
 pytest tests/test_webhook_parser.py -v
