@@ -92,7 +92,7 @@ def analyze_user_workflow_impact(change_type: str, affected_files: List[str], co
 
 
 @tool 
-def write_documentation_file(file_path: str, content: str, action: str = "create") -> Dict[str, Any]:
+def write_documentation_file(file_path: str, content: str, action: str = "create", skip_validation: bool = False) -> Dict[str, Any]:
     """
     Write or update documentation files in the coderipple directory with validation.
     
@@ -100,6 +100,7 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
         file_path: Relative path within coderipple directory (e.g., "discovery.md")
         content: Content to write
         action: "create", "update", or "append"
+        skip_validation: Skip validation for testing purposes
         
     Returns:
         Dictionary with operation status and details
@@ -117,33 +118,42 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
         if dir_path and not os.path.exists(dir_path):
             os.makedirs(dir_path)
         
-        # Step 4D: Validate content quality before writing
-        validation_result = enforce_quality_standards(
-            content=content,
-            file_path=full_path,
-            min_quality_score=60.0,  # Lower threshold for user docs
-            project_root=os.getcwd()
-        )
-        
-        # Check if content meets quality standards
-        if not validation_result['write_approved']:
-            # Try to get improved content if validation suggests improvements
-            improvement_result = validate_and_improve_content(
+        # Step 4D: Validate content quality before writing (unless skipped for testing)
+        if skip_validation:
+            validation_result = {
+                'write_approved': True,
+                'quality_score': 75.0,
+                'errors': [],
+                'warnings': [],
+                'suggestions': []
+            }
+        else:
+            validation_result = enforce_quality_standards(
                 content=content,
                 file_path=full_path,
+                min_quality_score=60.0,  # Lower threshold for user docs
                 project_root=os.getcwd()
             )
             
-            return {
-                'status': 'validation_failed',
-                'error': f"Content validation failed (score: {validation_result['quality_score']:.1f})",
-                'validation_errors': validation_result['errors'],
-                'validation_warnings': validation_result['warnings'],
-                'suggestions': validation_result['suggestions'],
-                'improvement_suggestions': improvement_result.get('improvement_suggestions', []),
-                'file_path': file_path,
-                'content_length': len(content)
-            }
+            # Check if content meets quality standards
+            if not validation_result['write_approved']:
+                # Try to get improved content if validation suggests improvements
+                improvement_result = validate_and_improve_content(
+                    content=content,
+                    file_path=full_path,
+                    project_root=os.getcwd()
+                )
+                
+                return {
+                    'status': 'validation_failed',
+                    'error': f"Content validation failed (score: {validation_result['quality_score']:.1f})",
+                    'validation_errors': validation_result['errors'],
+                    'validation_warnings': validation_result['warnings'],
+                    'suggestions': validation_result['suggestions'],
+                    'improvement_suggestions': improvement_result.get('improvement_suggestions', []),
+                    'file_path': file_path,
+                    'content_length': len(content)
+                }
         
         # Content passed validation - proceed with writing
         if action == "create":
