@@ -1,7 +1,7 @@
 # user/repo Documentation Hub
 
 *Auto-generated documentation hub maintained by CodeRipple Tourist Guide Agent*  
-*Last updated: 2025-06-15 14:49:54*
+*Last updated: 2025-06-15 16:35:08*
 
 ---
 
@@ -18,9 +18,6 @@ Welcome to the user/repo documentation! This hub provides access to all automati
 - **[getting_started.md](coderipple/getting_started.md)**: Unable to read file description
   *Updated: Unknown*
 
-- **[patterns.md](coderipple/patterns.md)**: Unable to read file description
-  *Updated: Unknown*
-
 ### 🏗️ System Documentation (What it IS)
 *Current system architecture, capabilities, and technical specifications*
 
@@ -29,24 +26,14 @@ Welcome to the user/repo documentation! This hub provides access to all automati
 ### 📚 Decision Documentation (Why it BECAME this way)
 *Historical context, architectural decisions, and evolution story*
 
-- **[technology_migrations.md](coderipple/decisions/technology_migrations.md)**: Unable to read file description
-  *Updated: Unknown*
-
-- **[refactoring_history.md](coderipple/decisions/refactoring_history.md)**: Unable to read file description
-  *Updated: Unknown*
-
-- **[failed_experiments.md](coderipple/decisions/failed_experiments.md)**: Unable to read file description
-  *Updated: Unknown*
-
-- **[architecture_decisions.md](coderipple/decisions/architecture_decisions.md)**: Unable to read file description
-  *Updated: Unknown*
+*No decision documentation available yet*
 
 ---
 
 ## Quick Navigation
 
 - **[Repository](https://github.com/user/repo)** - Source code and issues
-- **Documentation Status**: 7 files across 2 layers
+- **Documentation Status**: 2 files across 1 layers
 - **Framework**: [Layered Documentation Structure](https://github.com/robertoallende/coderipple#documentation-layers)
 
 ## About This Documentation
