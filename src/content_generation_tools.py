@@ -682,3 +682,234 @@ def _generate_migration_guide_content(breaking_changes: list, migration_steps: l
     content_parts.append(f"- **After upgrading:** Test thoroughly to ensure everything works")
     
     return '\n'.join(content_parts)
+
+
+@tool
+def generate_context_rich_content(section: str, git_analysis: Dict[str, Any], 
+                                file_changes: List[str], code_examples: List[CodeExample],
+                                doc_focus: DocumentationFocus, change_type: str,
+                                project_root: str = ".") -> str:
+    """
+    STEP 5D: Generate context-rich content using all Step 5 tools for meaningful documentation.
+    
+    This function integrates:
+    - Step 5A: Source code analysis for project understanding
+    - Step 5B: Existing content discovery for context awareness
+    - Step 5C: Content-aware update logic for intelligent merging
+    
+    Args:
+        section: Documentation section to generate ('discovery', 'getting_started', etc.)
+        git_analysis: Results from git analysis tool
+        file_changes: List of changed files
+        code_examples: Extracted code examples
+        doc_focus: Documentation focus analysis
+        change_type: Type of change (feature, bugfix, etc.)
+        project_root: Root directory of the project
+        
+    Returns:
+        Generated content string with rich context
+    """
+    try:
+        # Step 5A: Get source code analysis for project understanding
+        from source_code_analysis_tool import analyze_source_code
+        source_analysis = analyze_source_code(project_root)
+        
+        # Step 5B: Discover existing content for context awareness
+        from existing_content_discovery_tool import analyze_existing_content
+        existing_content = analyze_existing_content("coderipple", source_analysis)
+        
+        # Step 5C: Apply content-aware update logic
+        from content_aware_update_logic import apply_content_aware_updates
+        
+        # Map section to documentation category
+        category_mapping = {
+            'discovery': 'user',
+            'getting_started': 'user',
+            'patterns': 'user',
+            'advanced': 'user',
+            'troubleshooting': 'user',
+            'architecture': 'system',
+            'capabilities': 'system',
+            'tech_stack': 'system',
+            'decisions': 'decisions'
+        }
+        
+        target_category = category_mapping.get(section, 'user')
+        
+        # Get content-aware update recommendations
+        git_diff = git_analysis.get('diff', '') or _reconstruct_diff_from_examples(code_examples)
+        update_result = apply_content_aware_updates(
+            change_type=change_type,
+            affected_files=file_changes,
+            git_diff=git_diff,
+            target_category=target_category,
+            source_analysis=source_analysis,
+            existing_docs=existing_content
+        )
+        
+        # Generate content based on update strategy
+        if update_result['status'] == 'success':
+            return _generate_rich_content_with_context(
+                section=section,
+                update_result=update_result,
+                source_analysis=source_analysis,
+                existing_content=existing_content,
+                git_analysis=git_analysis,
+                code_examples=code_examples,
+                doc_focus=doc_focus
+            )
+        else:
+            # Fallback to original method if content-aware updates fail
+            return generate_context_aware_content(section, git_analysis, file_changes, code_examples, doc_focus)
+            
+    except Exception as e:
+        # Fallback to original method on any error
+        return generate_context_aware_content(section, git_analysis, file_changes, code_examples, doc_focus)
+
+
+def _reconstruct_diff_from_examples(code_examples: List[CodeExample]) -> str:
+    """Reconstruct a basic git diff from code examples for content-aware updates"""
+    diff_lines = []
+    
+    for example in code_examples:
+        if example.change_type == 'added':
+            diff_lines.append(f"--- a/{example.file_path}")
+            diff_lines.append(f"+++ b/{example.file_path}")
+            for line in example.code.split('\n'):
+                diff_lines.append(f"+{line}")
+        elif example.change_type == 'removed':
+            diff_lines.append(f"--- a/{example.file_path}")
+            diff_lines.append(f"+++ b/{example.file_path}")
+            for line in example.code.split('\n'):
+                diff_lines.append(f"-{line}")
+    
+    return '\n'.join(diff_lines)
+
+
+def _generate_rich_content_with_context(section: str, update_result: Dict[str, Any],
+                                       source_analysis: Dict[str, Any], existing_content: Dict[str, Any],
+                                       git_analysis: Dict[str, Any], code_examples: List[CodeExample],
+                                       doc_focus: DocumentationFocus) -> str:
+    """Generate rich content using all available context"""
+    
+    content_parts = []
+    project_name = source_analysis.get('project_name', 'Project')
+    project_purpose = source_analysis.get('main_purpose', 'Software project')
+    change_type = git_analysis.get('change_type', 'update')
+    
+    # Check if we should update existing content or create new
+    decision = update_result.get('update_decision', {})
+    strategy = decision.get('strategy', 'create_new')
+    
+    if strategy == 'update_existing':
+        # Generate content that enhances existing documentation
+        content_parts.append(f"## {section.replace('_', ' ').title()} - Updated")
+        content_parts.append(f"*Enhanced documentation for {project_name}*")
+        
+        # Mention what we're preserving
+        preservation_notes = decision.get('preservation_notes', [])
+        if preservation_notes:
+            content_parts.append(f"\n> **Note**: This update preserves existing content while adding new information.")
+        
+    else:
+        # Generate new content based on source analysis
+        content_parts.append(f"## {section.replace('_', ' ').title()}")
+        content_parts.append(f"*Documentation for {project_name} - {project_purpose}*")
+    
+    # Add section-specific content with rich context
+    if section == 'discovery':
+        content_parts.append(f"\n### What is {project_name}?")
+        content_parts.append(project_purpose)
+        
+        # Add key technologies from source analysis
+        technologies = source_analysis.get('key_technologies', [])
+        if technologies:
+            content_parts.append(f"\n**Key Technologies**: {', '.join(technologies)}")
+        
+        # Add recent changes
+        if code_examples:
+            content_parts.append(f"\n### Recent Updates ({change_type.title()})")
+            for example in code_examples[:2]:
+                if example.change_type == 'added':
+                    content_parts.append(f"- ✅ {example.description}")
+    
+    elif section == 'getting_started':
+        content_parts.append(f"\n### Quick Start with {project_name}")
+        
+        # Use actual entry points from source analysis
+        entry_points = source_analysis.get('entry_points', [])
+        if entry_points:
+            content_parts.append(f"\n**Main Entry Points:**")
+            for entry in entry_points[:3]:  # Show top 3
+                content_parts.append(f"- `{entry}`")
+        
+        # Add installation context if available
+        main_modules = source_analysis.get('main_modules', [])
+        if main_modules:
+            content_parts.append(f"\n**Core Modules:**")
+            for module in main_modules[:5]:  # Show top 5
+                content_parts.append(f"- {module}")
+    
+    elif section == 'patterns':
+        content_parts.append(f"\n### Common Usage Patterns")
+        
+        # Use actual public APIs from source analysis
+        public_apis = source_analysis.get('public_api', [])
+        if public_apis:
+            content_parts.append(f"\n**Available Functions:**")
+            for api in public_apis[:5]:  # Show top 5
+                api_name = api.get('name', 'unknown')
+                api_desc = api.get('description', 'Function')
+                content_parts.append(f"- `{api_name}()` - {api_desc}")
+        
+        # Add code examples from actual changes
+        if code_examples:
+            content_parts.append(f"\n### Code Examples")
+            for example in code_examples[:2]:
+                if example.change_type == 'added' and len(example.code) < 200:
+                    content_parts.append(f"\n**{example.description}:**")
+                    content_parts.append(f"```{example.language}")
+                    content_parts.append(example.code)
+                    content_parts.append("```")
+    
+    elif section == 'architecture':
+        content_parts.append(f"\n### System Architecture")
+        content_parts.append(f"Architecture overview for {project_name}:")
+        
+        # Use actual module structure from source analysis
+        main_modules = source_analysis.get('main_modules', [])
+        if main_modules:
+            content_parts.append(f"\n**Main Components:**")
+            for module in main_modules:
+                content_parts.append(f"- **{module}**: Core functionality")
+        
+        # Add technology stack
+        technologies = source_analysis.get('key_technologies', [])
+        if technologies:
+            content_parts.append(f"\n**Technology Stack:**")
+            for tech in technologies:
+                content_parts.append(f"- {tech}")
+    
+    # Add content updates from content-aware logic
+    content_updates = update_result.get('content_updates', [])
+    for update in content_updates:
+        if update.get('confidence', 0) > 0.7:  # Only include high-confidence updates
+            content_parts.append(f"\n### {update.get('target_section', 'Updates')}")
+            content_parts.append(update.get('new_content', ''))
+            content_parts.append(f"\n*Rationale: {update.get('rationale', 'Added based on recent changes')}*")
+    
+    # Add project statistics for context
+    stats = source_analysis.get('statistics', {})
+    if stats and section in ['discovery', 'architecture']:
+        content_parts.append(f"\n### Project Statistics")
+        content_parts.append(f"- **Files**: {stats.get('total_files', 'N/A')}")
+        content_parts.append(f"- **Lines of Code**: {stats.get('total_lines', 'N/A')}")
+        content_parts.append(f"- **Public APIs**: {len(source_analysis.get('public_api', []))}")
+    
+    # Fallback to basic content if nothing was generated
+    if len(content_parts) <= 2:  # Only title and subtitle
+        content_parts.append(f"\nThis section has been updated based on recent {change_type} changes.")
+        content_parts.append(f"Project: {project_name}")
+        content_parts.append(f"Purpose: {project_purpose}")
+    
+    return '\n'.join(content_parts)

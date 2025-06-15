@@ -25,6 +25,7 @@ from bedrock_integration_tools import (
     generate_dynamic_examples,
     analyze_content_gaps
 )
+from content_generation_tools import generate_context_rich_content
 from content_validation_tools import (
     validate_documentation_quality,
     enforce_quality_standards,
@@ -437,7 +438,8 @@ def _generate_system_documentation_updates(system_analysis: Dict[str, Any], chan
     # Create SystemDocumentationUpdate objects
     for section, recommendations in section_updates.items():
         if recommendations:
-            content = _generate_system_content_for_section(section, change_type, affected_files, recommendations)
+            # Use STEP 5D: context-rich content generation with system focus
+            content = _generate_system_content_with_step5d(section, change_type, affected_files, recommendations, system_analysis)
             
             # Building Inspector uses rewrite pattern for major changes
             action = 'rewrite' if change_type == 'refactor' else 'update'
@@ -889,3 +891,65 @@ def _enhance_system_updates_with_bedrock(updates: List[SystemDocumentationUpdate
             print(f"⚠ Bedrock system enhancement error for {update.section}: {str(e)}")
     
     return enhanced_updates
+
+
+def _generate_system_content_with_step5d(section: str, change_type: str, affected_files: List[str], 
+                                        recommendations: List[str], system_analysis: Dict[str, Any]) -> str:
+    """
+    STEP 5D: Generate system content using Step 5 tools for meaningful documentation.
+    
+    This function integrates the Step 5 tools for Building Inspector system documentation.
+    """
+    try:
+        # Use the general Step 5D function with system-specific parameters
+        from content_generation_tools import DocumentationFocus, CodeExample
+        
+        # Create a system-focused DocumentationFocus
+        doc_focus = DocumentationFocus(
+            primary_focus='architecture',
+            affected_areas=['System', 'Architecture'],
+            user_impact_level='medium',
+            suggested_sections=[section]
+        )
+        
+        # Create simple code examples from affected files
+        code_examples = []
+        for file in affected_files[:3]:  # Limit to 3 files
+            if file.endswith('.py'):
+                code_examples.append(CodeExample(
+                    language='python',
+                    code=f'# Changes in {file}',
+                    description=f'System changes in {file}',
+                    file_path=file,
+                    change_type='modified'
+                ))
+        
+        # Create a mock git analysis for system focus
+        git_analysis = {
+            'change_type': change_type,
+            'affected_components': affected_files,
+            'summary': f'System {change_type} changes',
+            'diff': ''
+        }
+        
+        # Use the Step 5D context-rich content generation
+        rich_content = generate_context_rich_content(
+            section=section,
+            git_analysis=git_analysis,
+            file_changes=affected_files,
+            code_examples=code_examples,
+            doc_focus=doc_focus,
+            change_type=change_type
+        )
+        
+        # If rich content generation succeeds, return it
+        if rich_content and len(rich_content) > 50:  # Ensure meaningful content
+            return rich_content
+        else:
+            # Fallback to original system content generation
+            return _generate_system_content_for_section(section, change_type, affected_files, recommendations)
+            
+    except Exception as e:
+        # Fallback to original method on any error
+        print(f"⚠ Step 5D system content generation failed for {section}: {str(e)}")
+        return _generate_system_content_for_section(section, change_type, affected_files, recommendations)

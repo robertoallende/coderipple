@@ -22,6 +22,7 @@ from content_generation_tools import (
     analyze_change_patterns,
     extract_code_examples_from_diff,
     generate_context_aware_content,
+    generate_context_rich_content,
     enhance_generic_content_with_context,
     CodeExample,
     DocumentationFocus
@@ -556,13 +557,14 @@ def _generate_intelligent_documentation_updates(workflow_analysis: Dict[str, Any
     sections_to_update = _determine_sections_from_focus(doc_focus, workflow_analysis)
     
     for section in sections_to_update:
-        # Use intelligent content generation instead of generic templates
-        intelligent_content = generate_context_aware_content(
+        # Use STEP 5D: context-rich content generation with all smart tools
+        intelligent_content = generate_context_rich_content(
             section=section,
             git_analysis=git_analysis,
             file_changes=affected_files,
             code_examples=code_examples,
-            doc_focus=doc_focus
+            doc_focus=doc_focus,
+            change_type=change_type
         )
         
         # Determine action based on change type and impact
