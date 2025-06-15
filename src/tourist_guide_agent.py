@@ -39,6 +39,11 @@ from bedrock_integration_tools import (
     generate_dynamic_examples,
     analyze_content_gaps
 )
+from content_validation_tools import (
+    validate_documentation_quality,
+    enforce_quality_standards,
+    validate_and_improve_content
+)
 
 
 @dataclass
@@ -86,10 +91,10 @@ def analyze_user_workflow_impact(change_type: str, affected_files: List[str], co
     }
 
 
-@tool
+@tool 
 def write_documentation_file(file_path: str, content: str, action: str = "create") -> Dict[str, Any]:
     """
-    Write or update documentation files in the coderipple directory.
+    Write or update documentation files in the coderipple directory with validation.
     
     Args:
         file_path: Relative path within coderipple directory (e.g., "discovery.md")
@@ -112,6 +117,35 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
         if dir_path and not os.path.exists(dir_path):
             os.makedirs(dir_path)
         
+        # Step 4D: Validate content quality before writing
+        validation_result = enforce_quality_standards(
+            content=content,
+            file_path=full_path,
+            min_quality_score=60.0,  # Lower threshold for user docs
+            project_root=os.getcwd()
+        )
+        
+        # Check if content meets quality standards
+        if not validation_result['write_approved']:
+            # Try to get improved content if validation suggests improvements
+            improvement_result = validate_and_improve_content(
+                content=content,
+                file_path=full_path,
+                project_root=os.getcwd()
+            )
+            
+            return {
+                'status': 'validation_failed',
+                'error': f"Content validation failed (score: {validation_result['quality_score']:.1f})",
+                'validation_errors': validation_result['errors'],
+                'validation_warnings': validation_result['warnings'],
+                'suggestions': validation_result['suggestions'],
+                'improvement_suggestions': improvement_result.get('improvement_suggestions', []),
+                'file_path': file_path,
+                'content_length': len(content)
+            }
+        
+        # Content passed validation - proceed with writing
         if action == "create":
             with open(full_path, 'w', encoding='utf-8') as f:
                 f.write(content)
@@ -132,7 +166,9 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
             'status': 'success',
             'operation': operation,
             'file_path': full_path,
-            'content_length': len(content)
+            'content_length': len(content),
+            'validation_score': validation_result['quality_score'],
+            'validation_warnings': validation_result.get('warnings', [])
         }
         
     except Exception as e:
