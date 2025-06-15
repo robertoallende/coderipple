@@ -3,11 +3,13 @@ Content Generation Tools for Step 4B: Intelligent Content Generation
 
 This module provides tools for generating context-aware documentation content
 based on actual git changes rather than generic templates.
+Enhanced with Step 4F: Real Diff Integration for specific, targeted documentation.
 """
 
 import re
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
+from strands import tool
 
 
 @dataclass
@@ -381,3 +383,302 @@ def enhance_generic_content_with_context(generic_content: str, git_analysis: Dic
                 enhanced_content = '\n\n'.join(paragraphs)
     
     return enhanced_content
+
+
+@tool
+def generate_targeted_content_from_diff(git_diff: str, section: str, change_type: str, 
+                                      doc_type: str = "user") -> dict:
+    """
+    Generate targeted documentation content based on specific git diff analysis.
+    Enhanced for Step 4F: Real Diff Integration.
+    
+    Args:
+        git_diff: Raw git diff output
+        section: Documentation section to generate
+        change_type: Type of change (feature, bugfix, etc.)
+        doc_type: Type of documentation (user, api, system)
+        
+    Returns:
+        Dictionary with generated content and metadata
+    """
+    try:
+        # Import real diff integration tools
+        from real_diff_integration_tools import extract_specific_changes, generate_code_examples_from_diff
+        
+        # Extract specific changes from diff
+        changes_result = extract_specific_changes(git_diff, change_type)
+        if changes_result['status'] != 'success':
+            return {
+                'status': 'error',
+                'error': 'Failed to extract changes from diff',
+                'content': ''
+            }
+        
+        # Generate code examples from actual changes
+        examples_result = generate_code_examples_from_diff(git_diff, "all", change_type)
+        if examples_result['status'] != 'success':
+            return {
+                'status': 'error', 
+                'error': 'Failed to generate code examples',
+                'content': ''
+            }
+        
+        # Generate content based on actual changes
+        content = _generate_content_from_real_changes(
+            section=section,
+            changes=changes_result,
+            examples=examples_result['examples'],
+            change_type=change_type,
+            doc_type=doc_type
+        )
+        
+        return {
+            'status': 'success',
+            'content': content,
+            'functions_changed': len(changes_result['function_changes']),
+            'classes_changed': len(changes_result['class_changes']),
+            'examples_generated': len(examples_result['examples']),
+            'files_affected': len(changes_result['files_modified']),
+            'change_summary': changes_result['summary']
+        }
+        
+    except Exception as e:
+        return {
+            'status': 'error',
+            'error': f"Error generating targeted content: {str(e)}",
+            'content': ''
+        }
+
+
+@tool
+def generate_api_documentation_from_diff(git_diff: str, file_path: str) -> dict:
+    """
+    Generate API documentation based on specific function/class changes in git diff.
+    
+    Args:
+        git_diff: Raw git diff output
+        file_path: Specific file to document
+        
+    Returns:
+        Dictionary with API documentation content
+    """
+    try:
+        from real_diff_integration_tools import generate_file_specific_documentation
+        
+        result = generate_file_specific_documentation(
+            git_diff=git_diff,
+            file_path=file_path,
+            existing_docs="",
+            doc_type="api"
+        )
+        
+        return result
+        
+    except Exception as e:
+        return {
+            'status': 'error',
+            'error': f"Error generating API documentation: {str(e)}",
+            'documentation': ''
+        }
+
+
+@tool 
+def generate_migration_guide_from_diff(git_diff: str, change_type: str) -> dict:
+    """
+    Generate migration guide based on breaking changes detected in git diff.
+    
+    Args:
+        git_diff: Raw git diff output
+        change_type: Type of change
+        
+    Returns:
+        Dictionary with migration guide content
+    """
+    try:
+        from real_diff_integration_tools import extract_specific_changes
+        
+        changes_result = extract_specific_changes(git_diff, change_type)
+        if changes_result['status'] != 'success':
+            return {
+                'status': 'error',
+                'error': 'Failed to extract changes',
+                'content': ''
+            }
+        
+        # Look for breaking changes
+        breaking_changes = []
+        migration_steps = []
+        
+        # Check for signature changes
+        for func in changes_result['function_changes']:
+            if func['change_type'] == 'signature_changed':
+                breaking_changes.append({
+                    'type': 'function_signature',
+                    'name': func['name'],
+                    'file': func['file_path'],
+                    'old_signature': func['old_signature'],
+                    'new_signature': func['new_signature']
+                })
+                
+                migration_steps.append(f"Update calls to `{func['name']}()` in {func['file_path']}")
+            
+            elif func['change_type'] == 'deleted':
+                breaking_changes.append({
+                    'type': 'function_removed',
+                    'name': func['name'],
+                    'file': func['file_path']
+                })
+                
+                migration_steps.append(f"Replace usage of removed function `{func['name']}()`")
+        
+        # Check for removed classes
+        for cls in changes_result['class_changes']:
+            if cls['change_type'] == 'deleted':
+                breaking_changes.append({
+                    'type': 'class_removed',
+                    'name': cls['name'],
+                    'file': cls['file_path']
+                })
+                
+                migration_steps.append(f"Replace usage of removed class `{cls['name']}`")
+        
+        # Generate migration guide content
+        if breaking_changes:
+            content = _generate_migration_guide_content(breaking_changes, migration_steps, change_type)
+        else:
+            content = f"# Migration Guide\n\nNo breaking changes detected in this {change_type} update."
+        
+        return {
+            'status': 'success',
+            'content': content,
+            'breaking_changes': len(breaking_changes),
+            'migration_steps': len(migration_steps),
+            'has_breaking_changes': len(breaking_changes) > 0
+        }
+        
+    except Exception as e:
+        return {
+            'status': 'error',
+            'error': f"Error generating migration guide: {str(e)}",
+            'content': ''
+        }
+
+
+def _generate_content_from_real_changes(section: str, changes: dict, examples: list, 
+                                      change_type: str, doc_type: str) -> str:
+    """Generate content based on real changes extracted from git diff."""
+    
+    content_parts = []
+    
+    if section == 'discovery':
+        content_parts.append(f"# Recent Changes: {change_type.title()}")
+        content_parts.append(f"\n{changes['summary']}")
+        
+        if changes['function_changes']:
+            content_parts.append(f"\n## New Functions ({len(changes['function_changes'])})")
+            for func in changes['function_changes'][:3]:
+                if func['change_type'] == 'added':
+                    content_parts.append(f"- **{func['name']}()** in `{func['file_path']}`")
+                    if func['docstring']:
+                        content_parts.append(f"  {func['docstring']}")
+        
+        if changes['class_changes']:
+            content_parts.append(f"\n## New Classes ({len(changes['class_changes'])})")
+            for cls in changes['class_changes'][:3]:
+                if cls['change_type'] == 'added':
+                    content_parts.append(f"- **{cls['name']}** in `{cls['file_path']}`")
+                    if cls['docstring']:
+                        content_parts.append(f"  {cls['docstring']}")
+    
+    elif section == 'getting_started':
+        content_parts.append(f"# Getting Started with {change_type.title()} Changes")
+        
+        if examples:
+            content_parts.append(f"\n## Quick Start Examples")
+            for i, example in enumerate(examples[:3], 1):
+                if example['type'] == 'new_function':
+                    content_parts.append(f"\n### {i}. {example['title']}")
+                    content_parts.append(f"{example['description']}")
+                    content_parts.append(f"\n```python\n{example['code']}\n```")
+                    if 'usage_example' in example:
+                        content_parts.append(f"\n**Usage:**\n```python\n{example['usage_example']}\n```")
+    
+    elif section == 'patterns':
+        content_parts.append(f"# Usage Patterns")
+        
+        if examples:
+            content_parts.append(f"\n## Code Examples from Recent Changes")
+            for example in examples:
+                if example['type'] in ['new_function', 'modified_function']:
+                    content_parts.append(f"\n### {example['title']}")
+                    content_parts.append(f"{example['description']}")
+                    content_parts.append(f"\n```python\n{example['code']}\n```")
+                    
+                    if example['type'] == 'modified_function' and 'old_code' in example:
+                        content_parts.append(f"\n**Before:**\n```python\n{example['old_code']}\n```")
+                        content_parts.append(f"\n**After:**\n```python\n{example['new_code']}\n```")
+    
+    elif section == 'architecture':
+        content_parts.append(f"# System Architecture Changes")
+        content_parts.append(f"\nChanges from {change_type}: {changes['summary']}")
+        
+        if changes['files_modified']:
+            content_parts.append(f"\n## Modified Files ({len(changes['files_modified'])})")
+            for file_path in changes['files_modified']:
+                content_parts.append(f"- `{file_path}`")
+        
+        if changes['function_changes']:
+            func_by_type = {}
+            for func in changes['function_changes']:
+                change_type_key = func['change_type']
+                if change_type_key not in func_by_type:
+                    func_by_type[change_type_key] = []
+                func_by_type[change_type_key].append(func)
+            
+            for change_type_key, funcs in func_by_type.items():
+                content_parts.append(f"\n### Functions {change_type_key.title()} ({len(funcs)})")
+                for func in funcs[:5]:  # Limit to 5 per type
+                    content_parts.append(f"- `{func['name']}()` in {func['file_path']}")
+    
+    # Fallback content
+    if not content_parts:
+        content_parts.append(f"# {section.replace('_', ' ').title()}")
+        content_parts.append(f"Updated based on {change_type} changes.")
+        content_parts.append(f"\nSummary: {changes.get('summary', 'Changes detected')}")
+    
+    return '\n'.join(content_parts)
+
+
+def _generate_migration_guide_content(breaking_changes: list, migration_steps: list, change_type: str) -> str:
+    """Generate migration guide content for breaking changes."""
+    
+    content_parts = []
+    content_parts.append(f"# Migration Guide: {change_type.title()}")
+    content_parts.append(f"\n⚠️ **Breaking Changes Detected**")
+    content_parts.append(f"\nThis {change_type} includes {len(breaking_changes)} breaking changes that require action.")
+    
+    content_parts.append(f"\n## Breaking Changes")
+    
+    for i, change in enumerate(breaking_changes, 1):
+        content_parts.append(f"\n### {i}. {change['type'].replace('_', ' ').title()}: {change['name']}")
+        content_parts.append(f"**File:** `{change['file']}`")
+        
+        if change['type'] == 'function_signature':
+            content_parts.append(f"\n**Old signature:**\n```python\n{change['old_signature']}\n```")
+            content_parts.append(f"\n**New signature:**\n```python\n{change['new_signature']}\n```")
+        
+        elif change['type'] in ['function_removed', 'class_removed']:
+            content_parts.append(f"\n**Status:** Removed in this update")
+    
+    content_parts.append(f"\n## Migration Steps")
+    content_parts.append(f"\nFollow these steps to update your code:")
+    
+    for i, step in enumerate(migration_steps, 1):
+        content_parts.append(f"{i}. {step}")
+    
+    content_parts.append(f"\n## Timeline")
+    content_parts.append(f"- **Immediate:** Review your code for usage of changed functions/classes")
+    content_parts.append(f"- **Before upgrading:** Update your code according to the steps above")
+    content_parts.append(f"- **After upgrading:** Test thoroughly to ensure everything works")
+    
+    return '\n'.join(content_parts)

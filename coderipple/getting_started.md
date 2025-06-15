@@ -2,21 +2,19 @@
 
 *This document is automatically maintained by CodeRipple Tourist Guide Agent*  
 *Repository: user/repo*  
-*Last updated: 2025-06-15 16:34:53*
+*Last updated: 2025-06-15 18:09:59*
 
 ---
 
 ## Command Line Interface (CLI)
 
-After installation, the following commands become available in your terminal. These commands help you manage your project efficiently throughout the development lifecycle.
-
-```bash
-# Basic syntax
-$ project-name [command] [options]
-```
+After installation, the following CLI commands become available to help you interact with the application. Each command supports various options and parameters to streamline your development workflow.
 
 ### Available Commands
 
-Below is a list of the core commands you can use. Run any command with the `--help` flag to see detailed usage information.
+```bash
+# Use the --help flag with any command to see detailed usage information
+$ your-app-name --help
+```
 
-> **Note:** Make sure you're in your project directory when running these commands unless otherwise specified.
+> **Note:** All commands should be run from your project's root directory unless otherwise specified.

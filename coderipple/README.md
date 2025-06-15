@@ -1,7 +1,7 @@
 # user/repo Documentation Hub
 
 *Auto-generated documentation hub maintained by CodeRipple Tourist Guide Agent*  
-*Last updated: 2025-06-15 16:35:08*
+*Last updated: 2025-06-15 18:10:07*
 
 ---
 
@@ -26,14 +26,15 @@ Welcome to the user/repo documentation! This hub provides access to all automati
 ### 📚 Decision Documentation (Why it BECAME this way)
 *Historical context, architectural decisions, and evolution story*
 
-*No decision documentation available yet*
+- **[refactoring_history.md](coderipple/decisions/refactoring_history.md)**: Unable to read file description
+  *Updated: Unknown*
 
 ---
 
 ## Quick Navigation
 
 - **[Repository](https://github.com/user/repo)** - Source code and issues
-- **Documentation Status**: 2 files across 1 layers
+- **Documentation Status**: 3 files across 2 layers
 - **Framework**: [Layered Documentation Structure](https://github.com/robertoallende/coderipple#documentation-layers)
 
 ## About This Documentation
