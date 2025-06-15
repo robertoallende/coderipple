@@ -335,8 +335,8 @@ class TestContentAwareUpdater(unittest.TestCase):
         self.assertTrue(filename.endswith('.md'))
 
 
-class TestStepFiveCSuccessCriteria(unittest.TestCase):
-    """Validate that Step 5C success criteria are met"""
+class TestContentAwareUpdateCriteria(unittest.TestCase):
+    """Validate that content-aware update functionality meets requirements"""
     
     def setUp(self):
         """Set up comprehensive test environment"""
@@ -366,9 +366,9 @@ class TestStepFiveCSuccessCriteria(unittest.TestCase):
             ]
         }
     
-    def test_step5c_outcome_intelligent_content_updates(self):
+    def test_intelligent_content_updates(self):
         """
-        Step 5C Success Criteria: Agents update existing content instead of replacing it
+        Content-Aware Updates: Agents update existing content instead of replacing it
         
         Validation: Update existing doc section, verify preservation + enhancement
         """
@@ -408,7 +408,7 @@ class TestStepFiveCSuccessCriteria(unittest.TestCase):
             self.assertGreater(len(update['rationale']), 10)
             self.assertGreater(update['confidence'], 0.0)
         
-        print(f"\n✅ Step 5C Success: Content-aware updates working correctly:")
+        print(f"\n✅ Content-Aware Updates: Intelligent content merging working correctly:")
         print(f"   Strategy: {decision['strategy']} (preserves existing content)")
         print(f"   Updates planned: {len(updates)} intelligent updates")
         print(f"   Content preserved: {len(decision['preservation_notes'])} items")
@@ -441,8 +441,8 @@ class TestStepFiveCSuccessCriteria(unittest.TestCase):
             new_content = result_new['content_updates'][0]['new_content']
             self.assertIn('TestProject', new_content)  # Should use project name from source analysis
         
-        print(f"   ✓ IF existing content EXISTS: merge strategy used")
-        print(f"   ✓ IF no existing content: source analysis foundation used")
+        print(f"   ✓ WHEN existing content EXISTS: merge strategy used")
+        print(f"   ✓ WHEN no existing content: source analysis foundation used")
         
         # This level of intelligence enables agents to enhance rather than replace
 

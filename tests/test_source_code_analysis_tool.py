@@ -174,12 +174,12 @@ class TestSourceCodeAnalyzer(unittest.TestCase):
         self.assertGreater(len(agent_modules), 0)
 
 
-class TestStepOneSuccessCriteria(unittest.TestCase):
-    """Validate that Step 1 success criteria are met"""
+class TestSourceCodeAnalysisSuccessCriteria(unittest.TestCase):
+    """Validate that source code analysis functionality meets requirements"""
     
-    def test_step1_outcome_agents_understand_project(self):
+    def test_agents_understand_project(self):
         """
-        Step 1 Success Criteria: Agents can understand what the project actually does
+        Source Code Analysis: Agents can understand what the project actually does
         
         Validation: Tool can generate a meaningful project summary from codebase alone
         """
@@ -202,7 +202,7 @@ class TestStepOneSuccessCriteria(unittest.TestCase):
         self.assertIn('coderipple', summary)
         self.assertTrue(len(summary) > 50)  # Should be detailed
         
-        print(f"\n✅ Step 1 Success: Tool correctly identified:")
+        print(f"\n✅ Source Code Analysis: Tool correctly identified:")
         print(f"   Project: {result['project_name']}")
         print(f"   Purpose: {result['main_purpose']}")
         print(f"   Technologies: {len(result['key_technologies'])} detected")

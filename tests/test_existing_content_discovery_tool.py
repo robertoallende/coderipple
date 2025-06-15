@@ -255,8 +255,8 @@ This [broken link](nonexistent.md) should be detected.
         self.assertTrue(any('python' in topic.lower() for topic in documented_topics))
 
 
-class TestStepTwoSuccessCriteria(unittest.TestCase):
-    """Validate that Step 2 success criteria are met"""
+class TestContentDiscoverySuccessCriteria(unittest.TestCase):
+    """Validate that content discovery functionality meets requirements"""
     
     def setUp(self):
         """Set up test environment"""
@@ -315,9 +315,9 @@ Basic information only.
         with open(os.path.join(self.docs_dir, "user_guide.md"), 'w') as f:
             f.write(user_doc)
     
-    def test_step2_outcome_agents_read_existing_content(self):
+    def test_agents_read_existing_content(self):
         """
-        Step 2 Success Criteria: Agents know what documentation already exists and can read it
+        Content Discovery: Agents know what documentation already exists and can read it
         
         Validation: Agent can summarize what's already documented vs what's missing
         """
@@ -350,7 +350,7 @@ Basic information only.
         self.assertIn('insights', result)
         self.assertGreater(len(result['insights']), 0)
         
-        print(f"\n✅ Step 2 Success: Tool correctly analyzed existing content:")
+        print(f"\n✅ Content Discovery: Tool correctly analyzed existing content:")
         print(f"   Files analyzed: {len(result['documentation_files'])}")
         print(f"   Content gaps identified: {len(result['content_gaps'])}")
         print(f"   Topics documented: {len(result['topics_analysis']['documented'])}")
