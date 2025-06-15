@@ -101,10 +101,14 @@ def run_coderipple_system():
         print(f"   - Change type: {git_analysis['change_type']}")
         print(f"   - Affected files: {len(git_analysis['affected_components'])}")
         
+        # Step 4B: Create mock git diff for intelligent content generation
+        mock_git_diff = _create_mock_git_diff()
+        
         # Run agents (mock since we don't have Strands)
         context = {
             'webhook_event': webhook_event,
-            'git_analysis': git_analysis
+            'git_analysis': git_analysis,
+            'git_diff': mock_git_diff  # Step 4B: Add git diff for intelligent content generation
         }
         
         # Mock the orchestrator decision tree
@@ -155,10 +159,90 @@ def run_coderipple_system():
         traceback.print_exc()
         return False
 
+def _create_mock_git_diff():
+    """Create mock git diff for Step 4B intelligent content generation"""
+    return '''diff --git a/src/tourist_guide_agent.py b/src/tourist_guide_agent.py
+new file mode 100644
+index 0000000..abcd123
+--- /dev/null
++++ b/src/tourist_guide_agent.py
+@@ -0,0 +1,50 @@
++"""
++Tourist Guide Agent for CodeRipple
++
++This agent focuses on the outer layer of documentation - "How to ENGAGE".
++"""
++
++import os
++from typing import Dict, Any, List, Optional
++from dataclasses import dataclass
++from strands import tool
++from webhook_parser import WebhookEvent
++
++@tool
++def generate_main_readme(repository_name: str, repository_url: str) -> Dict[str, Any]:
++    """
++    Generate main README.md that serves as documentation hub for all agent-generated docs.
++    
++    Args:
++        repository_name: Repository name for context
++        repository_url: Repository URL for links
++        
++    Returns:
++        Dictionary with README content and metadata
++    """
++    try:
++        # Discover all existing documentation
++        existing_docs = _discover_all_documentation()
++        
++        # Generate comprehensive README content
++        readme_content = _generate_hub_readme_content(repository_name, repository_url, existing_docs)
++        
++        return {
++            'status': 'success',
++            'content': readme_content,
++            'docs_discovered': len(existing_docs),
++            'sections': list(existing_docs.keys())
++        }
++        
++    except Exception as e:
++        return {
++            'status': 'error',
++            'error': str(e),
++            'content': ''
++        }
++
++def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any], context: Dict[str, Any]):
++    """Tourist Guide Agent main function"""
++    # Implementation of Step 4A: README generation capability
++    pass
++'''
+
+
 def run_tourist_guide_mock(webhook_event, git_analysis, context):
-    """Mock run of Tourist Guide Agent"""
-    # Create basic discovery and getting started docs
-    create_mock_user_docs(webhook_event.repository_name)
+    """Step 4B: Run real Tourist Guide Agent with intelligent content generation"""
+    try:
+        # Import the real Tourist Guide Agent
+        from tourist_guide_agent import tourist_guide_agent
+        
+        print("   🧠 Using Step 4B: Intelligent Content Generation")
+        print("   🔍 Analyzing change patterns and extracting code examples...")
+        
+        # Run the intelligent Tourist Guide Agent
+        result = tourist_guide_agent(webhook_event, git_analysis, context)
+        
+        print(f"   ✓ Generated {len(result.updates)} intelligent documentation updates")
+        print(f"   📝 User Impact: {result.user_impact}")
+        
+        # Show what was intelligently generated
+        for update in result.updates:
+            print(f"   📄 {update.section}: {update.reason}")
+            
+    except Exception as e:
+        print(f"   ⚠️  Step 4B intelligent generation failed: {e}")
+        print("   🔄 Falling back to basic user documentation...")
+        # Fallback to basic docs
+        create_mock_user_docs(webhook_event.repository_name)
 
 def create_mock_user_docs(repo_name):
     """Create mock user documentation"""

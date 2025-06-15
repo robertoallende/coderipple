@@ -1,9 +1,13 @@
 import json
+import logging
 import urllib.request
 import urllib.parse
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 from datetime import datetime
+
+# Set up logger for webhook parser
+logger = logging.getLogger(__name__)
 
 @dataclass
 class CommitInfo:
@@ -50,7 +54,7 @@ class GitHubWebhookParser:
             data = json.loads(payload)
             
             if event_type not in self.supported_events:
-                print(f"Unsupported event type: {event_type}")
+                logger.warning(f"Unsupported event type: {event_type}")
                 return None
             
             if event_type == 'push':
@@ -59,10 +63,10 @@ class GitHubWebhookParser:
                 return self._parse_pull_request_event(data)
                 
         except json.JSONDecodeError as e:
-            print(f"Failed to parse JSON payload: {e}")
+            logger.error(f"Failed to parse JSON payload: {e}")
             return None
         except Exception as e:
-            print(f"Error parsing webhook payload: {e}")
+            logger.error(f"Error parsing webhook payload: {e}")
             return None
     
     def _parse_push_event(self, data: Dict) -> WebhookEvent:

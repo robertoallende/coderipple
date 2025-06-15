@@ -18,6 +18,14 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from strands import tool
 from webhook_parser import WebhookEvent
+from content_generation_tools import (
+    analyze_change_patterns,
+    extract_code_examples_from_diff,
+    generate_context_aware_content,
+    enhance_generic_content_with_context,
+    CodeExample,
+    DocumentationFocus
+)
 
 
 @dataclass
@@ -236,6 +244,7 @@ def read_existing_documentation(file_path: str) -> Dict[str, Any]:
 def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any], context: Dict[str, Any]) -> TouristGuideResult:
     """
     Tourist Guide Agent that updates user-facing documentation based on code changes.
+    Uses intelligent content generation from Step 4B.
     
     Args:
         webhook_event: Parsed webhook event data
@@ -250,11 +259,24 @@ def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any
     affected_files = git_analysis.get('affected_components', [])
     commit_messages = [commit.message for commit in webhook_event.commits]
     
-    # Use the workflow analysis tool
+    # Step 4B: Analyze change patterns to determine documentation focus
+    doc_focus = analyze_change_patterns(affected_files, commit_messages)
+    
+    # Step 4B: Extract code examples from git diff (if available)
+    code_examples = []
+    git_diff = context.get('git_diff', '')
+    if git_diff:
+        for file_path in affected_files:
+            examples = extract_code_examples_from_diff(git_diff, file_path)
+            code_examples.extend(examples)
+    
+    # Use the workflow analysis tool (existing)
     workflow_analysis = analyze_user_workflow_impact(change_type, affected_files, commit_messages)
     
-    # Generate documentation updates
-    updates = _generate_documentation_updates(workflow_analysis, change_type, affected_files)
+    # Step 4B: Generate intelligent documentation updates
+    updates = _generate_intelligent_documentation_updates(
+        workflow_analysis, git_analysis, doc_focus, code_examples, affected_files
+    )
     
     # Write documentation files
     write_results = _write_documentation_files(updates, webhook_event.repository_name)
@@ -269,7 +291,7 @@ def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any
     
     # Create summary and user impact assessment
     summary = _generate_summary(updates, change_type, affected_files, write_results)
-    user_impact = _assess_user_impact(workflow_analysis, change_type)
+    user_impact = _assess_user_impact_intelligent(doc_focus, change_type, code_examples)
     
     return TouristGuideResult(
         updates=updates,
@@ -394,6 +416,195 @@ def _recommend_documentation_updates(change_type: str, user_facing_changes: Dict
                 recommendations.append("Update configuration troubleshooting section")
     
     return recommendations
+
+
+def _generate_intelligent_documentation_updates(workflow_analysis: Dict[str, Any], git_analysis: Dict[str, Any], 
+                                               doc_focus: DocumentationFocus, code_examples: List[CodeExample], 
+                                               affected_files: List[str]) -> List[DocumentationUpdate]:
+    """
+    Generate intelligent documentation updates using Step 4B content generation.
+    
+    Args:
+        workflow_analysis: Traditional workflow analysis
+        git_analysis: Git analysis results
+        doc_focus: Documentation focus from change pattern analysis
+        code_examples: Extracted code examples
+        affected_files: List of affected files
+        
+    Returns:
+        List of intelligent DocumentationUpdate objects
+    """
+    
+    updates = []
+    change_type = git_analysis.get('change_type', 'unknown')
+    
+    # Determine which sections need updates based on documentation focus
+    sections_to_update = _determine_sections_from_focus(doc_focus, workflow_analysis)
+    
+    for section in sections_to_update:
+        # Use intelligent content generation instead of generic templates
+        intelligent_content = generate_context_aware_content(
+            section=section,
+            git_analysis=git_analysis,
+            file_changes=affected_files,
+            code_examples=code_examples,
+            doc_focus=doc_focus
+        )
+        
+        # Determine action based on change type and impact
+        action = _determine_update_action(section, doc_focus, change_type)
+        
+        # Calculate priority based on user impact level
+        priority = _calculate_intelligent_priority(doc_focus, section, change_type)
+        
+        # Create intelligent reason
+        reason = _generate_intelligent_reason(section, doc_focus, change_type, code_examples)
+        
+        updates.append(DocumentationUpdate(
+            section=section,
+            action=action,
+            content=intelligent_content,
+            reason=reason,
+            priority=priority
+        ))
+    
+    return updates
+
+
+def _determine_sections_from_focus(doc_focus: DocumentationFocus, workflow_analysis: Dict[str, Any]) -> List[str]:
+    """Determine which documentation sections to update based on focus analysis"""
+    
+    sections = []
+    
+    # Use documentation focus to prioritize sections
+    if doc_focus.primary_focus == 'api':
+        sections.extend(['getting_started', 'patterns'])
+        if doc_focus.user_impact_level == 'high':
+            sections.append('discovery')
+    
+    elif doc_focus.primary_focus == 'cli':
+        sections.extend(['getting_started', 'patterns'])
+        if 'CLI' in doc_focus.affected_areas:
+            sections.append('discovery')
+    
+    elif doc_focus.primary_focus == 'config':
+        sections.extend(['getting_started', 'troubleshooting'])
+    
+    elif doc_focus.primary_focus == 'architecture':
+        # Architecture changes are more for Building Inspector, but may affect patterns
+        sections.append('patterns')
+        if doc_focus.user_impact_level == 'high':
+            sections.append('advanced')
+    
+    elif doc_focus.primary_focus == 'usage':
+        sections.extend(['patterns', 'getting_started'])
+    
+    elif doc_focus.primary_focus == 'documentation':
+        sections.append('discovery')
+    
+    # Fall back to workflow analysis if no specific focus
+    if not sections:
+        workflow_impact = workflow_analysis.get('workflow_impact', {})
+        sections = [section for section, impact in workflow_impact.items() 
+                   if impact != 'none']
+    
+    # Always include discovery for high-impact changes
+    if doc_focus.user_impact_level == 'high' and 'discovery' not in sections:
+        sections.append('discovery')
+    
+    return list(set(sections))
+
+
+def _determine_update_action(section: str, doc_focus: DocumentationFocus, change_type: str) -> str:
+    """Determine whether to create, update, or append based on intelligent analysis"""
+    
+    # High impact changes often require complete rewrites
+    if doc_focus.user_impact_level == 'high' and change_type == 'feature':
+        return 'update'
+    
+    # Breaking changes require updates to existing content
+    elif 'breaking' in doc_focus.affected_areas or change_type == 'breaking':
+        return 'update'
+    
+    # Bug fixes and documentation updates can be appended
+    elif change_type in ['bugfix', 'docs']:
+        return 'append'
+    
+    # Default to update for feature changes
+    else:
+        return 'update'
+
+
+def _calculate_intelligent_priority(doc_focus: DocumentationFocus, section: str, change_type: str) -> int:
+    """Calculate priority using intelligent analysis"""
+    
+    # High user impact = high priority
+    if doc_focus.user_impact_level == 'high':
+        return 1
+    
+    # API/CLI changes to getting_started are high priority
+    if section == 'getting_started' and doc_focus.primary_focus in ['api', 'cli']:
+        return 1
+    
+    # Medium impact or important sections = medium priority  
+    if doc_focus.user_impact_level == 'medium' or section in ['discovery', 'patterns']:
+        return 2
+    
+    # Everything else = low priority
+    return 3
+
+
+def _generate_intelligent_reason(section: str, doc_focus: DocumentationFocus, 
+                                change_type: str, code_examples: List[CodeExample]) -> str:
+    """Generate intelligent reason for documentation update"""
+    
+    base_reason = f"{change_type.title()} changes with {doc_focus.primary_focus} focus"
+    
+    if code_examples:
+        example_count = len(code_examples)
+        base_reason += f" ({example_count} code example{'s' if example_count != 1 else ''} extracted)"
+    
+    if doc_focus.user_impact_level == 'high':
+        base_reason += " - High user impact detected"
+    
+    if doc_focus.affected_areas:
+        areas = ', '.join(doc_focus.affected_areas[:2])
+        base_reason += f" affecting {areas}"
+    
+    return base_reason
+
+
+def _assess_user_impact_intelligent(doc_focus: DocumentationFocus, change_type: str, 
+                                   code_examples: List[CodeExample]) -> str:
+    """Assess user impact using intelligent analysis from Step 4B"""
+    
+    impact_description = f"{doc_focus.user_impact_level.title()} impact: "
+    
+    if doc_focus.user_impact_level == 'high':
+        impact_description += f"{change_type.title()} changes with {doc_focus.primary_focus} focus "
+        impact_description += "significantly affect user workflows. "
+        
+        if code_examples:
+            new_examples = [ex for ex in code_examples if ex.change_type == 'added']
+            if new_examples:
+                impact_description += f"New functionality introduced ({len(new_examples)} new code patterns). "
+        
+        impact_description += "Documentation updates required immediately."
+    
+    elif doc_focus.user_impact_level == 'medium':
+        impact_description += f"{change_type.title()} changes may affect user workflows in {doc_focus.primary_focus} area. "
+        
+        if doc_focus.affected_areas:
+            areas = ', '.join(doc_focus.affected_areas)
+            impact_description += f"Areas affected: {areas}. "
+        
+        impact_description += "Documentation should be updated soon."
+    
+    else:
+        impact_description += f"{change_type.title()} changes have minimal direct user impact. "
+        impact_description += "Documentation updates can be deferred unless user feedback indicates otherwise."
+    
+    return impact_description
 
 
 def _generate_documentation_updates(workflow_analysis: Dict[str, Any], change_type: str, affected_files: List[str]) -> List[DocumentationUpdate]:
