@@ -26,6 +26,13 @@ from content_generation_tools import (
     CodeExample,
     DocumentationFocus
 )
+from agent_context_flow import (
+    register_agent_state, 
+    get_agent_state, 
+    get_current_capabilities,
+    suggest_cross_references,
+    add_global_insight
+)
 
 
 @dataclass
@@ -244,7 +251,7 @@ def read_existing_documentation(file_path: str) -> Dict[str, Any]:
 def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any], context: Dict[str, Any]) -> TouristGuideResult:
     """
     Tourist Guide Agent that updates user-facing documentation based on code changes.
-    Uses intelligent content generation from Step 4B.
+    Uses intelligent content generation from Step 4B and context flow from Step 4C.
     
     Args:
         webhook_event: Parsed webhook event data
@@ -259,6 +266,22 @@ def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any
     affected_files = git_analysis.get('affected_components', [])
     commit_messages = [commit.message for commit in webhook_event.commits]
     
+    # Step 4C: Get current system capabilities from Building Inspector if available
+    building_inspector_state = get_agent_state('building_inspector')
+    current_system_capabilities = []
+    if building_inspector_state.get('status') == 'success':
+        agent_data = building_inspector_state.get('agent_state', {})
+        current_system_capabilities = agent_data.get('current_capabilities', [])
+        
+        # Add insight about referencing system capabilities
+        add_global_insight(
+            f"Tourist Guide referencing {len(current_system_capabilities)} capabilities from Building Inspector", 
+            'tourist_guide'
+        )
+    
+    # Step 4C: Get cross-reference suggestions for user documentation
+    cross_ref_suggestions = suggest_cross_references('tourist_guide', f"User documentation for {change_type} changes")
+    
     # Step 4B: Analyze change patterns to determine documentation focus
     doc_focus = analyze_change_patterns(affected_files, commit_messages)
     
@@ -272,6 +295,11 @@ def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any
     
     # Use the workflow analysis tool (existing)
     workflow_analysis = analyze_user_workflow_impact(change_type, affected_files, commit_messages)
+    
+    # Step 4C: Enhance workflow analysis with system capabilities
+    workflow_analysis = _enhance_workflow_with_system_capabilities(
+        workflow_analysis, current_system_capabilities, change_type
+    )
     
     # Step 4B: Generate intelligent documentation updates
     updates = _generate_intelligent_documentation_updates(
@@ -289,9 +317,39 @@ def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any
         if readme_write_result['status'] == 'success':
             print(f"✓ {readme_write_result['operation'].title()} {readme_write_result['file_path']}")
     
+    # Step 4C: Extract user-facing capabilities and insights
+    user_capabilities = _extract_user_facing_capabilities(affected_files, change_type, current_system_capabilities)
+    user_insights = _extract_user_insights(doc_focus, change_type, code_examples)
+    
+    # Step 4C: Build cross-references to other agents
+    cross_references = _build_user_cross_references(cross_ref_suggestions, building_inspector_state)
+    
+    # Step 4C: Register our state in shared context
+    generated_files = [update.section + '.md' for update in updates]
+    if readme_result.get('status') == 'success':
+        generated_files.append('README.md')
+        
+    register_result = register_agent_state(
+        agent_name="Tourist Guide",
+        agent_role="tourist_guide",
+        repository_context={
+            'change_type': change_type,
+            'affected_files': affected_files,
+            'doc_focus': doc_focus.__dict__ if hasattr(doc_focus, '__dict__') else str(doc_focus)
+        },
+        current_capabilities=user_capabilities,
+        generated_files=generated_files,
+        key_insights=user_insights,
+        cross_references=cross_references
+    )
+    
     # Create summary and user impact assessment
     summary = _generate_summary(updates, change_type, affected_files, write_results)
     user_impact = _assess_user_impact_intelligent(doc_focus, change_type, code_examples)
+    
+    # Add context flow information to summary
+    if register_result.get('status') == 'success':
+        summary += f" Context shared: {register_result.get('files_registered', 0)} files registered with {register_result.get('total_agents', 0)} agents."
     
     return TouristGuideResult(
         updates=updates,
@@ -1050,5 +1108,159 @@ def _update_navigation_section(existing_readme: str, all_docs: Dict[str, List[Di
     repository_url = url_match.group(1) if url_match else f"https://github.com/{repository_name}"
     
     return _generate_hub_readme_content(repository_name, repository_url, all_docs)
+
+
+def _enhance_workflow_with_system_capabilities(workflow_analysis: Dict[str, Any], 
+                                             system_capabilities: List[str], 
+                                             change_type: str) -> Dict[str, Any]:
+    """Enhance workflow analysis with current system capabilities (Step 4C)"""
+    
+    enhanced_analysis = workflow_analysis.copy()
+    
+    # Add system capabilities context to recommendations
+    if system_capabilities:
+        enhanced_analysis['system_capabilities'] = system_capabilities
+        
+        # Add capability-aware recommendations
+        capability_recommendations = []
+        
+        if change_type == 'feature':
+            capability_recommendations.append(f"Document how new feature integrates with existing capabilities: {', '.join(system_capabilities[:3])}")
+            
+        if 'Multi-agent documentation generation' in system_capabilities:
+            capability_recommendations.append("Update user workflow to reflect multi-agent documentation system")
+            
+        if 'GitHub webhook processing' in system_capabilities:
+            capability_recommendations.append("Ensure user understands webhook-driven documentation updates")
+        
+        # Merge with existing recommendations
+        existing_recs = enhanced_analysis.get('documentation_updates', [])
+        enhanced_analysis['documentation_updates'] = existing_recs + capability_recommendations
+    
+    return enhanced_analysis
+
+
+def _extract_user_facing_capabilities(affected_files: List[str], change_type: str, 
+                                    system_capabilities: List[str]) -> List[str]:
+    """Extract user-facing capabilities (Step 4C)"""
+    
+    user_capabilities = []
+    
+    # Base user capabilities
+    user_capabilities.extend([
+        "Automatic documentation generation",
+        "GitHub webhook integration",
+        "Multi-layered documentation structure"
+    ])
+    
+    # Add capabilities based on change type
+    if change_type == 'feature':
+        user_capabilities.extend(["New feature availability", "Enhanced user workflows"])
+    elif change_type == 'bugfix':
+        user_capabilities.extend(["Improved system reliability", "Resolved user issues"])
+    elif change_type == 'refactor':
+        user_capabilities.append("Improved system performance")
+    
+    # Add capabilities based on affected files
+    if any('cli' in f.lower() for f in affected_files):
+        user_capabilities.append("Command-line interface")
+        
+    if any('api' in f.lower() for f in affected_files):
+        user_capabilities.append("API integration capabilities")
+        
+    if any('test' in f.lower() for f in affected_files):
+        user_capabilities.append("Automated testing and validation")
+    
+    # Reference system capabilities if available
+    if system_capabilities:
+        # Map system capabilities to user-facing ones
+        system_to_user_mapping = {
+            'GitHub webhook processing': 'Real-time documentation updates',
+            'Multi-agent documentation generation': 'Comprehensive documentation coverage',
+            'Git analysis and change detection': 'Smart change-based documentation',
+            'Markdown documentation output': 'Readable documentation format'
+        }
+        
+        for sys_cap in system_capabilities:
+            if sys_cap in system_to_user_mapping:
+                user_capabilities.append(system_to_user_mapping[sys_cap])
+    
+    return list(set(user_capabilities))  # Remove duplicates
+
+
+def _extract_user_insights(doc_focus: DocumentationFocus, change_type: str, 
+                         code_examples: List[CodeExample]) -> List[str]:
+    """Extract insights relevant to users (Step 4C)"""
+    
+    insights = []
+    
+    # Focus-based insights
+    if doc_focus.primary_focus == 'api':
+        insights.append("API changes may require updates to user integrations")
+    elif doc_focus.primary_focus == 'cli':
+        insights.append("Command-line interface changes affect user workflows")
+    elif doc_focus.primary_focus == 'config':
+        insights.append("Configuration changes may require user environment updates")
+    
+    # Impact level insights
+    if doc_focus.user_impact_level == 'high':
+        insights.append("High-impact changes require immediate user attention")
+        if code_examples:
+            insights.append(f"Users should review {len(code_examples)} new code examples")
+    elif doc_focus.user_impact_level == 'medium':
+        insights.append("Moderate impact - users should review changes when convenient")
+    
+    # Change type insights
+    if change_type == 'feature':
+        insights.append("New functionality expands user capabilities")
+    elif change_type == 'bugfix':
+        insights.append("Bug fixes improve user experience and reliability")
+    elif change_type == 'refactor':
+        insights.append("Internal improvements with minimal user-facing changes")
+    
+    # Code example insights
+    if code_examples:
+        added_examples = [ex for ex in code_examples if ex.change_type == 'added']
+        if added_examples:
+            insights.append(f"New code patterns introduced: {len(added_examples)} examples for users to follow")
+    
+    return insights
+
+
+def _build_user_cross_references(cross_ref_suggestions: Dict[str, Any], 
+                                building_inspector_state: Dict[str, Any]) -> Dict[str, str]:
+    """Build cross-references to other agents' work for users (Step 4C)"""
+    
+    cross_references = {}
+    
+    # Reference Building Inspector system documentation
+    if building_inspector_state.get('status') == 'success':
+        agent_data = building_inspector_state.get('agent_state', {})
+        system_files = agent_data.get('generated_files', [])
+        
+        if system_files:
+            cross_references['system_documentation'] = f"See technical system documentation for architecture details"
+            cross_references['system_files'] = f"System docs: {', '.join(system_files[:2])}"
+    
+    # Process cross-reference suggestions
+    if cross_ref_suggestions.get('status') == 'success':
+        suggestions = cross_ref_suggestions.get('suggestions', [])
+        
+        for suggestion in suggestions:
+            agent_role = suggestion.get('agent_role')
+            agent_name = suggestion.get('agent_name')
+            
+            if agent_role == 'building_inspector':
+                cross_references['technical_details'] = f"For technical implementation details, see {agent_name} documentation"
+                
+            elif agent_role == 'historian':
+                cross_references['evolution_context'] = f"For background and decision context, see {agent_name} documentation"
+                
+            # Include relevant capabilities
+            relevant_capabilities = suggestion.get('relevant_capabilities', [])
+            if relevant_capabilities:
+                cross_references[f'{agent_role}_capabilities'] = f"Related capabilities: {', '.join(relevant_capabilities[:2])}"
+    
+    return cross_references
 
 

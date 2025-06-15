@@ -18,6 +18,7 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from strands import tool
 from webhook_parser import WebhookEvent
+from agent_context_flow import register_agent_state, get_agent_state, suggest_cross_references
 
 
 @dataclass
@@ -165,6 +166,7 @@ def read_existing_system_documentation(file_path: str) -> Dict[str, Any]:
 def building_inspector_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any], context: Dict[str, Any]) -> BuildingInspectorResult:
     """
     Building Inspector Agent that updates system documentation based on code changes.
+    Uses Step 4C context flow to share system state and reference other agents.
     
     Args:
         webhook_event: Parsed webhook event data
@@ -179,6 +181,9 @@ def building_inspector_agent(webhook_event: WebhookEvent, git_analysis: Dict[str
     affected_files = git_analysis.get('affected_components', [])
     commit_messages = [commit.message for commit in webhook_event.commits]
     
+    # Step 4C: Check if other agents have relevant context
+    cross_ref_suggestions = suggest_cross_references('building_inspector', f"System architecture changes for {change_type}")
+    
     # Use the system analysis tool
     system_analysis = analyze_system_changes(change_type, affected_files, commit_messages)
     
@@ -188,9 +193,38 @@ def building_inspector_agent(webhook_event: WebhookEvent, git_analysis: Dict[str
     # Write documentation files
     write_results = _write_system_documentation_files(updates, webhook_event.repository_name)
     
+    # Step 4C: Extract current capabilities from our analysis
+    current_capabilities = _extract_system_capabilities(system_analysis, affected_files, change_type)
+    
+    # Step 4C: Identify key insights about the system
+    key_insights = _extract_system_insights(system_analysis, change_type, affected_files)
+    
+    # Step 4C: Create cross-references to other agents if they exist
+    cross_references = _build_cross_references(cross_ref_suggestions)
+    
+    # Step 4C: Register our state in shared context
+    generated_files = [update.section + '.md' for update in updates]
+    register_result = register_agent_state(
+        agent_name="Building Inspector",
+        agent_role="building_inspector", 
+        repository_context={
+            'change_type': change_type,
+            'affected_files': affected_files,
+            'system_analysis': system_analysis
+        },
+        current_capabilities=current_capabilities,
+        generated_files=[f"system/{f}" for f in generated_files],
+        key_insights=key_insights,
+        cross_references=cross_references
+    )
+    
     # Create summary and system impact assessment
     summary = _generate_system_summary(updates, change_type, affected_files, write_results)
     system_impact = _assess_overall_system_impact(system_analysis, change_type)
+    
+    # Add context flow information to summary
+    if register_result.get('status') == 'success':
+        summary += f" Context shared: {register_result.get('files_registered', 0)} files registered with {register_result.get('total_agents', 0)} agents."
     
     return BuildingInspectorResult(
         updates=updates,
@@ -625,3 +659,113 @@ def _assess_overall_system_impact(system_analysis: Dict[str, Any], change_type: 
         return f"Medium impact: {change_type} changes affect some aspects of the current system."
     else:
         return f"Low impact: {change_type} changes have minimal effect on current system documentation."
+
+
+def _extract_system_capabilities(system_analysis: Dict[str, Any], affected_files: List[str], change_type: str) -> List[str]:
+    """Extract current system capabilities from analysis (Step 4C)"""
+    
+    capabilities = []
+    system_changes = system_analysis.get('system_changes', {})
+    
+    # Base capabilities
+    capabilities.extend([
+        "GitHub webhook processing",
+        "Multi-agent documentation generation", 
+        "Git analysis and change detection",
+        "Markdown documentation output"
+    ])
+    
+    # Add capabilities based on detected changes
+    if 'core_functionality' in system_changes:
+        capabilities.append("Core system functionality")
+        
+    if 'api_interfaces' in system_changes:
+        capabilities.extend(["API endpoint management", "Interface documentation"])
+        
+    if 'architecture_changes' in system_changes:
+        capabilities.extend(["Architecture modification", "System restructuring"])
+        
+    if 'dependencies' in system_changes:
+        capabilities.append("Dependency management")
+        
+    if 'infrastructure' in system_changes:
+        capabilities.extend(["Infrastructure as code", "Deployment automation"])
+        
+    if 'configuration' in system_changes:
+        capabilities.append("Configuration management")
+    
+    # Add change-type specific capabilities
+    if change_type == 'feature':
+        capabilities.append("Feature integration and documentation")
+    elif change_type == 'bugfix':
+        capabilities.append("Issue resolution and system repair")
+    elif change_type == 'refactor':
+        capabilities.append("Code refactoring and optimization")
+    
+    return list(set(capabilities))  # Remove duplicates
+
+
+def _extract_system_insights(system_analysis: Dict[str, Any], change_type: str, affected_files: List[str]) -> List[str]:
+    """Extract key insights about the system (Step 4C)"""
+    
+    insights = []
+    system_changes = system_analysis.get('system_changes', {})
+    
+    # Insights based on change patterns
+    if len(system_changes) > 3:
+        insights.append(f"Broad system impact: {change_type} affects multiple system areas")
+        
+    if 'core_functionality' in system_changes and 'api_interfaces' in system_changes:
+        insights.append("Changes affect both core functionality and external interfaces")
+        
+    if 'dependencies' in system_changes:
+        insights.append("Dependency changes may require environment updates")
+        
+    if 'infrastructure' in system_changes:
+        insights.append("Infrastructure changes detected - deployment may be affected")
+        
+    # File-based insights
+    py_files = [f for f in affected_files if f.endswith('.py')]
+    if len(py_files) > 5:
+        insights.append(f"Extensive Python code changes: {len(py_files)} files modified")
+        
+    agent_files = [f for f in affected_files if 'agent' in f.lower()]
+    if agent_files:
+        insights.append(f"Agent system modifications: {len(agent_files)} agent-related files changed")
+    
+    # Change type insights
+    if change_type == 'feature':
+        insights.append("New feature implementation - system capabilities expanded")
+    elif change_type == 'refactor':
+        insights.append("Code refactoring - internal structure improved without external changes")
+    elif change_type == 'bugfix':
+        insights.append("Bug resolution - system reliability improved")
+        
+    return insights
+
+
+def _build_cross_references(cross_ref_suggestions: Dict[str, Any]) -> Dict[str, str]:
+    """Build cross-references to other agents' work (Step 4C)"""
+    
+    cross_references = {}
+    
+    if cross_ref_suggestions.get('status') == 'success':
+        suggestions = cross_ref_suggestions.get('suggestions', [])
+        
+        for suggestion in suggestions:
+            agent_role = suggestion.get('agent_role')
+            agent_name = suggestion.get('agent_name')
+            
+            # Create reference based on agent type
+            if agent_role == 'tourist_guide':
+                cross_references['user_documentation'] = f"See user-facing documentation maintained by {agent_name}"
+                
+            elif agent_role == 'historian':
+                cross_references['decision_history'] = f"See architectural decisions and evolution context by {agent_name}"
+                
+            # Include relevant files if any
+            relevant_files = suggestion.get('relevant_files', [])
+            if relevant_files:
+                cross_references[f'{agent_role}_files'] = f"Related files: {', '.join(relevant_files[:3])}"
+    
+    return cross_references
