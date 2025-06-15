@@ -89,11 +89,109 @@ python src/webhook_parser.py
 - ✅ Step 4E: Content Validation Pipeline (Complete - Quality scoring and enforcement)
 - ✅ Step 4F: Real Diff Integration (Complete - Specific change-based documentation)
 
-**Remaining Work:**
-- ❌ Step 5: Infrastructure & Integration (AWS Lambda deployment, API Gateway, Terraform)
+
+
+
+### Remaining Work:**
+
+#### Step 5:Source Code Analysis Tool
+
+Current Problem
+
+The agents are likely generating generic/meaningless content because they're only using the git diff as their
+input source. This approach has fundamental flaws:
+
+1. For new documentation: If no existing docs exist, a git diff alone provides insufficient context about what
+   the project actually does
+2. For updates: Even with existing docs, the diff should be used to modify/enhance existing content, not
+   replace it entirely
+
+The Missing Context Flow
+
+The agents should follow this logic:
+
+IF existing documentation exists:
+INPUT = existing_content + git_diff + source_code_context
+ACTION = intelligently update existing content based on changes
+ELSE:
+INPUT = source_code_analysis + git_diff (as change trigger)
+ACTION = generate foundational content from actual codebase understanding
+
+What's Likely Happening Now
+
+The agents are probably:
+- Getting a git diff showing "added function X, modified file Y"
+- Generating generic content like "We've added some functionality"
+- Missing the actual purpose, behavior, and integration of the changes
+
+What Should Happen
+
+For initial documentation:
+- Analyze the actual source code to understand what the project does
+- Use git diff as a trigger, not the primary content source
+- Generate meaningful content based on code structure, patterns, and functionality
+
+For updates:
+- Read existing documentation
+- Analyze what specifically changed in the diff
+- Intelligently merge/update existing content with new information
+- Preserve valuable existing context while adding new information
+
+This explains why the content generation might feel hollow - the agents lack
+the foundational understanding of what they're actually documenting.
+
+** Solution **
+
+Step 5.1: Add Source Code Analysis Tool
+
+Outcome: Agents can understand what the project actually does
+- Create a new tool that analyzes the source code structure
+- Extract: main functionality, key classes/functions, project purpose
+- Test: Tool can generate a meaningful project summary from codebase alone
+- Validation: Run tool on existing codebase, verify it produces accurate description
+
+Step 5.2: Enhance Existing Content Discovery
+
+Outcome: Agents know what documentation already exists and can read it
+- Modify agents to read existing documentation content (not just discover file names)
+- Add capability to understand current documentation state
+- Test: Agent can summarize what's already documented vs what's missing
+- Validation: Agent correctly identifies gaps between existing docs and actual code
+
+Step 5.3: Implement Content-Aware Update Logic
+
+Outcome: Agents update existing content instead of replacing it
+- Add logic: IF existing content EXISTS, merge new info with existing
+- Add logic: IF no existing content, use source code analysis as foundation
+- Test: Agent updates specific sections without losing valuable existing content
+- Validation: Update existing doc section, verify preservation + enhancement
+
+Step 5.4: Add Context-Rich Initial Generation
+
+Outcome: New documentation is meaningful and accurate
+- When creating new docs, use source code analysis + git diff context
+- Generate content that reflects actual project capabilities
+- Test: Generate documentation for a new feature from scratch
+- Validation: Generated content accurately describes what the code actually does
+
+Steps Analysis 
+
+Each step:
+1. Has clear success criteria - you can test if it works
+2. Builds on the previous - but doesn't break existing functionality
+3. Delivers immediate value - each step makes the agents smarter
+4. Is independently testable - you can verify each improvement
+
+The current agents aren't fundamentally broken - they just lack the right input sources. These steps
+systematically add the missing context without requiring a complete rewrite.
+
+#### ❌ Step 6: Infrastructure & Integration (AWS Lambda deployment, API Gateway, Terraform)
 
 **Next Steps for Production:**
 1. AWS Lambda functions for each agent
 2. API Gateway webhook endpoints  
 3. Terraform infrastructure as code
 4. Production deployment automation
+
+
+
