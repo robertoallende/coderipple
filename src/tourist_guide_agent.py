@@ -33,6 +33,12 @@ from agent_context_flow import (
     suggest_cross_references,
     add_global_insight
 )
+from bedrock_integration_tools import (
+    enhance_content_with_bedrock,
+    check_documentation_consistency,
+    generate_dynamic_examples,
+    analyze_content_gaps
+)
 
 
 @dataclass
@@ -305,6 +311,10 @@ def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any
     updates = _generate_intelligent_documentation_updates(
         workflow_analysis, git_analysis, doc_focus, code_examples, affected_files
     )
+    
+    # Step 4D: Enhance content with Bedrock
+    enhanced_updates = _enhance_updates_with_bedrock(updates, git_analysis, context)
+    updates = enhanced_updates if enhanced_updates else updates
     
     # Write documentation files
     write_results = _write_documentation_files(updates, webhook_event.repository_name)
@@ -1262,5 +1272,194 @@ def _build_user_cross_references(cross_ref_suggestions: Dict[str, Any],
                 cross_references[f'{agent_role}_capabilities'] = f"Related capabilities: {', '.join(relevant_capabilities[:2])}"
     
     return cross_references
+
+
+def _enhance_updates_with_bedrock(updates: List[DocumentationUpdate], git_analysis: Dict[str, Any], context: Dict[str, Any]) -> List[DocumentationUpdate]:
+    """
+    Enhance documentation updates using Bedrock AI integration (Step 4D).
+    
+    Args:
+        updates: List of documentation updates to enhance
+        git_analysis: Git analysis results for context
+        context: Additional context from orchestrator
+        
+    Returns:
+        List of enhanced DocumentationUpdate objects
+    """
+    if not updates:
+        return updates
+    
+    enhanced_updates = []
+    
+    for update in updates:
+        try:
+            # Prepare context for Bedrock enhancement
+            enhancement_context = {
+                'section_type': update.section,
+                'target_audience': 'developers',
+                'change_type': git_analysis.get('change_type', 'unknown'),
+                'user_impact': update.priority,
+                'repository_context': context.get('repository_name', 'Unknown')
+            }
+            
+            # Call Bedrock enhancement tool
+            enhancement_result = enhance_content_with_bedrock(
+                content=update.content,
+                context=enhancement_context
+            )
+            
+            if enhancement_result.get('status') == 'success':
+                # Extract enhanced content from Bedrock response
+                bedrock_data = enhancement_result.get('content', [{}])[0]
+                
+                if 'json' in bedrock_data:
+                    enhanced_data = bedrock_data['json']
+                    enhanced_content = enhanced_data.get('enhanced_content', update.content)
+                    improvements = enhanced_data.get('improvements_made', [])
+                    quality_score = enhanced_data.get('quality_score', 0.0)
+                    
+                    # Update the documentation update with enhanced content
+                    enhanced_update = DocumentationUpdate(
+                        section=update.section,
+                        action=update.action,
+                        content=enhanced_content,
+                        reason=f"{update.reason} | Bedrock enhanced (quality: {quality_score:.2f})",
+                        priority=update.priority
+                    )
+                    
+                    enhanced_updates.append(enhanced_update)
+                    
+                    # Log improvements made
+                    if improvements:
+                        print(f"✓ Bedrock enhanced {update.section}: {', '.join(improvements[:2])}")
+                else:
+                    # Fallback if JSON parsing failed
+                    enhanced_updates.append(update)
+            else:
+                # Fallback to original content if Bedrock fails
+                enhanced_updates.append(update)
+                print(f"⚠ Bedrock enhancement failed for {update.section}, using original content")
+                
+        except Exception as e:
+            # Fallback to original content on any error
+            enhanced_updates.append(update)
+            print(f"⚠ Bedrock enhancement error for {update.section}: {str(e)}")
+    
+    return enhanced_updates
+
+
+def _check_cross_agent_consistency(agent_state: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Check consistency across documentation layers using Bedrock (Step 4D).
+    
+    Args:
+        agent_state: Current agent state including generated content
+        
+    Returns:
+        Dictionary with consistency check results
+    """
+    try:
+        # Get content from all agents if available
+        content_layers = {}
+        
+        # Tourist Guide content (this agent)
+        tourist_files = agent_state.get('generated_files', [])
+        if tourist_files:
+            content_layers['tourist_guide'] = f"Generated files: {', '.join(tourist_files)}"
+        
+        # Try to get Building Inspector content
+        building_inspector_state = get_agent_state('building_inspector')
+        if building_inspector_state.get('status') == 'success':
+            inspector_data = building_inspector_state.get('agent_state', {})
+            inspector_files = inspector_data.get('generated_files', [])
+            if inspector_files:
+                content_layers['building_inspector'] = f"System files: {', '.join(inspector_files)}"
+        
+        # Try to get Historian content
+        historian_state = get_agent_state('historian')
+        if historian_state.get('status') == 'success':
+            historian_data = historian_state.get('agent_state', {})
+            historian_files = historian_data.get('generated_files', [])
+            if historian_files:
+                content_layers['historian'] = f"Decision files: {', '.join(historian_files)}"
+        
+        if len(content_layers) < 2:
+            return {
+                'status': 'insufficient_data',
+                'message': 'Need at least 2 agents to check consistency'
+            }
+        
+        # Call Bedrock consistency check
+        consistency_result = check_documentation_consistency(
+            content_layers=content_layers,
+            focus_area="user_experience"
+        )
+        
+        if consistency_result.get('status') == 'success':
+            consistency_data = consistency_result.get('content', [{}])[0]
+            if 'json' in consistency_data:
+                return {
+                    'status': 'success',
+                    'consistency_check': consistency_data['json']
+                }
+        
+        return {
+            'status': 'error',
+            'message': 'Consistency check failed'
+        }
+        
+    except Exception as e:
+        return {
+            'status': 'error', 
+            'message': f"Consistency check error: {str(e)}"
+        }
+
+
+def _generate_dynamic_examples_for_users(code_context: Dict[str, Any], git_analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """
+    Generate dynamic code examples for user documentation using Bedrock (Step 4D).
+    
+    Args:
+        code_context: Context about recent code changes
+        git_analysis: Git analysis results
+        
+    Returns:
+        List of generated examples
+    """
+    try:
+        # Prepare context for dynamic example generation
+        example_context = {
+            'file_changes': git_analysis.get('affected_components', []),
+            'system_capabilities': [
+                'GitHub webhook processing',
+                'Multi-agent documentation generation', 
+                'Automated content creation'
+            ],
+            'target_use_case': f"Using the system after {git_analysis.get('change_type', 'recent')} changes"
+        }
+        
+        # Generate examples for common user scenarios
+        example_types = ['usage', 'integration', 'cli']
+        all_examples = []
+        
+        for example_type in example_types:
+            example_result = generate_dynamic_examples(
+                code_context=example_context,
+                example_type=example_type
+            )
+            
+            if example_result.get('status') == 'success':
+                example_data = example_result.get('content', [{}])[0]
+                if 'json' in example_data:
+                    examples = example_data['json'].get('examples', [])
+                    for example in examples:
+                        example['type'] = example_type
+                        all_examples.append(example)
+        
+        return all_examples
+        
+    except Exception as e:
+        print(f"⚠ Dynamic example generation failed: {str(e)}")
+        return []
 
 

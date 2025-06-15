@@ -18,6 +18,13 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from strands import tool
 from webhook_parser import WebhookEvent
+from agent_context_flow import register_agent_state, get_agent_state, suggest_cross_references
+from bedrock_integration_tools import (
+    enhance_content_with_bedrock,
+    check_documentation_consistency,
+    generate_dynamic_examples,
+    analyze_content_gaps
+)
 
 
 @dataclass
@@ -179,6 +186,10 @@ def historian_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any], c
     
     # Generate documentation updates
     updates = _generate_decision_documentation_updates(decision_analysis, change_type, affected_files, webhook_event)
+    
+    # Step 4D: Enhance content with Bedrock for decision documentation
+    enhanced_updates = _enhance_decision_updates_with_bedrock(updates, decision_analysis, context)
+    updates = enhanced_updates if enhanced_updates else updates
     
     # Write documentation files
     write_results = _write_decision_documentation_files(updates, webhook_event.repository_name)
@@ -623,3 +634,79 @@ def _assess_overall_decision_impact(decision_analysis: Dict[str, Any], change_ty
         return f"Medium significance: {change_type} contains decisions worth preserving for future reference and learning."
     else:
         return f"Low significance: {change_type} decisions documented for completeness but minimal long-term impact expected."
+
+
+def _enhance_decision_updates_with_bedrock(updates: List[DecisionDocumentationUpdate], decision_analysis: Dict[str, Any], context: Dict[str, Any]) -> List[DecisionDocumentationUpdate]:
+    """
+    Enhance decision documentation updates using Bedrock AI integration (Step 4D).
+    
+    Args:
+        updates: List of decision documentation updates to enhance
+        decision_analysis: Decision analysis results for context
+        context: Additional context from orchestrator
+        
+    Returns:
+        List of enhanced DecisionDocumentationUpdate objects
+    """
+    if not updates:
+        return updates
+    
+    enhanced_updates = []
+    
+    for update in updates:
+        try:
+            # Prepare context for Bedrock enhancement
+            enhancement_context = {
+                'section_type': f'decision_{update.section}',
+                'target_audience': 'future_developers',
+                'decision_context': decision_analysis.get('decision_changes', {}),
+                'historical_importance': update.priority,
+                'repository_context': context.get('repository_name', 'Unknown'),
+                'decision_id': update.decision_id
+            }
+            
+            # Call Bedrock enhancement tool
+            enhancement_result = enhance_content_with_bedrock(
+                content=update.content,
+                context=enhancement_context
+            )
+            
+            if enhancement_result.get('status') == 'success':
+                # Extract enhanced content from Bedrock response
+                bedrock_data = enhancement_result.get('content', [{}])[0]
+                
+                if 'json' in bedrock_data:
+                    enhanced_data = bedrock_data['json']
+                    enhanced_content = enhanced_data.get('enhanced_content', update.content)
+                    improvements = enhanced_data.get('improvements_made', [])
+                    quality_score = enhanced_data.get('quality_score', 0.0)
+                    
+                    # Update the decision documentation update with enhanced content
+                    enhanced_update = DecisionDocumentationUpdate(
+                        section=update.section,
+                        action=update.action,
+                        content=enhanced_content,
+                        reason=f"{update.reason} | Bedrock enhanced (quality: {quality_score:.2f})",
+                        priority=update.priority,
+                        decision_id=update.decision_id
+                    )
+                    
+                    enhanced_updates.append(enhanced_update)
+                    
+                    # Log improvements made
+                    if improvements:
+                        print(f"✓ Bedrock enhanced decision {update.section}: {', '.join(improvements[:2])}")
+                else:
+                    # Fallback if JSON parsing failed
+                    enhanced_updates.append(update)
+            else:
+                # Fallback to original content if Bedrock fails
+                enhanced_updates.append(update)
+                print(f"⚠ Bedrock decision enhancement failed for {update.section}, using original content")
+                
+        except Exception as e:
+            # Fallback to original content on any error
+            enhanced_updates.append(update)
+            print(f"⚠ Bedrock decision enhancement error for {update.section}: {str(e)}")
+    
+    return enhanced_updates
