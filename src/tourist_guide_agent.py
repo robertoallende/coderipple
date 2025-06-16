@@ -17,6 +17,7 @@ import os
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from strands import tool
+from config import get_config, get_documentation_path
 from webhook_parser import WebhookEvent
 from content_generation_tools import (
     analyze_change_patterns,
@@ -95,10 +96,10 @@ def analyze_user_workflow_impact(change_type: str, affected_files: List[str], co
 @tool 
 def write_documentation_file(file_path: str, content: str, action: str = "create", skip_validation: bool = False) -> Dict[str, Any]:
     """
-    Write or update documentation files in the coderipple directory with validation.
+    Write or update documentation files using configurable output directory.
     
     Args:
-        file_path: Relative path within coderipple directory (e.g., "discovery.md")
+        file_path: Relative path within documentation directory (e.g., "user/overview.md")
         content: Content to write
         action: "create", "update", or "append"
         skip_validation: Skip validation for testing purposes
@@ -107,12 +108,16 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
         Dictionary with operation status and details
     """
     try:
-        # Ensure coderipple directory exists
-        coderipple_dir = "coderipple"
-        if not os.path.exists(coderipple_dir):
-            os.makedirs(coderipple_dir)
+        # Get configuration
+        config = get_config()
         
-        full_path = os.path.join(coderipple_dir, file_path)
+        # Get full path using configuration
+        full_path = get_documentation_path(file_path)
+        
+        # Ensure output directory exists
+        output_dir = config.output_dir
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
         
         # Ensure subdirectories exist
         dir_path = os.path.dirname(full_path)
@@ -1537,15 +1542,18 @@ def bootstrap_user_documentation(project_context: Dict[str, Any] = None) -> Dict
         created_files = []
         errors = []
         
+        # Get configuration
+        config = get_config()
+        
         # Ensure user directory exists
-        user_dir = os.path.join("coderipple", "user")
+        user_dir = get_documentation_path("user")
         if not os.path.exists(user_dir):
             os.makedirs(user_dir)
             print(f"✓ Created user documentation directory: {user_dir}")
         
         # Create each documentation file if it doesn't exist
         for section, file_path in USER_DOCUMENTATION_STRUCTURE.items():
-            full_path = os.path.join("coderipple", file_path)
+            full_path = get_documentation_path(file_path)
             
             if not os.path.exists(full_path):
                 # Generate initial placeholder content
@@ -2371,7 +2379,7 @@ def check_user_documentation_completeness() -> Dict[str, Any]:
         existing_files = []
         
         for section, file_path in USER_DOCUMENTATION_STRUCTURE.items():
-            full_path = os.path.join("coderipple", file_path)
+            full_path = get_documentation_path(file_path)
             if os.path.exists(full_path):
                 existing_files.append(file_path)
             else:
