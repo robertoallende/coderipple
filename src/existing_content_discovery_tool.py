@@ -21,6 +21,12 @@ except ImportError:
     def tool(func):
         return func
 
+try:
+    from config import get_config, get_output_dir
+except ImportError:
+    def get_output_dir():
+        return "coderipple"
+
 
 @dataclass
 class DocumentationSection:
@@ -81,7 +87,9 @@ class DocumentationState:
 class ExistingContentAnalyzer:
     """Analyzes existing documentation content for comprehensive understanding"""
     
-    def __init__(self, docs_directory: str = "coderipple", source_analysis: Dict[str, Any] = None):
+    def __init__(self, docs_directory: str = None, source_analysis: Dict[str, Any] = None):
+        if docs_directory is None:
+            docs_directory = get_output_dir()
         self.docs_directory = Path(docs_directory)
         self.source_analysis = source_analysis or {}
         
@@ -540,7 +548,7 @@ class ExistingContentAnalyzer:
 
 
 @tool
-def analyze_existing_content(docs_directory: str = "coderipple", source_analysis: Dict[str, Any] = None) -> Dict[str, Any]:
+def analyze_existing_content(docs_directory: str = None, source_analysis: Dict[str, Any] = None) -> Dict[str, Any]:
     """
     Analyze existing documentation content to understand current state and gaps.
     

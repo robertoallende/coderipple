@@ -17,6 +17,7 @@ import os
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from strands import tool
+from config import get_config, get_documentation_path
 from webhook_parser import WebhookEvent
 from agent_context_flow import register_agent_state, get_agent_state, suggest_cross_references
 from bedrock_integration_tools import (
@@ -81,10 +82,10 @@ def analyze_system_changes(change_type: str, affected_files: List[str], commit_m
 @tool
 def write_system_documentation_file(file_path: str, content: str, action: str = "create") -> Dict[str, Any]:
     """
-    Write or update system documentation files in the coderipple/system directory with validation.
+    Write or update system documentation files using configurable output directory.
     
     Args:
-        file_path: Relative path within coderipple/system directory (e.g., "architecture.md")
+        file_path: Relative path within system directory (e.g., "architecture.md")
         content: Content to write
         action: "create", "update", or "rewrite"
         
@@ -92,8 +93,9 @@ def write_system_documentation_file(file_path: str, content: str, action: str = 
         Dictionary with operation status and details
     """
     try:
-        # Ensure coderipple/system directory exists
-        system_dir = os.path.join("coderipple", "system")
+        config = get_config()
+        # Ensure system directory exists within configured output directory
+        system_dir = get_documentation_path("system")
         if not os.path.exists(system_dir):
             os.makedirs(system_dir)
         
@@ -173,13 +175,13 @@ def read_existing_system_documentation(file_path: str) -> Dict[str, Any]:
     Read existing system documentation file to check current content.
     
     Args:
-        file_path: Relative path within coderipple/system directory
+        file_path: Relative path within system directory
         
     Returns:
         Dictionary with file content or error
     """
     try:
-        full_path = os.path.join("coderipple", "system", file_path)
+        full_path = get_documentation_path(os.path.join("system", file_path))
         
         if not os.path.exists(full_path):
             return {

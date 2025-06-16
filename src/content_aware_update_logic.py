@@ -572,7 +572,7 @@ if __name__ == "__main__":
         source_analysis = analyze_source_code(".")
         
         print("Loading existing documentation...")
-        existing_docs = analyze_existing_content("coderipple", source_analysis)
+        existing_docs = analyze_existing_content(None, source_analysis)
         
         print("=== Content-Aware Update Logic Test ===")
         

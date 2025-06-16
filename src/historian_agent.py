@@ -17,6 +17,7 @@ import os
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from strands import tool
+from config import get_config, get_documentation_path
 from webhook_parser import WebhookEvent
 from agent_context_flow import register_agent_state, get_agent_state, suggest_cross_references
 from bedrock_integration_tools import (
@@ -81,10 +82,10 @@ def analyze_decision_significance(change_type: str, affected_files: List[str], c
 @tool
 def write_decision_documentation_file(file_path: str, content: str, action: str = "append") -> Dict[str, Any]:
     """
-    Write or append to decision documentation files in the coderipple/decisions directory with validation.
+    Write or append to decision documentation files using configurable output directory.
     
     Args:
-        file_path: Relative path within coderipple/decisions directory (e.g., "architecture_decisions.md")
+        file_path: Relative path within decisions directory (e.g., "architecture_decisions.md")
         content: Content to write/append
         action: "create" or "append" (Historian preserves history)
         
@@ -92,8 +93,9 @@ def write_decision_documentation_file(file_path: str, content: str, action: str 
         Dictionary with operation status and details
     """
     try:
-        # Ensure coderipple/decisions directory exists
-        decisions_dir = os.path.join("coderipple", "decisions")
+        config = get_config()
+        # Ensure decisions directory exists within configured output directory
+        decisions_dir = get_documentation_path("decisions")
         if not os.path.exists(decisions_dir):
             os.makedirs(decisions_dir)
         
@@ -167,13 +169,13 @@ def read_existing_decision_documentation(file_path: str) -> Dict[str, Any]:
     Read existing decision documentation file to check current content.
     
     Args:
-        file_path: Relative path within coderipple/decisions directory
+        file_path: Relative path within decisions directory
         
     Returns:
         Dictionary with file content or error
     """
     try:
-        full_path = os.path.join("coderipple", "decisions", file_path)
+        full_path = get_documentation_path(os.path.join("decisions", file_path))
         
         if not os.path.exists(full_path):
             return {

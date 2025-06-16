@@ -716,7 +716,7 @@ def generate_context_rich_content(section: str, git_analysis: Dict[str, Any],
         
         # Step 5B: Discover existing content for context awareness
         from existing_content_discovery_tool import analyze_existing_content
-        existing_content = analyze_existing_content("coderipple", source_analysis)
+        existing_content = analyze_existing_content(None, source_analysis)
         
         # Step 5C: Apply content-aware update logic
         from content_aware_update_logic import apply_content_aware_updates
