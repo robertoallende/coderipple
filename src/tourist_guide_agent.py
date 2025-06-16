@@ -1511,3 +1511,410 @@ def _generate_dynamic_examples_for_users(code_context: Dict[str, Any], git_analy
         return []
 
 
+# Step 6.1 & 6.2: Bootstrap User Documentation Structure
+USER_DOCUMENTATION_STRUCTURE = {
+    'discovery': 'user/overview.md',
+    'getting_started': 'user/getting_started.md', 
+    'patterns': 'user/usage_patterns.md',
+    'advanced': 'user/advanced_usage.md',
+    'troubleshooting': 'user/troubleshooting.md'
+}
+
+
+@tool
+def bootstrap_user_documentation(project_context: Dict[str, Any] = None) -> Dict[str, Any]:
+    """
+    Bootstrap the initial user documentation structure when missing.
+    Creates the user/ directory and initial files for all 5 sections.
+    
+    Args:
+        project_context: Optional context about the project for initial content
+        
+    Returns:
+        Dictionary with bootstrap results and created files
+    """
+    try:
+        created_files = []
+        errors = []
+        
+        # Ensure user directory exists
+        user_dir = os.path.join("coderipple", "user")
+        if not os.path.exists(user_dir):
+            os.makedirs(user_dir)
+            print(f"✓ Created user documentation directory: {user_dir}")
+        
+        # Create each documentation file if it doesn't exist
+        for section, file_path in USER_DOCUMENTATION_STRUCTURE.items():
+            full_path = os.path.join("coderipple", file_path)
+            
+            if not os.path.exists(full_path):
+                # Generate initial placeholder content
+                initial_content = _generate_initial_section_content(section, project_context)
+                
+                # Write the file with validation
+                write_result = write_documentation_file(
+                    file_path=file_path,
+                    content=initial_content,
+                    action="create",
+                    skip_validation=True  # Skip validation for initial bootstrap
+                )
+                
+                if write_result.get('status') == 'success':
+                    created_files.append(file_path)
+                    print(f"✓ Created {section} documentation: {file_path}")
+                else:
+                    errors.append(f"Failed to create {file_path}: {write_result.get('message', 'Unknown error')}")
+            else:
+                print(f"⚠ User documentation already exists: {file_path}")
+        
+        # Register the bootstrap completion in agent state
+        register_agent_state(
+            agent_name='Tourist Guide Agent',
+            agent_role='tourist_guide',
+            repository_context={'bootstrap_completed': True, 'user_docs_structure': USER_DOCUMENTATION_STRUCTURE},
+            current_capabilities=['User documentation generation', 'Bootstrap documentation structure'],
+            generated_files=created_files,
+            key_insights=[f"Created initial user documentation structure with {len(created_files)} files"],
+            cross_references={}
+        )
+        
+        return {
+            'status': 'success',
+            'created_files': created_files,
+            'errors': errors,
+            'structure': USER_DOCUMENTATION_STRUCTURE,
+            'message': f"Bootstrap completed. Created {len(created_files)} user documentation files."
+        }
+        
+    except Exception as e:
+        return {
+            'status': 'error',
+            'message': f"Bootstrap failed: {str(e)}",
+            'created_files': [],
+            'errors': [str(e)]
+        }
+
+
+def _generate_initial_section_content(section: str, project_context: Dict[str, Any] = None) -> str:
+    """
+    Generate initial placeholder content for a documentation section.
+    
+    Args:
+        section: Section name (discovery, getting_started, etc.)
+        project_context: Optional project context
+        
+    Returns:
+        Initial markdown content for the section
+    """
+    
+    # Base project info
+    project_name = "CodeRipple"
+    project_description = "Multi-agent documentation system that automatically maintains comprehensive software documentation"
+    
+    if section == 'discovery':
+        return f"""# {project_name} Overview
+
+## What is {project_name}?
+
+{project_description} by analyzing code changes through different perspectives.
+
+## Key Features
+
+- **Automated Documentation**: Generates documentation automatically from code changes
+- **Multi-Agent System**: Uses specialized agents for different documentation perspectives
+- **GitHub Integration**: Triggered by GitHub webhooks on commits and PRs
+- **AI-Enhanced Content**: Uses Amazon Bedrock for intelligent content generation
+
+## Quick Start
+
+See [Getting Started](getting_started.md) for detailed setup instructions.
+
+## Documentation Structure
+
+This documentation is organized into several sections:
+
+- **Overview** (this page): Introduction and key concepts
+- **[Getting Started](getting_started.md)**: Step-by-step setup and first usage
+- **[Usage Patterns](usage_patterns.md)**: Common workflows and examples
+- **[Advanced Usage](advanced_usage.md)**: Power user features and customization
+- **[Troubleshooting](troubleshooting.md)**: Common issues and solutions
+
+*This documentation is automatically maintained and updated as the system evolves.*
+"""
+
+    elif section == 'getting_started':
+        return f"""# Getting Started with {project_name}
+
+## Prerequisites
+
+- Python 3.8+
+- Git repository to monitor
+- AWS account (for production deployment)
+
+## Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd coderipple
+   ```
+
+2. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Set up configuration**
+   ```bash
+   # Configure your GitHub repository and webhook settings
+   # See configuration documentation for details
+   ```
+
+## First Run
+
+1. **Test the system locally**
+   ```bash
+   python run_coderipple.py
+   ```
+
+2. **Verify documentation generation**
+   - Check that documentation files are created in the `coderipple/` directory
+   - Review generated content for accuracy
+
+## Next Steps
+
+- Review [Usage Patterns](usage_patterns.md) for common workflows
+- Explore [Advanced Usage](advanced_usage.md) for customization options
+- Check [Troubleshooting](troubleshooting.md) if you encounter issues
+
+*This documentation is automatically maintained and updated as the system evolves.*
+"""
+
+    elif section == 'patterns':
+        return f"""# Usage Patterns
+
+## Common Workflows
+
+### Basic Documentation Generation
+
+The most common usage pattern is automatic documentation generation triggered by code changes:
+
+1. **Code Change**: Developer commits code to monitored repository
+2. **Webhook Trigger**: GitHub webhook notifies {project_name}
+3. **Agent Processing**: Multi-agent system analyzes changes and updates documentation
+4. **Documentation Update**: Relevant documentation files are updated automatically
+
+### Manual Documentation Review
+
+For reviewing and understanding generated documentation:
+
+1. **Check Documentation Hub**: Start with the main README.md
+2. **Review User Documentation**: Check user/ directory for usage guides
+3. **Examine System Documentation**: Review system/ directory for technical details
+4. **Understand Decisions**: Check decisions/ directory for architectural context
+
+## Integration Patterns
+
+### GitHub Integration
+
+```bash
+# Webhook configuration
+# POST to your CodeRipple endpoint on push events
+```
+
+### Local Development
+
+```bash
+# Run locally for testing
+python run_coderipple.py
+
+# Test with specific changes
+python src/webhook_parser.py --test-payload sample_webhook.json
+```
+
+## Best Practices
+
+- **Monitor Documentation Quality**: Review generated content regularly
+- **Customize Agent Behavior**: Adjust agent prompts for your project needs
+- **Maintain Consistency**: Ensure documentation aligns with actual system capabilities
+
+*This documentation is automatically maintained and updated as the system evolves.*
+"""
+
+    elif section == 'advanced':
+        return f"""# Advanced Usage
+
+## Customization Options
+
+### Agent Configuration
+
+{project_name} uses specialized agents for different documentation perspectives:
+
+- **Tourist Guide Agent**: User-facing documentation and onboarding
+- **Building Inspector Agent**: System architecture and current capabilities  
+- **Historian Agent**: Decision history and evolution context
+
+### Advanced Configuration
+
+```python
+# Example agent customization
+# Modify agent prompts and behavior in src/ directory
+```
+
+### Multi-Repository Setup
+
+For organizations managing multiple repositories:
+
+1. **Deploy Multiple Instances**: One {project_name} instance per repository
+2. **Shared Infrastructure**: Use common AWS resources with project-specific configuration
+3. **Cross-Repository References**: Link related documentation across projects
+
+## Power User Features
+
+### Custom Documentation Types
+
+Extend the system with custom documentation perspectives:
+
+- Add new agent types for specific documentation needs
+- Customize content generation for domain-specific requirements
+- Integrate with external documentation systems
+
+### Advanced Analysis
+
+Leverage the git analysis capabilities for complex scenarios:
+
+- **Dependency Analysis**: Track how changes affect system dependencies
+- **Impact Assessment**: Understand documentation implications of code changes
+- **Quality Metrics**: Monitor documentation coverage and accuracy
+
+## API Integration
+
+For programmatic access to {project_name} functionality:
+
+```python
+# Example API usage
+# (Implementation details coming soon)
+```
+
+*This documentation is automatically maintained and updated as the system evolves.*
+"""
+
+    elif section == 'troubleshooting':
+        return f"""# Troubleshooting
+
+## Common Issues
+
+### Documentation Not Generated
+
+**Symptoms**: No documentation files created after code changes
+
+**Possible Causes**:
+- Webhook not configured correctly
+- Agent processing errors
+- Insufficient permissions
+
+**Solutions**:
+1. Check webhook configuration in GitHub repository settings
+2. Verify agent logs for error messages
+3. Ensure proper file system permissions in output directory
+
+### Content Quality Issues
+
+**Symptoms**: Generated documentation is inaccurate or generic
+
+**Possible Causes**:
+- Insufficient project context
+- Agent configuration needs adjustment
+- Git analysis not capturing changes properly
+
+**Solutions**:
+1. Review agent prompts and customize for your project
+2. Check git analysis output for accuracy
+3. Adjust content generation parameters
+
+### Performance Issues
+
+**Symptoms**: Documentation generation is slow or times out
+
+**Possible Causes**:
+- Large code changes overwhelming agents
+- AWS service limits
+- Network connectivity issues
+
+**Solutions**:
+1. Batch large changes into smaller commits
+2. Check AWS service quotas and limits
+3. Verify network connectivity to AWS services
+
+## Debug Mode
+
+Enable debug logging for detailed troubleshooting:
+
+```bash
+# Enable debug mode
+python run_coderipple.py --debug
+```
+
+## Getting Help
+
+If you encounter issues not covered here:
+
+1. **Check Logs**: Review agent execution logs for error details
+2. **GitHub Issues**: Report bugs or request features
+3. **Documentation**: Ensure you're using the latest documentation version
+
+## Known Limitations
+
+- **Large Repositories**: Very large repositories may require performance tuning
+- **Complex Merges**: Merge conflicts may affect change analysis accuracy
+- **Rate Limits**: AWS service rate limits may impact high-frequency usage
+
+*This documentation is automatically maintained and updated as the system evolves.*
+"""
+
+    else:
+        return f"""# {section.replace('_', ' ').title()}
+
+This section is under development.
+
+*This documentation is automatically maintained and updated as the system evolves.*
+"""
+
+
+@tool
+def check_user_documentation_completeness() -> Dict[str, Any]:
+    """
+    Check if all user documentation files exist and are complete.
+    
+    Returns:
+        Dictionary with completeness status and missing files
+    """
+    try:
+        missing_files = []
+        existing_files = []
+        
+        for section, file_path in USER_DOCUMENTATION_STRUCTURE.items():
+            full_path = os.path.join("coderipple", file_path)
+            if os.path.exists(full_path):
+                existing_files.append(file_path)
+            else:
+                missing_files.append(file_path)
+        
+        is_complete = len(missing_files) == 0
+        
+        return {
+            'status': 'success',
+            'is_complete': is_complete,
+            'existing_files': existing_files,
+            'missing_files': missing_files,
+            'completion_percentage': (len(existing_files) / len(USER_DOCUMENTATION_STRUCTURE)) * 100
+        }
+        
+    except Exception as e:
+        return {
+            'status': 'error',
+            'message': f"Completeness check failed: {str(e)}",
+            'is_complete': False
+        }
+
+
