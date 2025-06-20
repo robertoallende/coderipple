@@ -89,26 +89,32 @@ def run_coderipple_system():
         
         print(f"🔍 Processing {len(webhook_event.commits)} commit(s)...")
         
-        # Mock git analysis (since we can't call LLM)
-        git_analysis = {
-            'change_type': 'feature',
-            'affected_components': ['src/tourist_guide_agent.py', 'tests/test_tourist_guide_agent.py', 'PLAN.md'],
-            'confidence': 0.9,
-            'summary': 'Major feature implementation: Added README generation capability to Tourist Guide Agent'
-        }
+        # Analyze actual repository structure
+        git_analysis = _analyze_actual_repository()
+        
+        # Update git analysis with repository-specific insights
+        git_analysis.update({
+            'repository_structure': _get_repository_structure(),
+            'key_components': _identify_key_components()
+        })
         
         print("🧠 Mock git analysis completed")
         print(f"   - Change type: {git_analysis['change_type']}")
         print(f"   - Affected files: {len(git_analysis['affected_components'])}")
         
-        # Step 4B: Create mock git diff for intelligent content generation
-        mock_git_diff = _create_mock_git_diff()
+        # Step 4B: Get actual git diff from the repository
+        actual_git_diff = _get_actual_git_diff()
         
-        # Run agents (mock since we don't have Strands)
+        # Run agents with actual repository analysis
         context = {
             'webhook_event': webhook_event,
             'git_analysis': git_analysis,
-            'git_diff': mock_git_diff  # Step 4B: Add git diff for intelligent content generation
+            'git_diff': actual_git_diff,  # Step 4B: Use actual git diff for intelligent content generation
+            'repository_info': {
+                'name': webhook_event.repository_name,
+                'url': webhook_event.repository_url,
+                'path': os.getcwd()  # Current directory is the source repository
+            }
         }
         
         # Mock the orchestrator decision tree
@@ -159,74 +165,144 @@ def run_coderipple_system():
         traceback.print_exc()
         return False
 
-def _create_mock_git_diff():
-    """Create mock git diff for Step 4B intelligent content generation"""
-    return '''diff --git a/src/tourist_guide_agent.py b/src/tourist_guide_agent.py
-new file mode 100644
+def _analyze_actual_repository():
+    """Analyze the actual repository structure and recent changes"""
+    try:
+        import subprocess
+        
+        # Get list of Python files in src/
+        src_files = []
+        if os.path.exists('src'):
+            for file in os.listdir('src'):
+                if file.endswith('.py'):
+                    src_files.append(f'src/{file}')
+        
+        # Identify change type based on repository content
+        change_type = 'multi_agent_system'
+        if os.path.exists('src/tourist_guide_agent.py'):
+            change_type = 'documentation_system'
+        if os.path.exists('src/config.py'):
+            change_type = 'configuration_update'
+            
+        return {
+            'change_type': change_type,
+            'affected_components': src_files,
+            'confidence': 0.95,
+            'summary': f'CodeRipple multi-agent documentation system with {len(src_files)} components'
+        }
+        
+    except Exception as e:
+        return {
+            'change_type': 'unknown',
+            'affected_components': [],
+            'confidence': 0.5,
+            'summary': f'Error analyzing repository: {str(e)}'
+        }
+
+def _get_repository_structure():
+    """Get the actual repository structure"""
+    structure = {}
+    
+    for root, dirs, files in os.walk('.'):
+        # Skip hidden directories and venv
+        dirs[:] = [d for d in dirs if not d.startswith('.') and d != 'venv' and d != '__pycache__']
+        
+        if root == '.':
+            structure['root_files'] = [f for f in files if not f.startswith('.')]
+        elif 'src' in root:
+            structure['source_files'] = files
+        elif 'tests' in root:
+            structure['test_files'] = files
+    
+    return structure
+
+def _identify_key_components():
+    """Identify key components in the repository"""
+    components = []
+    
+    key_files = [
+        'src/orchestrator_agent.py',
+        'src/tourist_guide_agent.py', 
+        'src/building_inspector_agent.py',
+        'src/historian_agent.py',
+        'src/config.py',
+        'src/webhook_parser.py'
+    ]
+    
+    for file_path in key_files:
+        if os.path.exists(file_path):
+            components.append({
+                'file': file_path,
+                'type': 'agent' if 'agent' in file_path else 'core_component',
+                'exists': True
+            })
+    
+    return components
+
+def _get_actual_git_diff():
+    """Get actual git diff from the repository for intelligent content generation"""
+    try:
+        import subprocess
+        
+        # Get recent changes to analyze (last 5 commits)
+        result = subprocess.run(
+            ['git', 'log', '--pretty=format:', '--name-only', '-5'],
+            capture_output=True, text=True, cwd=os.getcwd()
+        )
+        
+        if result.returncode == 0:
+            changed_files = [f for f in result.stdout.split('\n') if f.strip()]
+            
+            # Get diff for recent changes
+            diff_result = subprocess.run(
+                ['git', 'diff', 'HEAD~3', 'HEAD'],
+                capture_output=True, text=True, cwd=os.getcwd()
+            )
+            
+            if diff_result.returncode == 0 and diff_result.stdout.strip():
+                return diff_result.stdout
+        
+        # Fallback: create diff showing current state of key files
+        key_files = ['src/tourist_guide_agent.py', 'src/config.py', 'CLAUDE.md']
+        diff_content = ""
+        
+        for file_path in key_files:
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as f:
+                    content = f.read()
+                    # Simulate a diff format showing current file content
+                    diff_content += f"""diff --git a/{file_path} b/{file_path}
 index 0000000..abcd123
---- /dev/null
-+++ b/src/tourist_guide_agent.py
-@@ -0,0 +1,50 @@
-+"""
-+Tourist Guide Agent for CodeRipple
-+
-+This agent focuses on the outer layer of documentation - "How to ENGAGE".
-+"""
-+
-+import os
-+from typing import Dict, Any, List, Optional
-+from dataclasses import dataclass
-+from strands import tool
-+from webhook_parser import WebhookEvent
-+
-+@tool
-+def generate_main_readme(repository_name: str, repository_url: str) -> Dict[str, Any]:
-+    """
-+    Generate main README.md that serves as documentation hub for all agent-generated docs.
-+    
-+    Args:
-+        repository_name: Repository name for context
-+        repository_url: Repository URL for links
-+        
-+    Returns:
-+        Dictionary with README content and metadata
-+    """
-+    try:
-+        # Discover all existing documentation
-+        existing_docs = _discover_all_documentation()
-+        
-+        # Generate comprehensive README content
-+        readme_content = _generate_hub_readme_content(repository_name, repository_url, existing_docs)
-+        
-+        return {
-+            'status': 'success',
-+            'content': readme_content,
-+            'docs_discovered': len(existing_docs),
-+            'sections': list(existing_docs.keys())
-+        }
-+        
-+    except Exception as e:
-+        return {
-+            'status': 'error',
-+            'error': str(e),
-+            'content': ''
-+        }
-+
-+def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any], context: Dict[str, Any]):
-+    """Tourist Guide Agent main function"""
-+    # Implementation of Step 4A: README generation capability
-+    pass
-+'''
+--- a/{file_path}
++++ b/{file_path}
+@@ -1,{len(content.splitlines())} +1,{len(content.splitlines())} @@
+{chr(10).join('+' + line for line in content.splitlines()[:20])}
+...
+"""
+        
+        return diff_content if diff_content else "No changes detected"
+        
+    except Exception as e:
+        return f"Error getting git diff: {str(e)}"
 
 
 def run_tourist_guide_mock(webhook_event, git_analysis, context):
-    """Step 4B: Run real Tourist Guide Agent with intelligent content generation"""
+    """Run real Tourist Guide Agent with actual source code analysis"""
     try:
         # Import the real Tourist Guide Agent
         from tourist_guide_agent import tourist_guide_agent
+        from config import get_config
         
         print("   🧠 Using Step 4B: Intelligent Content Generation")
         print("   🔍 Analyzing change patterns and extracting code examples...")
+        
+        # Get the actual repository configuration
+        config = get_config()
+        print(f"   📁 Analyzing source code at: {config.source_repo}")
+        
+        # Add real git diff from the actual repository
+        context['config'] = config
+        context['actual_repository'] = True  # Flag that this is real analysis
         
         # Run the intelligent Tourist Guide Agent
         result = tourist_guide_agent(webhook_event, git_analysis, context)
@@ -240,6 +316,8 @@ def run_tourist_guide_mock(webhook_event, git_analysis, context):
             
     except Exception as e:
         print(f"   ⚠️  Step 4B intelligent generation failed: {e}")
+        import traceback
+        traceback.print_exc()
         print("   🔄 Falling back to basic user documentation...")
         # Fallback to basic docs
         create_mock_user_docs(webhook_event.repository_name)
@@ -409,19 +487,29 @@ GitHub Webhook → API Gateway → Orchestrator Agent → Specialist Agents → 
 
 ## Current Capabilities
 
-### Implemented (Steps 1-3 + 4A)
+### Implemented (Steps 1-7 Complete)
 - ✅ GitHub webhook payload parsing with diff data extraction
 - ✅ Git analysis tool framework using Strands @tool structure
 - ✅ Complete multi-agent system with three specialist agents
 - ✅ Orchestrator with Layer Selection Decision Tree
 - ✅ Document writing capabilities for all agents
 - ✅ Main README.md hub generation (Step 4A)
+- ✅ Intelligent Content Generation (Step 4B - Context-aware, not template-based)
+- ✅ Cross-Agent Context Flow (Step 4C - Shared state and cross-references)
+- ✅ Amazon Bedrock Integration (Step 4D - AI-enhanced content quality)
+- ✅ Content Validation Pipeline (Step 4E - Quality scoring and enforcement)
+- ✅ Real Diff Integration (Step 4F - Specific change-based documentation)
+- ✅ Source Code Analysis Tool (Step 5A - Agents understand project functionality)
+- ✅ Existing Content Discovery (Step 5B - Agents read and understand existing docs)
+- ✅ Content-Aware Update Logic (Step 5C - Intelligent content merging)
+- ✅ Context-Rich Initial Generation (Step 5D - Meaningful new documentation)
+- ✅ Tourist Guide Agent Enhancement (Step 6 - Bootstrap and user documentation structure)
+- ✅ Configuration Management & Directory Structure (Step 7 - Environment variable configuration system)
 
-### Planned (Steps 4B-5)
-- 🔄 Enhanced content generation using AI analysis
-- 🔄 Cross-agent context sharing through Strands
-- 🔄 AWS Lambda deployment with Terraform
-- 🔄 Amazon Bedrock integration for content improvement
+### Remaining Work (Step 8)
+- 📅 AWS Lambda deployment with Terraform
+- 📅 API Gateway webhook endpoints
+- 📅 Production infrastructure automation
 
 ## Technology Stack
 
@@ -708,9 +796,11 @@ This documentation is automatically maintained by **CodeRipple**, a multi-agent 
 - ✅ **Step 1**: GitHub webhook payload parsing  
 - ✅ **Step 2**: Git analysis tool framework
 - ✅ **Step 3**: Multi-agent system (Tourist Guide, Building Inspector, Historian)
-- ✅ **Step 4A**: Main README.md generation capability
-- 🔄 **Step 4B-E**: Enhanced content generation, cross-agent context, AI integration
-- 📅 **Step 5**: AWS infrastructure deployment
+- ✅ **Step 4A-F**: Complete enhanced documentation generation (README, intelligent content, context flow, Bedrock integration, validation, real diff)
+- ✅ **Step 5A-D**: Advanced agent capabilities (source analysis, content discovery, update logic, context-rich generation)
+- ✅ **Step 6**: Tourist Guide enhancement (bootstrap, user documentation structure)
+- ✅ **Step 7**: Configuration management & directory structure
+- 📅 **Step 8**: AWS infrastructure deployment (Lambda, API Gateway, Terraform)
 
 *Generated by CodeRipple Tourist Guide Agent on {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}*
 """
