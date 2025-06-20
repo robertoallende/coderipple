@@ -14,6 +14,7 @@ from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, field
 from markdown_it import MarkdownIt
 from strands import tool
+from config import get_config
 
 
 @dataclass
@@ -1032,3 +1033,198 @@ def validate_documentation_quality_detailed(file_path: str, content: str, projec
             'paragraph_count': len([p for p in content.split('\n\n') if p.strip()])
         }
     }
+
+
+@dataclass
+class ProgressiveValidationResult:
+    """Results from progressive quality validation with tier information."""
+    final_tier_achieved: str
+    attempts_made: List[Dict[str, Any]]
+    content_saved: bool
+    final_score: float
+    tier_thresholds: Dict[str, float]
+    quality_warnings: List[str]
+    fallback_reason: Optional[str] = None
+
+
+@tool
+def validate_with_progressive_quality(file_path: str, content: str, project_root: str = None) -> dict:
+    """
+    Validate content using progressive quality standards with fallback tiers.
+    
+    Attempts validation at progressively lower quality tiers until content passes
+    or falls back to basic template with warnings.
+    
+    Args:
+        file_path: Path to the documentation file being validated
+        content: The content to validate
+        project_root: Root directory of the project (optional)
+        
+    Returns:
+        Dictionary containing progressive validation results with tier information,
+        quality warnings, and fallback strategies applied
+    """
+    config = get_config()
+    
+    if not config.enable_progressive_quality:
+        # Fall back to standard validation
+        return validate_documentation_quality_detailed(file_path, content, project_root, config.min_quality_score)
+    
+    # Get quality tier thresholds
+    thresholds = config.get_quality_tier_thresholds()
+    attempts = []
+    quality_warnings = []
+    
+    # Attempt validation at each tier level (high -> medium -> basic)
+    tier_order = ['high', 'medium', 'basic']
+    
+    for tier in tier_order:
+        threshold = thresholds[tier]
+        
+        print(f"📊 Attempting validation at {tier.upper()} quality tier (threshold: {threshold})")
+        
+        validation_result = validate_documentation_quality_detailed(
+            file_path, content, project_root, threshold
+        )
+        
+        attempts.append({
+            'tier': tier,
+            'threshold': threshold,
+            'score_achieved': validation_result['overall_quality_score'],
+            'passed': validation_result['is_valid'],
+            'failure_reasons': validation_result.get('failure_reasons', []),
+            'validation_result': validation_result
+        })
+        
+        if validation_result['is_valid']:
+            # Content passes at this tier
+            tier_display = _get_tier_display_info(tier, validation_result['overall_quality_score'], threshold)
+            
+            print(f"✅ Content passed {tier.upper()} quality tier with score {validation_result['overall_quality_score']:.1f}")
+            
+            # Add tier information to the content if it's not high quality
+            if tier != 'high':
+                content_with_warning = _add_quality_tier_notice(content, tier, validation_result['overall_quality_score'], threshold)
+                quality_warnings.append(f"Content meets {tier} quality standards but not high quality")
+            else:
+                content_with_warning = content
+            
+            return {
+                'is_valid': True,
+                'progressive_validation': True,
+                'final_tier_achieved': tier,
+                'attempts_made': attempts,
+                'content_saved': True,
+                'final_score': validation_result['overall_quality_score'],
+                'tier_thresholds': thresholds,
+                'quality_warnings': quality_warnings,
+                'tier_display_info': tier_display,
+                'enhanced_content': content_with_warning,
+                'fallback_reason': None,
+                # Include original validation details
+                **validation_result
+            }
+    
+    # If we get here, content failed all tiers
+    print(f"⚠️ Content failed all quality tiers. Applying fallback strategy.")
+    
+    # Apply fallback strategy - save with extensive warnings
+    fallback_content = _create_fallback_content_with_warnings(content, attempts[-1]['validation_result'])
+    
+    quality_warnings.extend([
+        "Content failed all quality validation tiers",
+        f"Highest score achieved: {max(attempt['score_achieved'] for attempt in attempts):.1f}",
+        "Content saved with quality warnings for manual review"
+    ])
+    
+    return {
+        'is_valid': True,  # We save it anyway with warnings
+        'progressive_validation': True,
+        'final_tier_achieved': 'fallback',
+        'attempts_made': attempts,
+        'content_saved': True,
+        'final_score': attempts[-1]['score_achieved'],
+        'tier_thresholds': thresholds,
+        'quality_warnings': quality_warnings,
+        'fallback_reason': "Content failed all quality tiers but saved with warnings",
+        'enhanced_content': fallback_content,
+        'tier_display_info': {'name': 'Fallback', 'description': 'Content saved with quality warnings', 'icon': '⚠️'},
+        # Include details from last attempt
+        **attempts[-1]['validation_result']
+    }
+
+
+def _get_tier_display_info(tier: str, score: float, threshold: float) -> Dict[str, str]:
+    """Get display information for quality tier."""
+    tier_info = {
+        'high': {'name': 'High Quality', 'description': 'Excellent documentation meeting all standards', 'icon': '✨'},
+        'medium': {'name': 'Good Quality', 'description': 'Solid documentation with minor improvement opportunities', 'icon': '👍'},
+        'basic': {'name': 'Basic Quality', 'description': 'Functional documentation meeting minimum standards', 'icon': '📝'},
+        'fallback': {'name': 'Draft Quality', 'description': 'Content saved with quality warnings for review', 'icon': '⚠️'}
+    }
+    
+    info = tier_info.get(tier, tier_info['fallback']).copy()
+    info['score'] = score
+    info['threshold'] = threshold
+    info['tier'] = tier
+    return info
+
+
+def _add_quality_tier_notice(content: str, tier: str, score: float, threshold: float) -> str:
+    """Add quality tier notice to content."""
+    tier_info = _get_tier_display_info(tier, score, threshold)
+    
+    notice = f"""
+> **{tier_info['icon']} {tier_info['name']}** (Score: {score:.1f}/{threshold:.1f})  
+> {tier_info['description']}
+
+"""
+    
+    # Add notice after the first line (typically the title)
+    lines = content.split('\n')
+    if lines and lines[0].startswith('#'):
+        # Insert after title and any metadata
+        insert_pos = 1
+        while insert_pos < len(lines) and (lines[insert_pos].startswith('*') or not lines[insert_pos].strip()):
+            insert_pos += 1
+        
+        lines.insert(insert_pos, notice)
+        return '\n'.join(lines)
+    else:
+        # Just prepend if no clear title
+        return notice + content
+
+
+def _create_fallback_content_with_warnings(content: str, validation_result: dict) -> str:
+    """Create fallback content with comprehensive quality warnings."""
+    
+    warnings_section = f"""
+> ⚠️ **Quality Notice: Draft Documentation**  
+> This content was automatically generated but did not meet standard quality thresholds.  
+> **Quality Score**: {validation_result['overall_quality_score']:.1f}/100  
+> **Issues Found**: {len(validation_result.get('failure_reasons', []))} validation failures  
+> 
+> **Top Issues**:
+"""
+    
+    # Add top failure reasons
+    for i, reason in enumerate(validation_result.get('failure_reasons', [])[:3], 1):
+        warnings_section += f"> {i}. {reason}\n"
+    
+    warnings_section += f""">
+> **Improvement Suggestions**:
+"""
+    
+    # Add improvement actions
+    for i, action in enumerate(validation_result.get('improvement_actions', [])[:3], 1):
+        warnings_section += f"> {i}. {action}\n"
+    
+    warnings_section += """>
+> *This content should be reviewed and improved before production use.*
+
+"""
+    
+    # Add warning after title
+    return _add_quality_tier_notice(content, 'fallback', validation_result['overall_quality_score'], 0.0).replace(
+        '> **⚠️ Draft Quality**', warnings_section
+    )

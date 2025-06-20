@@ -48,6 +48,12 @@ class CodeRippleConfig:
         # Validation configuration
         self.skip_validation = os.getenv('CODERIPPLE_SKIP_VALIDATION', 'false').lower() == 'true'
         self.min_quality_score = float(os.getenv('CODERIPPLE_MIN_QUALITY_SCORE', '60.0'))
+        
+        # Progressive Quality Standards configuration
+        self.quality_tier_high = float(os.getenv('CODERIPPLE_QUALITY_TIER_HIGH', '85.0'))
+        self.quality_tier_medium = float(os.getenv('CODERIPPLE_QUALITY_TIER_MEDIUM', '70.0'))
+        self.quality_tier_basic = float(os.getenv('CODERIPPLE_QUALITY_TIER_BASIC', '50.0'))
+        self.enable_progressive_quality = os.getenv('CODERIPPLE_ENABLE_PROGRESSIVE_QUALITY', 'true').lower() == 'true'
     
     def _validate_configuration(self):
         """Validate configuration values and raise errors for invalid settings"""
@@ -77,6 +83,20 @@ class CodeRippleConfig:
         # Validate quality score
         if not 0 <= self.min_quality_score <= 100:
             errors.append(f"Min quality score must be between 0-100, got: {self.min_quality_score}")
+        
+        # Validate quality tiers
+        if not 0 <= self.quality_tier_basic <= 100:
+            errors.append(f"Basic quality tier must be between 0-100, got: {self.quality_tier_basic}")
+        if not 0 <= self.quality_tier_medium <= 100:
+            errors.append(f"Medium quality tier must be between 0-100, got: {self.quality_tier_medium}")
+        if not 0 <= self.quality_tier_high <= 100:
+            errors.append(f"High quality tier must be between 0-100, got: {self.quality_tier_high}")
+        
+        # Validate tier ordering
+        if self.quality_tier_basic >= self.quality_tier_medium:
+            errors.append(f"Basic tier ({self.quality_tier_basic}) must be lower than medium tier ({self.quality_tier_medium})")
+        if self.quality_tier_medium >= self.quality_tier_high:
+            errors.append(f"Medium tier ({self.quality_tier_medium}) must be lower than high tier ({self.quality_tier_high})")
         
         # Handle validation results
         if errors:
@@ -125,6 +145,38 @@ class CodeRippleConfig:
         """
         return agent_name in self.enabled_agents
     
+    def get_quality_tier_for_score(self, score: float) -> str:
+        """
+        Determine quality tier for a given score.
+        
+        Args:
+            score: Quality score to evaluate
+            
+        Returns:
+            Quality tier name ('high', 'medium', 'basic', or 'below_basic')
+        """
+        if score >= self.quality_tier_high:
+            return 'high'
+        elif score >= self.quality_tier_medium:
+            return 'medium'
+        elif score >= self.quality_tier_basic:
+            return 'basic'
+        else:
+            return 'below_basic'
+    
+    def get_quality_tier_thresholds(self) -> Dict[str, float]:
+        """
+        Get all quality tier thresholds.
+        
+        Returns:
+            Dictionary mapping tier names to threshold scores
+        """
+        return {
+            'high': self.quality_tier_high,
+            'medium': self.quality_tier_medium,
+            'basic': self.quality_tier_basic
+        }
+    
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert configuration to dictionary for logging/debugging.
@@ -140,7 +192,11 @@ class CodeRippleConfig:
             'log_level': self.log_level,
             'enabled_agents': self.enabled_agents,
             'skip_validation': self.skip_validation,
-            'min_quality_score': self.min_quality_score
+            'min_quality_score': self.min_quality_score,
+            'quality_tier_high': self.quality_tier_high,
+            'quality_tier_medium': self.quality_tier_medium,
+            'quality_tier_basic': self.quality_tier_basic,
+            'enable_progressive_quality': self.enable_progressive_quality
         }
     
     def __str__(self) -> str:

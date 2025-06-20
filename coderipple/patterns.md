@@ -2,7 +2,12 @@
 
 *This document is automatically maintained by CodeRipple Tourist Guide Agent*  
 *Repository: coderipple*  
-*Last updated: 2025-06-20 14:26:30*
+*Last updated: 2025-06-20 14:40:35*
+
+
+> **👍 Good Quality** (Score: 78.2/70.0)  
+> Solid documentation with minor improvement opportunities
+
 
 ---
 
@@ -233,3 +238,110 @@ Typical workflow for integrating CodeRipple into your documentation process:
 - Use the generated content as a starting point, then refine for your specific audience
 - Combine with your existing documentation workflow for best results
 - Consider the `doc_focus` recommendations when prioritizing documentation updates
+
+## Update: 2025-06-20 14:40:35
+
+## CodeRipple Documentation Patterns
+
+*Comprehensive guide for implementing documentation patterns with CodeRipple*
+
+> **Note**: This documentation has been enhanced while preserving all existing functionality.
+
+### Common Usage Patterns
+
+CodeRipple provides several powerful functions to analyze code changes and generate contextually relevant documentation. Below are the core functions and their implementation details.
+
+#### Core Functions
+
+##### `CodeExample()`
+**Purpose**: Creates a structured representation of code examples extracted from git changes.
+
+**Properties**:
+- `snippet`: The actual code snippet text
+- `language`: Programming language of the snippet
+- `context`: Additional context about where this code appears
+- `is_complete`: Boolean indicating if this is a complete, runnable example
+
+##### `DocumentationFocus()`
+**Purpose**: Defines what aspects of documentation should be emphasized based on code analysis.
+
+**Properties**:
+- `primary_focus`: Main documentation area to prioritize
+- `secondary_focus`: Additional areas that should be addressed
+- `audience_level`: Target expertise level (beginner, intermediate, expert)
+- `suggested_sections`: Recommended documentation sections to update
+
+#### Analysis Functions
+
+##### `analyze_change_patterns(file_paths, commit_messages)`
+**Purpose**: Analyzes file changes and commit messages to intelligently determine documentation focus.
+
+**Arguments**:
+- `file_paths`: List of changed file paths (strings)
+- `commit_messages`: List of commit messages providing context (strings)
+
+**Returns**:
+- `DocumentationFocus` object indicating what type of documentation to prioritize
+
+**Example**:
+```python
+focus = analyze_change_patterns(
+    ["src/api/endpoints.py", "src/models/user.py"],
+    ["Add new user authentication endpoint", "Fix validation in user model"]
+)
+# Returns focus with primary_focus='api_documentation'
+```
+
+##### `extract_code_examples_from_diff(git_diff, file_path)`
+**Purpose**: Extracts meaningful, usable code examples from git diff content.
+
+**Arguments**:
+- `git_diff`: Raw git diff content (string)
+- `file_path`: Path to the file being analyzed (string)
+
+**Returns**:
+- List of `CodeExample` objects containing extracted code snippets
+
+**Example**:
+```python
+examples = extract_code_examples_from_diff(
+    "@@ -10,6 +10,15 @@ def authenticate_user(username, password):\n+    # Validate credentials\n+    if not username or not password:\n+        return None\n",
+    "src/auth/utils.py"
+)
+```
+
+##### `generate_context_aware_content(section, git_analysis, file_changes, code_examples, doc_focus)`
+**Purpose**: Generates documentation content based on actual code changes rather than generic templates.
+
+**Arguments**:
+- `section`: Documentation section to generate ('discovery', 'getting_started', etc.)
+- `git_analysis`: Results from git analysis tool
+- `file_changes`: List of changed files with their modifications
+- `code_examples`: Extracted code examples from the changes
+- `doc_focus`: Documentation focus analysis results
+
+**Returns**:
+- Generated content string tailored to the specific code changes
+
+**Example**:
+```python
+content = generate_context_aware_content(
+    'api_reference',
+    git_analysis_result,
+    [FileChange(path="api/endpoints.py", additions=15, deletions=3)],
+    code_examples,
+    doc_focus
+)
+```
+
+### Implementation Patterns
+
+For optimal results with CodeRipple, consider these implementation patterns:
+
+1. **Change Analysis → Documentation Focus → Content Generation**: Follow this workflow to ensure documentation accurately reflects code changes.
+
+2. **Combine Multiple Analysis Results**: Use both file changes and commit messages for more accurate documentation focus.
+
+3. **Extract Examples from Meaningful Changes**: Not all code changes make good examples. Focus on complete, functional additions.
+
+4. **Tailor Documentation to Change Scope**: Generate more detailed documentation for significant changes and simpler updates for minor changes.

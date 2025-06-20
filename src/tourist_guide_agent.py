@@ -44,6 +44,7 @@ from bedrock_integration_tools import (
 from content_validation_tools import (
     validate_documentation_quality,
     validate_documentation_quality_detailed,
+    validate_with_progressive_quality,
     enforce_quality_standards,
     validate_and_improve_content
 )
@@ -135,60 +136,46 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
                 'suggestions': []
             }
         else:
-            # Use enhanced validation with detailed diagnostics
-            validation_result = validate_documentation_quality_detailed(
-                content=content,
+            # Step 8 Subtask 3: Progressive Quality Standards with fallback tiers
+            print(f"   📊 VALIDATING with Progressive Quality Standards...")
+            
+            progressive_result = validate_with_progressive_quality(
                 file_path=full_path,
-                min_quality_score=60.0,  # Lower threshold for user docs
+                content=content,
                 project_root=os.getcwd()
             )
             
-            # Check if content meets quality standards
-            if not validation_result['is_valid']:
-                # Step 8 Subtask 2: Retry mechanism with iterative improvement
-                print(f"   📊 VALIDATION FAILED (Initial Attempt) - Starting retry process...")
-                
-                retry_result = _retry_content_improvement(
-                    content=content,
-                    validation_result=validation_result,
-                    file_path=full_path,
-                    max_retries=3
-                )
-                
-                if retry_result['success']:
-                    # Improved content passed validation - use it
-                    content = retry_result['improved_content']
-                    validation_result = retry_result['final_validation']
-                    print(f"   ✅ RETRY SUCCESS after {retry_result['attempts']} attempts (final score: {validation_result['overall_quality_score']:.1f}/100)")
-                else:
-                    # All retries failed - provide detailed diagnostics
-                    print(f"   ❌ ALL RETRIES FAILED after {retry_result['attempts']} attempts")
-                    print(f"   📈 Final Score: {retry_result['final_validation']['overall_quality_score']:.1f}/100 (required: {retry_result['final_validation']['threshold_info']['required_score']:.1f})")
-                    
-                    print(f"   📋 Category Breakdown:")
-                    for category, guidance in retry_result['final_validation']['category_guidance'].items():
-                        print(f"     {category.replace('_', ' ').title()}: {guidance}")
-                    
-                    print(f"   💡 Priority Fixes:")
-                    for i, fix in enumerate(retry_result['final_validation']['priority_fixes'][:3], 1):
-                        print(f"     {i}. {fix}")
-                    
-                    return {
-                        'status': 'validation_failed_after_retries',
-                        'error': f"Content validation failed after {retry_result['attempts']} attempts (final score: {retry_result['final_validation']['overall_quality_score']:.1f})",
-                        'retry_attempts': retry_result['attempts'],
-                        'retry_history': retry_result['retry_history'],
-                        'detailed_validation': retry_result['final_validation'],
-                        'validation_errors': retry_result['final_validation']['errors'],
-                        'validation_warnings': retry_result['final_validation']['warnings'],
-                        'suggestions': retry_result['final_validation']['improvement_actions'],
-                        'category_scores': retry_result['final_validation']['category_scores'],
-                        'failure_reasons': retry_result['final_validation']['failure_reasons'],
-                        'priority_fixes': retry_result['final_validation']['priority_fixes'],
-                        'file_path': file_path,
-                        'content_length': len(content),
-                        'content_stats': retry_result['final_validation']['content_stats']
-                    }
+            # Progressive validation always succeeds (with fallbacks)
+            validation_result = progressive_result
+            
+            # If content was enhanced with quality tier notices, use the enhanced version
+            if 'enhanced_content' in progressive_result:
+                content = progressive_result['enhanced_content']
+            
+            # Log the tier achieved and any warnings
+            tier_info = progressive_result.get('tier_display_info', {})
+            tier_achieved = progressive_result.get('final_tier_achieved', 'unknown')
+            
+            print(f"   {tier_info.get('icon', '📝')} QUALITY TIER: {tier_info.get('name', tier_achieved.title())} (Score: {progressive_result['final_score']:.1f})")
+            print(f"   📄 Description: {tier_info.get('description', 'Quality validation complete')}")
+            
+            # Display quality warnings if any
+            quality_warnings = progressive_result.get('quality_warnings', [])
+            if quality_warnings:
+                print(f"   ⚠️ Quality Warnings:")
+                for warning in quality_warnings[:3]:  # Show top 3 warnings
+                    print(f"     • {warning}")
+            
+            # Show tier attempts for transparency
+            attempts = progressive_result.get('attempts_made', [])
+            if len(attempts) > 1:
+                attempt_summary = ' → '.join([f"{a['tier'].title()}({a['score_achieved']:.1f})" for a in attempts])
+                print(f"   📊 Tier Attempts: {attempt_summary}")
+            
+            # Handle fallback case
+            fallback_reason = progressive_result.get('fallback_reason')
+            if fallback_reason:
+                print(f"   ⚠️ Fallback Applied: {fallback_reason}")
         
         # Content passed validation - proceed with writing
         if action == "create":
