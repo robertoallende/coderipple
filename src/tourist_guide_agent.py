@@ -145,37 +145,50 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
             
             # Check if content meets quality standards
             if not validation_result['is_valid']:
-                # Enhanced failure reporting with detailed diagnostics
-                print(f"   📊 VALIDATION FAILED - Detailed Analysis:")
-                print(f"   📈 Overall Score: {validation_result['overall_quality_score']:.1f}/100 (required: {validation_result['threshold_info']['required_score']:.1f})")
-                print(f"   🔍 Legacy Score: {validation_result['legacy_quality_score']:.1f}/100 (for comparison)")
+                # Step 8 Subtask 2: Retry mechanism with iterative improvement
+                print(f"   📊 VALIDATION FAILED (Initial Attempt) - Starting retry process...")
                 
-                print(f"   📋 Category Breakdown:")
-                for category, guidance in validation_result['category_guidance'].items():
-                    print(f"     {category.replace('_', ' ').title()}: {guidance}")
+                retry_result = _retry_content_improvement(
+                    content=content,
+                    validation_result=validation_result,
+                    file_path=full_path,
+                    max_retries=3
+                )
                 
-                print(f"   ⚠️  Top Issues:")
-                for i, reason in enumerate(validation_result['failure_reasons'][:3], 1):
-                    print(f"     {i}. {reason}")
-                
-                print(f"   💡 Priority Fixes:")
-                for i, fix in enumerate(validation_result['priority_fixes'][:3], 1):
-                    print(f"     {i}. {fix}")
-                
-                return {
-                    'status': 'validation_failed',
-                    'error': f"Content validation failed (score: {validation_result['overall_quality_score']:.1f})",
-                    'detailed_validation': validation_result,
-                    'validation_errors': validation_result['errors'],
-                    'validation_warnings': validation_result['warnings'],
-                    'suggestions': validation_result['improvement_actions'],
-                    'category_scores': validation_result['category_scores'],
-                    'failure_reasons': validation_result['failure_reasons'],
-                    'priority_fixes': validation_result['priority_fixes'],
-                    'file_path': file_path,
-                    'content_length': len(content),
-                    'content_stats': validation_result['content_stats']
-                }
+                if retry_result['success']:
+                    # Improved content passed validation - use it
+                    content = retry_result['improved_content']
+                    validation_result = retry_result['final_validation']
+                    print(f"   ✅ RETRY SUCCESS after {retry_result['attempts']} attempts (final score: {validation_result['overall_quality_score']:.1f}/100)")
+                else:
+                    # All retries failed - provide detailed diagnostics
+                    print(f"   ❌ ALL RETRIES FAILED after {retry_result['attempts']} attempts")
+                    print(f"   📈 Final Score: {retry_result['final_validation']['overall_quality_score']:.1f}/100 (required: {retry_result['final_validation']['threshold_info']['required_score']:.1f})")
+                    
+                    print(f"   📋 Category Breakdown:")
+                    for category, guidance in retry_result['final_validation']['category_guidance'].items():
+                        print(f"     {category.replace('_', ' ').title()}: {guidance}")
+                    
+                    print(f"   💡 Priority Fixes:")
+                    for i, fix in enumerate(retry_result['final_validation']['priority_fixes'][:3], 1):
+                        print(f"     {i}. {fix}")
+                    
+                    return {
+                        'status': 'validation_failed_after_retries',
+                        'error': f"Content validation failed after {retry_result['attempts']} attempts (final score: {retry_result['final_validation']['overall_quality_score']:.1f})",
+                        'retry_attempts': retry_result['attempts'],
+                        'retry_history': retry_result['retry_history'],
+                        'detailed_validation': retry_result['final_validation'],
+                        'validation_errors': retry_result['final_validation']['errors'],
+                        'validation_warnings': retry_result['final_validation']['warnings'],
+                        'suggestions': retry_result['final_validation']['improvement_actions'],
+                        'category_scores': retry_result['final_validation']['category_scores'],
+                        'failure_reasons': retry_result['final_validation']['failure_reasons'],
+                        'priority_fixes': retry_result['final_validation']['priority_fixes'],
+                        'file_path': file_path,
+                        'content_length': len(content),
+                        'content_stats': retry_result['final_validation']['content_stats']
+                    }
         
         # Content passed validation - proceed with writing
         if action == "create":
@@ -320,6 +333,202 @@ def read_existing_documentation(file_path: str) -> Dict[str, Any]:
             'error': str(e),
             'file_path': file_path
         }
+
+
+def _retry_content_improvement(content: str, validation_result: Dict[str, Any], file_path: str, max_retries: int = 3) -> Dict[str, Any]:
+    """
+    Step 8 Subtask 2: Retry mechanism with iterative improvement using validation feedback.
+    
+    Args:
+        content: The original content that failed validation
+        validation_result: Detailed validation results from initial attempt
+        file_path: Path to the file being created
+        max_retries: Maximum number of retry attempts
+        
+    Returns:
+        Dictionary with retry results, improved content, and final validation
+    """
+    current_content = content
+    retry_history = []
+    
+    for attempt in range(1, max_retries + 1):
+        print(f"   🔄 Retry Attempt {attempt}/{max_retries}...")
+        
+        # Create targeted improvement prompt based on validation failures
+        improvement_prompt = _create_targeted_improvement_prompt(validation_result, attempt)
+        
+        try:
+            # Use Bedrock to improve content based on specific feedback
+            enhanced_result = enhance_content_with_bedrock(
+                content=current_content,
+                context={
+                    'improvement_focus': improvement_prompt,
+                    'validation_failures': validation_result['failure_reasons'],
+                    'priority_fixes': validation_result['priority_fixes'],
+                    'category_scores': validation_result['category_scores'],
+                    'attempt_number': attempt,
+                    'file_type': 'user_documentation'
+                }
+            )
+            
+            if enhanced_result.get('status') == 'success':
+                improved_content = enhanced_result.get('content', current_content)
+                print(f"     📝 Content enhanced (attempt {attempt})")
+                
+                # Validate the improved content
+                new_validation = validate_documentation_quality_detailed(
+                    content=improved_content,
+                    file_path=file_path,
+                    min_quality_score=60.0,
+                    project_root=os.getcwd()
+                )
+                
+                # Track retry attempt
+                retry_history.append({
+                    'attempt': attempt,
+                    'improvement_prompt': improvement_prompt,
+                    'score_before': validation_result['overall_quality_score'],
+                    'score_after': new_validation['overall_quality_score'],
+                    'improvement': new_validation['overall_quality_score'] - validation_result['overall_quality_score'],
+                    'passed': new_validation['is_valid'],
+                    'main_issues_targeted': validation_result['failure_reasons'][:3]
+                })
+                
+                print(f"     📊 Score: {validation_result['overall_quality_score']:.1f} → {new_validation['overall_quality_score']:.1f} ({new_validation['overall_quality_score'] - validation_result['overall_quality_score']:+.1f})")
+                
+                if new_validation['is_valid']:
+                    # Success! Content now passes validation
+                    return {
+                        'success': True,
+                        'attempts': attempt,
+                        'improved_content': improved_content,
+                        'final_validation': new_validation,
+                        'retry_history': retry_history,
+                        'total_improvement': new_validation['overall_quality_score'] - retry_history[0]['score_before']
+                    }
+                
+                # Update for next iteration
+                current_content = improved_content
+                validation_result = new_validation
+                
+            else:
+                print(f"     ⚠️ Enhancement failed on attempt {attempt}: {enhanced_result.get('error', 'Unknown error')}")
+                retry_history.append({
+                    'attempt': attempt,
+                    'improvement_prompt': improvement_prompt,
+                    'score_before': validation_result['overall_quality_score'],
+                    'score_after': validation_result['overall_quality_score'],
+                    'improvement': 0.0,
+                    'passed': False,
+                    'error': enhanced_result.get('error', 'Enhancement failed')
+                })
+                
+        except Exception as e:
+            print(f"     ❌ Retry attempt {attempt} failed: {str(e)}")
+            retry_history.append({
+                'attempt': attempt,
+                'improvement_prompt': improvement_prompt,
+                'error': str(e),
+                'passed': False
+            })
+    
+    # All retries exhausted
+    return {
+        'success': False,
+        'attempts': max_retries,
+        'improved_content': current_content,
+        'final_validation': validation_result,
+        'retry_history': retry_history,
+        'total_improvement': validation_result['overall_quality_score'] - retry_history[0]['score_before'] if retry_history else 0.0
+    }
+
+
+def _create_targeted_improvement_prompt(validation_result: Dict[str, Any], attempt_number: int) -> str:
+    """
+    Create a targeted improvement prompt based on specific validation failures.
+    
+    Args:
+        validation_result: Detailed validation results
+        attempt_number: Current retry attempt number
+        
+    Returns:
+        Targeted improvement prompt for Bedrock
+    """
+    # Identify the worst-performing categories
+    category_scores = validation_result['category_scores']
+    worst_categories = sorted(category_scores.items(), key=lambda x: x[1])[:3]
+    
+    # Get specific issues and fixes
+    priority_fixes = validation_result.get('priority_fixes', [])
+    failure_reasons = validation_result.get('failure_reasons', [])
+    
+    if attempt_number == 1:
+        # First retry: Focus on the most critical issues
+        prompt = f"""
+CONTENT IMPROVEMENT REQUEST (Attempt {attempt_number}):
+
+CRITICAL ISSUES TO FIX:
+{chr(10).join([f"- {reason}" for reason in failure_reasons[:3]])}
+
+PRIORITY FIXES NEEDED:
+{chr(10).join([f"- {fix}" for fix in priority_fixes[:3]])}
+
+WEAKEST CATEGORIES:
+{chr(10).join([f"- {cat.replace('_', ' ').title()}: {score:.1f}/100" for cat, score in worst_categories])}
+
+IMPROVEMENT FOCUS:
+1. Address the critical structural issues first
+2. Add proper headers and organization
+3. Expand content with meaningful detail
+4. Ensure professional markdown formatting
+
+Please rewrite the content to specifically address these issues while maintaining the core message and purpose.
+"""
+    
+    elif attempt_number == 2:
+        # Second retry: Focus on remaining weak areas and polish
+        prompt = f"""
+CONTENT IMPROVEMENT REQUEST (Attempt {attempt_number}):
+
+REMAINING ISSUES TO ADDRESS:
+{chr(10).join([f"- {reason}" for reason in failure_reasons[:2]])}
+
+SPECIFIC FIXES NEEDED:
+{chr(10).join([f"- {fix}" for fix in priority_fixes[:4]])}
+
+IMPROVEMENT FOCUS:
+1. Polish content structure and flow
+2. Add code examples or practical illustrations if applicable
+3. Improve readability and clarity
+4. Ensure comprehensive coverage of the topic
+5. Add cross-references to related sections
+
+Please enhance the content with these specific improvements while preserving the existing quality improvements.
+"""
+    
+    else:
+        # Final retry: Comprehensive improvement attempt
+        prompt = f"""
+CONTENT IMPROVEMENT REQUEST (Final Attempt {attempt_number}):
+
+ALL REMAINING ISSUES:
+{chr(10).join([f"- {reason}" for reason in failure_reasons])}
+
+COMPREHENSIVE FIXES:
+{chr(10).join([f"- {fix}" for fix in priority_fixes])}
+
+FINAL IMPROVEMENT FOCUS:
+1. Ensure all validation criteria are met
+2. Create comprehensive, well-structured content
+3. Add appropriate examples, lists, and formatting
+4. Maintain professional tone and clarity
+5. Include proper introduction and conclusion
+6. Add relevant cross-references and links
+
+This is the final attempt - please create the best possible version of this content that addresses all identified issues.
+"""
+    
+    return prompt.strip()
 
 
 def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any], context: Dict[str, Any]) -> TouristGuideResult:
