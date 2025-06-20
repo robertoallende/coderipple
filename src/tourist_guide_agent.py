@@ -43,6 +43,7 @@ from bedrock_integration_tools import (
 )
 from content_validation_tools import (
     validate_documentation_quality,
+    validate_documentation_quality_detailed,
     enforce_quality_standards,
     validate_and_improve_content
 )
@@ -134,7 +135,8 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
                 'suggestions': []
             }
         else:
-            validation_result = enforce_quality_standards(
+            # Use enhanced validation with detailed diagnostics
+            validation_result = validate_documentation_quality_detailed(
                 content=content,
                 file_path=full_path,
                 min_quality_score=60.0,  # Lower threshold for user docs
@@ -142,23 +144,37 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
             )
             
             # Check if content meets quality standards
-            if not validation_result['write_approved']:
-                # Try to get improved content if validation suggests improvements
-                improvement_result = validate_and_improve_content(
-                    content=content,
-                    file_path=full_path,
-                    project_root=os.getcwd()
-                )
+            if not validation_result['is_valid']:
+                # Enhanced failure reporting with detailed diagnostics
+                print(f"   📊 VALIDATION FAILED - Detailed Analysis:")
+                print(f"   📈 Overall Score: {validation_result['overall_quality_score']:.1f}/100 (required: {validation_result['threshold_info']['required_score']:.1f})")
+                print(f"   🔍 Legacy Score: {validation_result['legacy_quality_score']:.1f}/100 (for comparison)")
+                
+                print(f"   📋 Category Breakdown:")
+                for category, guidance in validation_result['category_guidance'].items():
+                    print(f"     {category.replace('_', ' ').title()}: {guidance}")
+                
+                print(f"   ⚠️  Top Issues:")
+                for i, reason in enumerate(validation_result['failure_reasons'][:3], 1):
+                    print(f"     {i}. {reason}")
+                
+                print(f"   💡 Priority Fixes:")
+                for i, fix in enumerate(validation_result['priority_fixes'][:3], 1):
+                    print(f"     {i}. {fix}")
                 
                 return {
                     'status': 'validation_failed',
-                    'error': f"Content validation failed (score: {validation_result['quality_score']:.1f})",
+                    'error': f"Content validation failed (score: {validation_result['overall_quality_score']:.1f})",
+                    'detailed_validation': validation_result,
                     'validation_errors': validation_result['errors'],
                     'validation_warnings': validation_result['warnings'],
-                    'suggestions': validation_result['suggestions'],
-                    'improvement_suggestions': improvement_result.get('improvement_suggestions', []),
+                    'suggestions': validation_result['improvement_actions'],
+                    'category_scores': validation_result['category_scores'],
+                    'failure_reasons': validation_result['failure_reasons'],
+                    'priority_fixes': validation_result['priority_fixes'],
                     'file_path': file_path,
-                    'content_length': len(content)
+                    'content_length': len(content),
+                    'content_stats': validation_result['content_stats']
                 }
         
         # Content passed validation - proceed with writing
@@ -183,7 +199,7 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
             'operation': operation,
             'file_path': full_path,
             'content_length': len(content),
-            'validation_score': validation_result['quality_score'],
+            'validation_score': validation_result.get('overall_quality_score', validation_result.get('quality_score', 0.0)),
             'validation_warnings': validation_result.get('warnings', [])
         }
         

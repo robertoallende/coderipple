@@ -27,6 +27,20 @@ class ValidationResult:
 
 
 @dataclass
+class DetailedValidationResult:
+    """Enhanced validation results with detailed breakdowns."""
+    is_valid: bool
+    overall_quality_score: float
+    category_scores: Dict[str, float] = field(default_factory=dict)
+    category_details: Dict[str, Dict] = field(default_factory=dict)
+    errors: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+    suggestions: List[str] = field(default_factory=list)
+    improvement_actions: List[str] = field(default_factory=list)
+    threshold_info: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
 class CodeExample:
     """Represents a code example found in documentation."""
     content: str
@@ -287,6 +301,339 @@ class ContentValidator:
             
         # Normalize to 0-100 range
         return max(0.0, min(100.0, score))
+    
+    def calculate_detailed_quality_scores(self, content: str, validation_results: List[ValidationResult]) -> Dict[str, Any]:
+        """
+        Calculate detailed quality scores broken down by category.
+        
+        Returns detailed breakdown for enhanced diagnostics.
+        """
+        if not content.strip():
+            return {
+                'overall_score': 0.0,
+                'category_scores': {
+                    'content_structure': 0.0,
+                    'markdown_syntax': 0.0,
+                    'code_examples': 0.0,
+                    'cross_references': 0.0,
+                    'completeness': 0.0,
+                    'readability': 0.0
+                },
+                'detailed_breakdown': {
+                    'content_structure': {'score': 0.0, 'issues': ['Content is empty'], 'suggestions': ['Add meaningful content']},
+                    'markdown_syntax': {'score': 0.0, 'issues': ['No content to analyze'], 'suggestions': []},
+                    'code_examples': {'score': 0.0, 'issues': ['No content to analyze'], 'suggestions': []},
+                    'cross_references': {'score': 0.0, 'issues': ['No content to analyze'], 'suggestions': []},
+                    'completeness': {'score': 0.0, 'issues': ['Content is empty'], 'suggestions': ['Add comprehensive content']},
+                    'readability': {'score': 0.0, 'issues': ['No content to analyze'], 'suggestions': []}
+                }
+            }
+        
+        # Initialize category scores
+        scores = {}
+        details = {}
+        
+        # 1. Content Structure (25% weight)
+        structure_score, structure_details = self._analyze_content_structure(content)
+        scores['content_structure'] = structure_score
+        details['content_structure'] = structure_details
+        
+        # 2. Markdown Syntax (20% weight) 
+        syntax_score, syntax_details = self._analyze_markdown_syntax(content, validation_results)
+        scores['markdown_syntax'] = syntax_score
+        details['markdown_syntax'] = syntax_details
+        
+        # 3. Code Examples (15% weight)
+        code_score, code_details = self._analyze_code_examples(content)
+        scores['code_examples'] = code_score
+        details['code_examples'] = code_details
+        
+        # 4. Cross References (10% weight)
+        ref_score, ref_details = self._analyze_cross_references(content)
+        scores['cross_references'] = ref_score
+        details['cross_references'] = ref_details
+        
+        # 5. Completeness (20% weight)
+        completeness_score, completeness_details = self._analyze_completeness(content)
+        scores['completeness'] = completeness_score
+        details['completeness'] = completeness_details
+        
+        # 6. Readability (10% weight)
+        readability_score, readability_details = self._analyze_readability(content)
+        scores['readability'] = readability_score
+        details['readability'] = readability_details
+        
+        # Calculate weighted overall score
+        weights = {
+            'content_structure': 0.25,
+            'markdown_syntax': 0.20,
+            'code_examples': 0.15,
+            'cross_references': 0.10,
+            'completeness': 0.20,
+            'readability': 0.10
+        }
+        
+        overall_score = sum(scores[category] * weights[category] for category in scores)
+        
+        return {
+            'overall_score': overall_score,
+            'category_scores': scores,
+            'detailed_breakdown': details,
+            'weights_used': weights
+        }
+    
+    def _analyze_content_structure(self, content: str) -> Tuple[float, Dict[str, Any]]:
+        """Analyze content structure quality."""
+        score = 100.0
+        issues = []
+        suggestions = []
+        
+        lines = content.split('\n')
+        non_empty_lines = [line for line in lines if line.strip()]
+        
+        # Check for proper headers
+        headers = [line for line in lines if re.match(r'^#{1,6}\s+', line)]
+        if not headers:
+            score -= 30
+            issues.append("No headers found")
+            suggestions.append("Add section headers using # markdown syntax")
+        elif len(headers) == 1:
+            score -= 10
+            suggestions.append("Consider adding subsection headers for better organization")
+        
+        # Check for proper introduction
+        if not re.search(r'^[A-Z].*[.!?]$', content[:200], re.MULTILINE):
+            score -= 15
+            issues.append("Missing clear introduction")
+            suggestions.append("Start with a clear introductory paragraph")
+        
+        # Check content length
+        if len(non_empty_lines) < 5:
+            score -= 25
+            issues.append(f"Content too short ({len(non_empty_lines)} lines)")
+            suggestions.append("Expand content with more detailed information")
+        elif len(non_empty_lines) < 10:
+            score -= 10
+            suggestions.append("Consider adding more detail for comprehensive coverage")
+        
+        # Check for lists and organization
+        has_lists = bool(re.search(r'^[-*+]\s+', content, re.MULTILINE))
+        if not has_lists and len(non_empty_lines) > 10:
+            score -= 10
+            suggestions.append("Consider organizing information into lists for better readability")
+        
+        return max(0.0, score), {
+            'score': max(0.0, score),
+            'issues': issues,
+            'suggestions': suggestions,
+            'metrics': {
+                'header_count': len(headers),
+                'line_count': len(non_empty_lines),
+                'has_lists': has_lists
+            }
+        }
+    
+    def _analyze_markdown_syntax(self, content: str, validation_results: List[ValidationResult]) -> Tuple[float, Dict[str, Any]]:
+        """Analyze markdown syntax quality."""
+        score = 100.0
+        issues = []
+        suggestions = []
+        
+        # Count syntax errors from validation results
+        syntax_errors = []
+        for result in validation_results:
+            syntax_errors.extend([err for err in result.errors if 'syntax' in err.lower() or 'markdown' in err.lower()])
+        
+        # Penalize for syntax errors
+        if syntax_errors:
+            score -= len(syntax_errors) * 20
+            issues.extend(syntax_errors)
+            suggestions.append("Fix markdown syntax errors")
+        
+        # Check for common markdown issues
+        if '```' in content and content.count('```') % 2 != 0:
+            score -= 15
+            issues.append("Unclosed code block")
+            suggestions.append("Ensure all code blocks are properly closed")
+        
+        # Check for proper link formatting
+        broken_links = re.findall(r'\[([^\]]*)\]\s*\(([^)]*)\)', content)
+        if any(not url.strip() for text, url in broken_links):
+            score -= 10
+            issues.append("Broken or empty links found")
+            suggestions.append("Fix broken link references")
+        
+        return max(0.0, score), {
+            'score': max(0.0, score),
+            'issues': issues,
+            'suggestions': suggestions,
+            'metrics': {
+                'syntax_errors_count': len(syntax_errors),
+                'code_blocks_balanced': '```' not in content or content.count('```') % 2 == 0,
+                'link_count': len(broken_links)
+            }
+        }
+    
+    def _analyze_code_examples(self, content: str) -> Tuple[float, Dict[str, Any]]:
+        """Analyze code examples quality."""
+        score = 80.0  # Start at 80 since code examples are optional for some docs
+        issues = []
+        suggestions = []
+        
+        code_blocks = re.findall(r'```(\w*)\n(.*?)\n```', content, re.DOTALL)
+        
+        if not code_blocks:
+            score = 60.0  # Not critical but reduces score
+            suggestions.append("Consider adding code examples to illustrate concepts")
+        else:
+            # Check for language specification
+            unspecified_blocks = [block for lang, code in code_blocks if not lang.strip()]
+            if unspecified_blocks:
+                score -= 10
+                issues.append(f"{len(unspecified_blocks)} code blocks missing language specification")
+                suggestions.append("Specify programming language for code blocks (e.g., ```python)")
+            
+            # Check for meaningful content in code blocks
+            empty_blocks = [block for lang, code in code_blocks if not code.strip()]
+            if empty_blocks:
+                score -= 15
+                issues.append(f"{len(empty_blocks)} empty code blocks")
+                suggestions.append("Remove empty code blocks or add meaningful examples")
+            
+            # Bonus for good code examples
+            if len(code_blocks) >= 2:
+                score += 10
+                
+        return max(0.0, score), {
+            'score': max(0.0, score),
+            'issues': issues,
+            'suggestions': suggestions,
+            'metrics': {
+                'code_blocks_count': len(code_blocks),
+                'specified_language_count': len([1 for lang, code in code_blocks if lang.strip()]),
+                'non_empty_count': len([1 for lang, code in code_blocks if code.strip()])
+            }
+        }
+    
+    def _analyze_cross_references(self, content: str) -> Tuple[float, Dict[str, Any]]:
+        """Analyze cross-references quality."""
+        score = 80.0  # Start at 80 since cross-refs are nice to have
+        issues = []
+        suggestions = []
+        
+        links = re.findall(r'\[([^\]]*)\]\(([^)]*)\)', content)
+        internal_links = [(text, url) for text, url in links if not url.startswith(('http://', 'https://'))]
+        external_links = [(text, url) for text, url in links if url.startswith(('http://', 'https://'))]
+        
+        if not links:
+            score = 70.0
+            suggestions.append("Consider adding links to related documentation or external resources")
+        else:
+            # Check for descriptive link text
+            poor_link_text = [text for text, url in links if text.lower().strip() in ['click here', 'here', 'link']]
+            if poor_link_text:
+                score -= 10
+                issues.append(f"{len(poor_link_text)} links with non-descriptive text")
+                suggestions.append("Use descriptive text for links instead of 'click here' or 'here'")
+            
+            # Bonus for having both internal and external links
+            if internal_links and external_links:
+                score += 10
+        
+        return max(0.0, score), {
+            'score': max(0.0, score),
+            'issues': issues,
+            'suggestions': suggestions,
+            'metrics': {
+                'total_links': len(links),
+                'internal_links': len(internal_links),
+                'external_links': len(external_links)
+            }
+        }
+    
+    def _analyze_completeness(self, content: str) -> Tuple[float, Dict[str, Any]]:
+        """Analyze content completeness."""
+        score = 100.0
+        issues = []
+        suggestions = []
+        
+        # Check for placeholder content
+        placeholders = re.findall(r'TODO|FIXME|XXX|\[placeholder\]|\.\.\.|TBD', content, re.IGNORECASE)
+        if placeholders:
+            score -= len(placeholders) * 15
+            issues.append(f"{len(placeholders)} placeholder items found")
+            suggestions.append("Replace placeholder content with actual information")
+        
+        # Check for minimum content depth
+        paragraphs = re.split(r'\n\s*\n', content.strip())
+        substantial_paragraphs = [p for p in paragraphs if len(p.strip()) > 50]
+        
+        if len(substantial_paragraphs) < 2:
+            score -= 20
+            issues.append("Content lacks depth - too few substantial paragraphs")
+            suggestions.append("Expand content with more detailed explanations")
+        elif len(substantial_paragraphs) < 3:
+            score -= 10
+            suggestions.append("Consider adding more detail for comprehensive coverage")
+        
+        # Check for conclusion or next steps
+        has_conclusion = bool(re.search(r'(conclusion|summary|next steps?|what\'s next)', content, re.IGNORECASE))
+        if len(content) > 500 and not has_conclusion:
+            score -= 5
+            suggestions.append("Consider adding a conclusion or next steps section")
+        
+        return max(0.0, score), {
+            'score': max(0.0, score),
+            'issues': issues,
+            'suggestions': suggestions,
+            'metrics': {
+                'placeholder_count': len(placeholders),
+                'paragraph_count': len(paragraphs),
+                'substantial_paragraphs': len(substantial_paragraphs),
+                'has_conclusion': has_conclusion
+            }
+        }
+    
+    def _analyze_readability(self, content: str) -> Tuple[float, Dict[str, Any]]:
+        """Analyze content readability."""
+        score = 100.0
+        issues = []
+        suggestions = []
+        
+        # Check sentence length
+        sentences = re.split(r'[.!?]+', content)
+        long_sentences = [s for s in sentences if len(s.strip().split()) > 25]
+        if long_sentences:
+            score -= len(long_sentences) * 5
+            if len(long_sentences) > 3:
+                issues.append(f"{len(long_sentences)} very long sentences found")
+                suggestions.append("Break down long sentences for better readability")
+        
+        # Check for overly technical jargon without explanation
+        technical_terms = re.findall(r'\b[A-Z]{2,}\b', content)  # All-caps technical terms
+        if len(technical_terms) > 5:
+            score -= 5
+            suggestions.append("Consider explaining technical abbreviations and acronyms")
+        
+        # Check paragraph length
+        paragraphs = re.split(r'\n\s*\n', content.strip())
+        long_paragraphs = [p for p in paragraphs if len(p.split()) > 100]
+        if long_paragraphs:
+            score -= len(long_paragraphs) * 3
+            if len(long_paragraphs) > 2:
+                suggestions.append("Consider breaking up long paragraphs for better readability")
+        
+        return max(0.0, score), {
+            'score': max(0.0, score),
+            'issues': issues,
+            'suggestions': suggestions,
+            'metrics': {
+                'long_sentences_count': len(long_sentences),
+                'technical_terms_count': len(technical_terms),
+                'long_paragraphs_count': len(long_paragraphs),
+                'avg_sentence_length': sum(len(s.split()) for s in sentences) / max(1, len(sentences))
+            }
+        }
     
     def _get_system_capabilities(self, project_root: str) -> Dict[str, Any]:
         """Extract current system capabilities from project structure."""
@@ -572,4 +919,116 @@ def validate_and_improve_content(content: str, file_path: str, project_root: str
         **validation_result,
         'improvement_suggestions': improvements,
         'priority_level': 'high' if validation_result['quality_score'] < 50 else 'medium' if validation_result['quality_score'] < 70 else 'low'
+    }
+
+
+@tool
+def validate_documentation_quality_detailed(file_path: str, content: str, project_root: str = None, min_quality_score: float = 70.0) -> dict:
+    """
+    Enhanced validation with detailed diagnostic breakdown.
+    
+    Provides comprehensive analysis of why content fails validation,
+    broken down by category with specific improvement suggestions.
+    
+    Args:
+        file_path: Path to the documentation file being validated
+        content: The content to validate
+        project_root: Root directory of the project (optional)
+        min_quality_score: Minimum quality score required for approval
+        
+    Returns:
+        Dictionary containing detailed validation results with category breakdowns,
+        specific failure reasons, and actionable improvement suggestions
+    """
+    validator = ContentValidator(project_root)
+    
+    # Perform standard validations
+    markdown_result = validator.validate_markdown_syntax(content, file_path)
+    code_examples = validator.extract_code_examples(content)
+    code_result = validator.validate_code_examples(code_examples, project_root)
+    cross_refs = validator.extract_cross_references(content)
+    ref_result = validator.validate_cross_references(cross_refs, project_root)
+    
+    # Get detailed quality breakdown
+    detailed_scores = validator.calculate_detailed_quality_scores(content, [markdown_result, code_result, ref_result])
+    
+    # Calculate legacy score for compatibility
+    legacy_score = validator.calculate_quality_score(content, [markdown_result, code_result, ref_result])
+    
+    # Determine if content passes validation
+    passes_validation = detailed_scores['overall_score'] >= min_quality_score
+    
+    # Create improvement actions based on detailed analysis
+    improvement_actions = []
+    priority_fixes = []
+    
+    for category, details in detailed_scores['detailed_breakdown'].items():
+        if details['score'] < 70:  # Category needs improvement
+            priority_fixes.extend(details['issues'])
+            improvement_actions.extend(details['suggestions'])
+    
+    # Add category-specific guidance
+    category_guidance = {}
+    for category, score in detailed_scores['category_scores'].items():
+        weight = detailed_scores['weights_used'][category]
+        impact = score * weight
+        
+        if score < 70:
+            guidance = f"⚠️ LOW ({score:.1f}/100) - High priority for improvement (contributes {impact:.1f} to overall score)"
+        elif score < 85:
+            guidance = f"🔶 MEDIUM ({score:.1f}/100) - Room for improvement (contributes {impact:.1f} to overall score)"
+        else:
+            guidance = f"✅ GOOD ({score:.1f}/100) - Meeting standards (contributes {impact:.1f} to overall score)"
+        
+        category_guidance[category] = guidance
+    
+    # Create threshold information
+    threshold_info = {
+        'required_score': min_quality_score,
+        'actual_score': detailed_scores['overall_score'],
+        'score_difference': detailed_scores['overall_score'] - min_quality_score,
+        'passes_threshold': passes_validation,
+        'legacy_score': legacy_score,  # For comparison with old system
+        'score_explanation': f"Weighted average of {len(detailed_scores['category_scores'])} categories"
+    }
+    
+    # Create failure reason summary
+    failure_reasons = []
+    if not passes_validation:
+        failure_reasons.append(f"Overall score {detailed_scores['overall_score']:.1f} below required {min_quality_score}")
+        
+        worst_categories = sorted(
+            [(cat, score) for cat, score in detailed_scores['category_scores'].items()],
+            key=lambda x: x[1]
+        )[:3]
+        
+        for category, score in worst_categories:
+            if score < 70:
+                failure_reasons.append(f"{category.replace('_', ' ').title()}: {score:.1f}/100 - {detailed_scores['detailed_breakdown'][category]['issues'][0] if detailed_scores['detailed_breakdown'][category]['issues'] else 'Below standards'}")
+    
+    return {
+        'is_valid': passes_validation,
+        'validation_type': 'detailed_enhanced',
+        'overall_quality_score': detailed_scores['overall_score'],
+        'legacy_quality_score': legacy_score,  # For debugging score differences
+        'category_scores': detailed_scores['category_scores'],
+        'category_guidance': category_guidance,
+        'detailed_breakdown': detailed_scores['detailed_breakdown'],
+        'weights_used': detailed_scores['weights_used'],
+        'threshold_info': threshold_info,
+        'failure_reasons': failure_reasons,
+        'priority_fixes': priority_fixes,
+        'improvement_actions': improvement_actions,
+        'errors': sum([r.errors for r in [markdown_result, code_result, ref_result]], []),
+        'warnings': sum([r.warnings for r in [markdown_result, code_result, ref_result]], []),
+        'suggestions': improvement_actions,
+        'code_examples_count': len(code_examples),
+        'cross_references_count': len(cross_refs),
+        'file_path': file_path,
+        'content_stats': {
+            'character_count': len(content),
+            'line_count': len(content.split('\n')),
+            'word_count': len(content.split()),
+            'paragraph_count': len([p for p in content.split('\n\n') if p.strip()])
+        }
     }
