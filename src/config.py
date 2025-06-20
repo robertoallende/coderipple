@@ -54,6 +54,7 @@ class CodeRippleConfig:
         self.quality_tier_medium = float(os.getenv('CODERIPPLE_QUALITY_TIER_MEDIUM', '70.0'))
         self.quality_tier_basic = float(os.getenv('CODERIPPLE_QUALITY_TIER_BASIC', '50.0'))
         self.enable_progressive_quality = os.getenv('CODERIPPLE_ENABLE_PROGRESSIVE_QUALITY', 'true').lower() == 'true'
+        self.enable_partial_success = os.getenv('CODERIPPLE_ENABLE_PARTIAL_SUCCESS', 'true').lower() == 'true'
     
     def _validate_configuration(self):
         """Validate configuration values and raise errors for invalid settings"""
@@ -196,7 +197,8 @@ class CodeRippleConfig:
             'quality_tier_high': self.quality_tier_high,
             'quality_tier_medium': self.quality_tier_medium,
             'quality_tier_basic': self.quality_tier_basic,
-            'enable_progressive_quality': self.enable_progressive_quality
+            'enable_progressive_quality': self.enable_progressive_quality,
+            'enable_partial_success': self.enable_partial_success
         }
     
     def __str__(self) -> str:

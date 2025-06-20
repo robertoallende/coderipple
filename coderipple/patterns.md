@@ -2,7 +2,12 @@
 
 *This document is automatically maintained by CodeRipple Tourist Guide Agent*  
 *Repository: coderipple*  
-*Last updated: 2025-06-20 14:40:35*
+*Last updated: 2025-06-20 14:58:07*
+
+
+
+> **📝 Basic Quality** (Score: 65.8/50.0)  
+> Functional documentation meeting minimum standards
 
 
 > **👍 Good Quality** (Score: 78.2/70.0)  
@@ -345,3 +350,92 @@ For optimal results with CodeRipple, consider these implementation patterns:
 3. **Extract Examples from Meaningful Changes**: Not all code changes make good examples. Focus on complete, functional additions.
 
 4. **Tailor Documentation to Change Scope**: Generate more detailed documentation for significant changes and simpler updates for minor changes.
+
+## Update: 2025-06-20 14:58:07
+
+## Patterns in CodeRipple
+
+*Comprehensive documentation for intelligent documentation generation*
+
+> **Note**: This documentation has been enhanced while preserving all existing functionality.
+
+### Common Usage Patterns
+
+CodeRipple provides a set of powerful functions to analyze code changes and generate contextually relevant documentation. Below are the core functions and their usage patterns:
+
+#### Core Data Structures
+
+- **`CodeExample`** - Represents a code example extracted from git changes
+  - Properties: `snippet`, `language`, `context`, `relevance_score`
+  - Used to store meaningful code snippets for documentation generation
+
+- **`DocumentationFocus`** - Defines what type of documentation should be emphasized
+  - Properties: `primary_focus`, `secondary_focus`, `code_complexity`, `change_magnitude`
+  - Helps tailor documentation to the nature of code changes
+
+#### Analysis Functions
+
+- **`analyze_change_patterns(file_paths, commit_messages)`**
+  - **Purpose**: Analyzes file changes and commit messages to determine optimal documentation focus
+  - **Arguments**:
+    - `file_paths`: List of changed file paths (strings)
+    - `commit_messages`: List of commit messages for context (strings)
+  - **Returns**: `DocumentationFocus` object indicating what type of documentation to prioritize
+  - **Example**:
+    ```python
+    focus = analyze_change_patterns(
+        ["src/auth/login.py", "src/models/user.py"],
+        ["Fix authentication flow", "Add password reset capability"]
+    )
+    # focus.primary_focus might be "security" or "api_usage"
+    ```
+
+- **`extract_code_examples_from_diff(git_diff, file_path)`**
+  - **Purpose**: Extracts meaningful, usable code examples from git diff output
+  - **Arguments**:
+    - `git_diff`: Raw git diff content (string)
+    - `file_path`: Path to the file being analyzed (string)
+  - **Returns**: List of `CodeExample` objects containing extracted code snippets
+  - **Example**:
+    ```python
+    examples = extract_code_examples_from_diff(diff_content, "src/api/endpoints.py")
+    # Returns relevant code snippets that demonstrate API usage
+    ```
+
+#### Content Generation
+
+- **`generate_context_aware_content(section, git_analysis, file_changes, code_examples, doc_focus)`**
+  - **Purpose**: Generates tailored documentation content based on actual code changes
+  - **Arguments**:
+    - `section`: Documentation section to generate (`'discovery'`, `'getting_started'`, etc.)
+    - `git_analysis`: Results from git analysis tool (object)
+    - `file_changes`: List of changed files with metadata (list)
+    - `code_examples`: Extracted code examples (`CodeExample` objects)
+    - `doc_focus`: Documentation focus analysis (`DocumentationFocus` object)
+  - **Returns**: Generated content string optimized for the specified section
+  - **Example**:
+    ```python
+    api_docs = generate_context_aware_content(
+        'api_reference',
+        git_analysis_results,
+        changed_files,
+        extracted_examples,
+        documentation_focus
+    )
+    # Returns markdown content for API reference documentation
+    ```
+
+### Integration Workflow
+
+A typical workflow for using these patterns involves:
+
+1. Analyzing code changes to determine documentation focus
+2. Extracting relevant code examples from the changes
+3. Generating appropriate documentation sections based on the analysis
+4. Integrating the generated content into your documentation system
+
+### Best Practices
+
+- Provide comprehensive commit messages to improve documentation context
+- Structure code changes to make important examples more visible
+- Review generated documentation for accuracy before publishing

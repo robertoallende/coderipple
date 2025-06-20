@@ -45,6 +45,7 @@ from content_validation_tools import (
     validate_documentation_quality,
     validate_documentation_quality_detailed,
     validate_with_progressive_quality,
+    validate_with_partial_success,
     enforce_quality_standards,
     validate_and_improve_content
 )
@@ -136,46 +137,81 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
                 'suggestions': []
             }
         else:
-            # Step 8 Subtask 3: Progressive Quality Standards with fallback tiers
-            print(f"   📊 VALIDATING with Progressive Quality Standards...")
+            # Step 8 Subtask 4: Partial Success Handling with Progressive Quality Standards
+            config = get_config()
             
-            progressive_result = validate_with_progressive_quality(
-                file_path=full_path,
-                content=content,
-                project_root=os.getcwd()
-            )
+            if config.enable_partial_success:
+                print(f"   📊 VALIDATING with Partial Success & Progressive Quality Standards...")
+                
+                validation_result = validate_with_partial_success(
+                    file_path=full_path,
+                    content=content,
+                    project_root=os.getcwd()
+                )
+                
+                # Log validation results
+                tier_info = validation_result.get('tier_display_info', {})
+                tier_achieved = validation_result.get('final_tier_achieved', 'unknown')
+                
+                print(f"   {tier_info.get('icon', '📝')} VALIDATION: {tier_info.get('name', tier_achieved.title())} (Score: {validation_result['final_score']:.1f})")
+                print(f"   📄 Description: {tier_info.get('description', 'Validation complete')}")
+                
+                # Show section processing if partial validation occurred
+                if validation_result.get('partial_validation', False):
+                    sections_processed = validation_result.get('sections_processed', 0)
+                    sections_passed = validation_result.get('sections_passed', 0)
+                    sections_failed = validation_result.get('sections_failed', 0)
+                    
+                    print(f"   📊 Section Analysis: {sections_processed} sections processed")
+                    print(f"   ✅ Passed: {sections_passed} sections")
+                    if sections_failed > 0:
+                        print(f"   ❌ Failed: {sections_failed} sections (excluded from final document)")
+                
+                # Display quality warnings if any
+                quality_warnings = validation_result.get('quality_warnings', [])
+                if quality_warnings:
+                    print(f"   ⚠️ Quality Warnings:")
+                    for warning in quality_warnings[:3]:  # Show top 3 warnings
+                        print(f"     • {warning}")
+                
+            else:
+                # Fallback to progressive quality only
+                print(f"   📊 VALIDATING with Progressive Quality Standards...")
+                
+                validation_result = validate_with_progressive_quality(
+                    file_path=full_path,
+                    content=content,
+                    project_root=os.getcwd()
+                )
+                
+                # Log the tier achieved and any warnings
+                tier_info = validation_result.get('tier_display_info', {})
+                tier_achieved = validation_result.get('final_tier_achieved', 'unknown')
+                
+                print(f"   {tier_info.get('icon', '📝')} QUALITY TIER: {tier_info.get('name', tier_achieved.title())} (Score: {validation_result['final_score']:.1f})")
+                print(f"   📄 Description: {tier_info.get('description', 'Quality validation complete')}")
+                
+                # Display quality warnings if any
+                quality_warnings = validation_result.get('quality_warnings', [])
+                if quality_warnings:
+                    print(f"   ⚠️ Quality Warnings:")
+                    for warning in quality_warnings[:3]:  # Show top 3 warnings
+                        print(f"     • {warning}")
+                
+                # Show tier attempts for transparency
+                attempts = validation_result.get('attempts_made', [])
+                if len(attempts) > 1:
+                    attempt_summary = ' → '.join([f"{a['tier'].title()}({a['score_achieved']:.1f})" for a in attempts])
+                    print(f"   📊 Tier Attempts: {attempt_summary}")
+                
+                # Handle fallback case
+                fallback_reason = validation_result.get('fallback_reason')
+                if fallback_reason:
+                    print(f"   ⚠️ Fallback Applied: {fallback_reason}")
             
-            # Progressive validation always succeeds (with fallbacks)
-            validation_result = progressive_result
-            
-            # If content was enhanced with quality tier notices, use the enhanced version
-            if 'enhanced_content' in progressive_result:
-                content = progressive_result['enhanced_content']
-            
-            # Log the tier achieved and any warnings
-            tier_info = progressive_result.get('tier_display_info', {})
-            tier_achieved = progressive_result.get('final_tier_achieved', 'unknown')
-            
-            print(f"   {tier_info.get('icon', '📝')} QUALITY TIER: {tier_info.get('name', tier_achieved.title())} (Score: {progressive_result['final_score']:.1f})")
-            print(f"   📄 Description: {tier_info.get('description', 'Quality validation complete')}")
-            
-            # Display quality warnings if any
-            quality_warnings = progressive_result.get('quality_warnings', [])
-            if quality_warnings:
-                print(f"   ⚠️ Quality Warnings:")
-                for warning in quality_warnings[:3]:  # Show top 3 warnings
-                    print(f"     • {warning}")
-            
-            # Show tier attempts for transparency
-            attempts = progressive_result.get('attempts_made', [])
-            if len(attempts) > 1:
-                attempt_summary = ' → '.join([f"{a['tier'].title()}({a['score_achieved']:.1f})" for a in attempts])
-                print(f"   📊 Tier Attempts: {attempt_summary}")
-            
-            # Handle fallback case
-            fallback_reason = progressive_result.get('fallback_reason')
-            if fallback_reason:
-                print(f"   ⚠️ Fallback Applied: {fallback_reason}")
+            # If content was enhanced with quality tier notices or partial content, use the enhanced version
+            if 'enhanced_content' in validation_result:
+                content = validation_result['enhanced_content']
         
         # Content passed validation - proceed with writing
         if action == "create":

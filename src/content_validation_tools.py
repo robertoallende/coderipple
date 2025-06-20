@@ -488,14 +488,14 @@ class ContentValidator:
             suggestions.append("Consider adding code examples to illustrate concepts")
         else:
             # Check for language specification
-            unspecified_blocks = [block for lang, code in code_blocks if not lang.strip()]
+            unspecified_blocks = [(lang, code) for lang, code in code_blocks if not lang.strip()]
             if unspecified_blocks:
                 score -= 10
                 issues.append(f"{len(unspecified_blocks)} code blocks missing language specification")
                 suggestions.append("Specify programming language for code blocks (e.g., ```python)")
             
             # Check for meaningful content in code blocks
-            empty_blocks = [block for lang, code in code_blocks if not code.strip()]
+            empty_blocks = [(lang, code) for lang, code in code_blocks if not code.strip()]
             if empty_blocks:
                 score -= 15
                 issues.append(f"{len(empty_blocks)} empty code blocks")
@@ -1228,3 +1228,292 @@ def _create_fallback_content_with_warnings(content: str, validation_result: dict
     return _add_quality_tier_notice(content, 'fallback', validation_result['overall_quality_score'], 0.0).replace(
         '> **⚠️ Draft Quality**', warnings_section
     )
+
+
+@dataclass
+class SectionValidationResult:
+    """Results from validating individual sections."""
+    section_name: str
+    section_content: str
+    section_start_line: int
+    section_end_line: int
+    validation_result: dict
+    passes_validation: bool
+    quality_tier: str
+    section_score: float
+
+
+@dataclass 
+class PartialSuccessResult:
+    """Results from partial success validation."""
+    total_sections: int
+    passed_sections: int
+    failed_sections: int
+    partial_content: str
+    section_results: List[SectionValidationResult]
+    overall_success: bool
+    partial_save_performed: bool
+    warnings: List[str]
+
+
+@tool
+def validate_with_partial_success(file_path: str, content: str, project_root: str = None) -> dict:
+    """
+    Validate content with partial success handling - save sections that pass validation.
+    
+    Splits content into logical sections (by markdown headers) and validates each independently.
+    Saves sections that pass validation and creates warnings for failed sections.
+    
+    Args:
+        file_path: Path to the documentation file being validated
+        content: The content to validate
+        project_root: Root directory of the project (optional)
+        
+    Returns:
+        Dictionary containing partial success results with section-level validation details
+    """
+    config = get_config()
+    
+    # First try progressive quality validation on the whole document
+    progressive_result = validate_with_progressive_quality(file_path, content, project_root)
+    
+    # If the whole document passes, return it as-is
+    if progressive_result['is_valid'] and progressive_result.get('final_tier_achieved') in ['high', 'medium']:
+        progressive_result['partial_validation'] = False
+        progressive_result['sections_processed'] = 1
+        progressive_result['sections_passed'] = 1
+        return progressive_result
+    
+    print(f"   🔍 PARTIAL VALIDATION: Document failed progressive validation, trying section-by-section...")
+    
+    # Split content into sections
+    sections = _split_content_into_sections(content)
+    
+    if len(sections) <= 1:
+        # Cannot split into meaningful sections, return original result with warnings
+        print(f"   ⚠️ Cannot split into sections, saving with warnings")
+        progressive_result['partial_validation'] = False
+        progressive_result['sections_processed'] = 1
+        progressive_result['sections_passed'] = 0 if not progressive_result['is_valid'] else 1
+        return progressive_result
+    
+    print(f"   📄 Found {len(sections)} sections to validate independently")
+    
+    # Validate each section independently
+    section_results = []
+    passed_sections = []
+    failed_sections = []
+    
+    for section in sections:
+        print(f"   🔍 Validating section: {section['name'][:30]}...")
+        
+        # Validate section directly with detailed validation to avoid recursion
+        section_validation = validate_documentation_quality_detailed(
+            file_path=f"{file_path}#{section['name']}", 
+            content=section['content'], 
+            project_root=project_root,
+            min_quality_score=config.quality_tier_basic  # Use basic tier for sections
+        )
+        
+        # Determine quality tier based on score
+        score = section_validation.get('overall_quality_score', 0.0)
+        if score >= config.quality_tier_high:
+            tier = 'high'
+        elif score >= config.quality_tier_medium:
+            tier = 'medium'
+        elif score >= config.quality_tier_basic:
+            tier = 'basic'
+        else:
+            tier = 'below_basic'
+        
+        section_result = SectionValidationResult(
+            section_name=section['name'],
+            section_content=section['content'],
+            section_start_line=section['start_line'],
+            section_end_line=section['end_line'],
+            validation_result=section_validation,
+            passes_validation=section_validation['is_valid'],
+            quality_tier=tier,
+            section_score=score
+        )
+        
+        section_results.append(section_result)
+        
+        if section_result.passes_validation:
+            passed_sections.append(section_result)
+            print(f"     ✅ PASSED: {section_result.quality_tier} quality ({section_result.section_score:.1f})")
+        else:
+            failed_sections.append(section_result)
+            print(f"     ❌ FAILED: Score {section_result.section_score:.1f}")
+    
+    # Create partial content from passed sections
+    partial_content = _create_partial_content(sections[0], passed_sections, failed_sections)
+    
+    # Calculate overall success
+    overall_success = len(passed_sections) > 0
+    partial_save_performed = len(passed_sections) > 0 and len(failed_sections) > 0
+    
+    warnings = []
+    if len(failed_sections) > 0:
+        warnings.append(f"⚠️ {len(failed_sections)} sections failed validation and were excluded")
+        warnings.append(f"📊 Saved {len(passed_sections)}/{len(sections)} sections")
+        
+        for failed_section in failed_sections:
+            warnings.append(f"   • '{failed_section.section_name}' (score: {failed_section.section_score:.1f})")
+    
+    print(f"   📊 PARTIAL SUCCESS: {len(passed_sections)}/{len(sections)} sections saved")
+    
+    return {
+        'is_valid': overall_success,
+        'partial_validation': True,
+        'sections_processed': len(sections),
+        'sections_passed': len(passed_sections),
+        'sections_failed': len(failed_sections),
+        'enhanced_content': partial_content,
+        'section_results': section_results,
+        'overall_success': overall_success,
+        'partial_save_performed': partial_save_performed,
+        'quality_warnings': warnings,
+        'final_score': sum(s.section_score for s in passed_sections) / len(passed_sections) if passed_sections else 0.0,
+        'final_tier_achieved': 'partial' if partial_save_performed else ('failed' if not overall_success else 'complete'),
+        'tier_display_info': {
+            'name': f'Partial Success ({len(passed_sections)}/{len(sections)} sections)',
+            'description': f'Some sections met quality standards, others excluded with warnings',
+            'icon': '🔶' if partial_save_performed else ('❌' if not overall_success else '✅')
+        },
+        'progressive_validation': False,  # This was handled at section level
+        # Include compatibility fields
+        'validation_type': 'partial_success',
+        'errors': [],
+        'warnings': warnings,
+        'suggestions': [f"Review and improve {len(failed_sections)} excluded sections"],
+        'content_stats': {
+            'total_sections': len(sections),
+            'passed_sections': len(passed_sections),
+            'failed_sections': len(failed_sections),
+            'partial_save': partial_save_performed
+        }
+    }
+
+
+def _split_content_into_sections(content: str) -> List[Dict[str, Any]]:
+    """Split markdown content into logical sections by headers."""
+    import re
+    
+    lines = content.split('\n')
+    sections = []
+    current_section = None
+    
+    for i, line in enumerate(lines):
+        # Check for markdown headers (## or ###, but not #)
+        header_match = re.match(r'^(#{2,6})\s+(.+)$', line.strip())
+        
+        if header_match:
+            # Save previous section if exists
+            if current_section is not None:
+                current_section['end_line'] = i - 1
+                current_section['content'] = '\n'.join(lines[current_section['start_line']:i])
+                if current_section['content'].strip():  # Only add non-empty sections
+                    sections.append(current_section)
+            
+            # Start new section
+            header_level = len(header_match.group(1))
+            section_name = header_match.group(2).strip()
+            
+            current_section = {
+                'name': section_name,
+                'header_level': header_level,
+                'start_line': i,
+                'end_line': None,
+                'content': None
+            }
+    
+    # Add the last section
+    if current_section is not None:
+        current_section['end_line'] = len(lines) - 1
+        current_section['content'] = '\n'.join(lines[current_section['start_line']:])
+        if current_section['content'].strip():
+            sections.append(current_section)
+    
+    # If no sections found, treat entire content as one section
+    if not sections and content.strip():
+        sections.append({
+            'name': 'Full Document',
+            'header_level': 1,
+            'start_line': 0,
+            'end_line': len(lines) - 1,
+            'content': content
+        })
+    
+    return sections
+
+
+def _create_partial_content(header_section: Dict[str, Any], passed_sections: List[SectionValidationResult], failed_sections: List[SectionValidationResult]) -> str:
+    """Create partial content from passed sections with warnings about excluded sections."""
+    
+    # Extract the document header (title and metadata)
+    header_lines = header_section['content'].split('\n')
+    document_header = []
+    
+    for line in header_lines:
+        document_header.append(line)
+        if line.strip() == '---':  # End of metadata section
+            break
+        if line.startswith('#') and len(document_header) > 1:  # Found first header after title
+            break
+    
+    # Create the partial content
+    partial_content = '\n'.join(document_header)
+    
+    # Add partial success notice
+    if failed_sections:
+        partial_notice = f"""
+
+> **🔶 Partial Content Notice**  
+> This document contains {len(passed_sections)} validated sections. {len(failed_sections)} sections were excluded due to quality issues.  
+> **Excluded sections**: {', '.join([f'"{s.section_name}"' for s in failed_sections[:3]])}{'...' if len(failed_sections) > 3 else ''}
+
+"""
+        partial_content += partial_notice
+    
+    # Add passed sections
+    for section_result in passed_sections:
+        # Add quality tier notice for non-high quality sections
+        section_content = section_result.section_content
+        if section_result.quality_tier not in ['high']:
+            tier_icon = '👍' if section_result.quality_tier == 'medium' else '📝'
+            tier_name = section_result.quality_tier.title()
+            
+            quality_notice = f"""
+> **{tier_icon} {tier_name} Quality Section** (Score: {section_result.section_score:.1f})
+
+"""
+            # Insert after the section header
+            section_lines = section_content.split('\n')
+            if section_lines and section_lines[0].startswith('#'):
+                section_lines.insert(1, quality_notice)
+                section_content = '\n'.join(section_lines)
+        
+        partial_content += '\n\n' + section_content
+    
+    # Add excluded sections notice at the end
+    if failed_sections:
+        excluded_notice = f"""
+
+---
+
+## Excluded Sections
+
+The following sections were excluded due to quality validation failures:
+
+"""
+        for failed_section in failed_sections:
+            excluded_notice += f"- **{failed_section.section_name}** (Score: {failed_section.section_score:.1f}) - Failed quality validation\n"
+        
+        excluded_notice += f"""
+*These sections need improvement before they can be included. See validation logs for specific issues.*
+"""
+        
+        partial_content += excluded_notice
+    
+    return partial_content
