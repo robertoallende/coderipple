@@ -2,7 +2,12 @@
 
 *This document is automatically maintained by CodeRipple Tourist Guide Agent*  
 *Repository: coderipple*  
-*Last updated: 2025-06-21 21:13:28*
+*Last updated: 2025-06-21 22:29:59*
+
+
+
+> **👍 Good Quality** (Score: 83.8/70.0)  
+> Solid documentation with minor improvement opportunities
 
 
 > **👍 Good Quality** (Score: 84.2/70.0)  
@@ -339,3 +344,53 @@ CodeRipple is built around these essential modules:
 
 - Python 3.8+
 - Required dependencies can be installed via `pip install -r requirements.txt`
+
+## Update: 2025-06-21 22:29:59
+
+# Getting Started with Coderipple
+
+*A comprehensive guide for developers*
+
+> **Note**: This documentation builds upon existing content while providing enhanced clarity and additional information.
+
+## Quick Start Guide
+
+Coderipple provides multiple entry points depending on your use case. Choose the appropriate method to begin working with the framework.
+
+### Entry Points
+
+1. **Command Line Interface**
+   ```bash
+   python content_validation_tools.py [options]
+   ```
+   The primary CLI for content validation workflows.
+
+2. **Webhook Processing**
+   ```bash
+   python webhook_parser.py
+   ```
+   Use this to handle incoming webhook events and trigger appropriate actions.
+
+3. **Content Discovery**
+   ```bash
+   python existing_content_discovery_tool.py [path] [options]
+   ```
+   Analyze and catalog existing content in your codebase.
+
+## Core Architecture
+
+Coderipple is built around specialized agent modules that work together to analyze, validate, and enhance your codebase:
+
+### Agent Modules
+
+- **Building Inspector Agent**: Analyzes code structure and identifies architectural patterns
+- **Agent Context Flow**: Manages state and information flow between different agent components
+- **Tourist Guide Agent**: Helps navigate unfamiliar codebases and provides orientation
+- **Historian Agent**: Tracks changes and maintains context across code versions
+- **Orchestrator Agent**: Coordinates the activities of other agents for cohesive operation
+
+## Next Steps
+
+After installation, we recommend exploring the [Configuration Guide](./configuration.md) to customize Coderipple for your specific project requirements.
+
+For detailed API documentation, refer to the [API Reference](./api_reference.md).
