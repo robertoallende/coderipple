@@ -1,0 +1,62 @@
+name: Run coderipple tests and upload coverage
+
+on:
+  push
+
+jobs:
+  test_coderipple: # Renamed job for clarity, indicating it tests 'coderipple'
+    name: Run coderipple tests and collect coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          # As of June 2025, Python 3.13 is likely stable, so 'allow-prereleases: true' might not be strictly necessary.
+          # You can remove this line if you encounter no issues without it.
+          allow-prereleases: true
+
+      - name: Install dependencies for coderipple
+        run: |
+          # Install pytest and pytest-cov for testing and coverage
+          pip install pytest pytest-cov
+
+          # Install application-specific dependencies for 'coderipple' from its requirements.txt
+          # This now explicitly points to coderipple/requirements.txt
+          if [ -f coderipple/requirements.txt ]; then
+            pip install -r coderipple/requirements.txt
+          else
+            echo "Error: coderipple/requirements.txt not found. Please ensure it exists."
+            exit 1 # Fail the job if requirements.txt is missing
+          fi
+
+      - name: Add coderipple/src to Python path
+        # This is crucial so that Python can find modules from coderipple/src
+        # when running tests from the coderipple directory.
+        run: |
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/coderipple/src:$PYTHONPATH" >> $GITHUB_ENV
+
+      - name: Run coderipple tests
+        # Navigate to the 'coderipple' directory where its tests reside.
+        # --cov=src tells pytest-cov to measure coverage specifically for the 'src' directory
+        # within the current working directory ('coderipple').
+        run: |
+          cd coderipple
+          pytest --cov=src --cov-branch --cov-report=xml
+
+      - name: Upload coderipple results to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          # The coverage XML report will be generated inside the 'coderipple' directory
+          # because pytest was run from there.
+          files: ./coderipple/coverage.xml
+          # A helpful flag for Codecov when dealing with sub-modules
+          # It tells Codecov to apply coverage to files relative to the 'coderipple' directory
+          # rather than the root of the repo.
+          flags: coderipple
