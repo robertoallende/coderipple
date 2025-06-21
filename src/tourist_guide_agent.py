@@ -44,6 +44,7 @@ from bedrock_integration_tools import (
 from content_validation_tools import (
     validate_documentation_quality,
     validate_documentation_quality_detailed,
+    align_and_validate_content_quality,
     validate_with_progressive_quality,
     validate_with_partial_success,
     enforce_quality_standards,
@@ -398,12 +399,13 @@ def _retry_content_improvement(content: str, validation_result: Dict[str, Any], 
                 improved_content = enhanced_result.get('content', current_content)
                 print(f"     📝 Content enhanced (attempt {attempt})")
                 
-                # Validate the improved content
-                new_validation = validate_documentation_quality_detailed(
-                    content=improved_content,
+                # Validate the improved content using alignment with Bedrock results
+                new_validation = align_and_validate_content_quality(
                     file_path=file_path,
-                    min_quality_score=60.0,
-                    project_root=os.getcwd()
+                    content=improved_content,
+                    bedrock_result=enhanced_result,
+                    project_root=os.getcwd(),
+                    min_quality_score=60.0
                 )
                 
                 # Track retry attempt

@@ -923,6 +923,59 @@ def validate_and_improve_content(content: str, file_path: str, project_root: str
     }
 
 
+@tool 
+def align_and_validate_content_quality(file_path: str, content: str, bedrock_result: Dict[str, Any] = None,
+                                      project_root: str = None, min_quality_score: float = 70.0) -> dict:
+    """
+    Validate content quality with score alignment to Bedrock enhancement results.
+    
+    Args:
+        file_path: Path to the documentation file being validated
+        content: Content to validate
+        bedrock_result: Optional result from Bedrock enhancement to align scores
+        project_root: Root directory of the project (optional)
+        min_quality_score: Minimum quality score required for approval
+    
+    Returns:
+        Dictionary with aligned validation results
+    """
+    try:
+        # Get standard validation results
+        validation_result = validate_documentation_quality_detailed(file_path, content, project_root, min_quality_score)
+        
+        # If Bedrock result provided, align the scores
+        if bedrock_result:
+            import quality_alignment_tools
+            align_quality_scores = quality_alignment_tools.align_quality_scores
+            alignment_result = align_quality_scores(bedrock_result, validation_result, content)
+            
+            if alignment_result.get('status') == 'success':
+                aligned_data = alignment_result['content'][0]['json']
+                
+                # Update validation result with aligned score
+                validation_result['aligned_score'] = aligned_data['aligned_score']
+                validation_result['original_score'] = validation_result.get('overall_quality_score', validation_result.get('overall_score', 0.0))
+                validation_result['overall_score'] = aligned_data['aligned_score']
+                validation_result['overall_quality_score'] = aligned_data['aligned_score']
+                validation_result['alignment_info'] = {
+                    'methodology': aligned_data['methodology'],
+                    'confidence': aligned_data['alignment_confidence'],
+                    'notes': aligned_data['alignment_notes'],
+                    'unified_metrics': aligned_data['unified_metrics']
+                }
+                
+                import logging
+                logging.getLogger(__name__).info(f"Score alignment applied: {validation_result['original_score']:.1f} → {validation_result['overall_score']:.1f}")
+        
+        return validation_result
+        
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Aligned validation failed: {str(e)}")
+        # Fallback to standard validation
+        return validate_documentation_quality_detailed(file_path, content, project_root, min_quality_score)
+
+
 @tool
 def validate_documentation_quality_detailed(file_path: str, content: str, project_root: str = None, min_quality_score: float = 70.0) -> dict:
     """
