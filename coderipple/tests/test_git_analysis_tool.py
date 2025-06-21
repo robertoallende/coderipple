@@ -413,6 +413,26 @@ class TestDetermineChangeType(unittest.TestCase):
         
         self.assertEqual(change_type, 'style')
 
+    def test_determine_change_type_rename_files(self):
+        """Test refactor detection for file renames."""
+        diff = """diff --git a/src/old_name.py b/src/new_name.py
+similarity index 90%
+rename from src/old_name.py
+rename to src/new_name.py
+index 1234567..abcdefg 100644
+--- a/src/old_name.py
++++ b/src/new_name.py
+@@ -1,3 +1,3 @@
+ def function():
+-    return "old"
++    return "new"
+"""
+        files = ['src/new_name.py']
+        
+        change_type = _determine_change_type(diff, files)
+        
+        self.assertEqual(change_type, 'refactor')
+
 
 class TestCalculateConfidence(unittest.TestCase):
     """Test confidence score calculation."""
@@ -553,6 +573,34 @@ index 1234567..abcdefg 100644
         self.assertIn('affected_components', result)
         self.assertIn('confidence', result)
         self.assertIn('summary', result)
+
+    @patch('builtins.print')  # Mock print to suppress output
+    def test_main_execution_block(self, mock_print):
+        """Test the if __name__ == '__main__' execution block."""
+        # Direct execution to ensure line 200 is covered
+        # This imports and explicitly runs the main code path
+        
+        import importlib.util
+        import sys
+        
+        # Load the module as a script to trigger __main__
+        spec = importlib.util.spec_from_file_location("__main__", "src/git_analysis_tool.py")
+        module = importlib.util.module_from_spec(spec)
+        
+        # Set up the environment as if it's the main module
+        old_name = getattr(module, '__name__', None)
+        module.__name__ = '__main__'
+        
+        try:
+            # Execute the module - this should trigger the if __name__ == '__main__' block
+            spec.loader.exec_module(module)
+        finally:
+            # Restore original name if it existed
+            if old_name is not None:
+                module.__name__ = old_name
+        
+        # The print mock should have been called (indicating test_tool_directly ran)
+        self.assertTrue(mock_print.called)
 
 
 class TestEdgeCases(unittest.TestCase):
