@@ -2,7 +2,12 @@
 
 *This document is automatically maintained by CodeRipple Tourist Guide Agent*  
 *Repository: coderipple*  
-*Last updated: 2025-06-20 15:05:45*
+*Last updated: 2025-06-21 21:13:28*
+
+
+> **👍 Good Quality** (Score: 84.2/70.0)  
+> Solid documentation with minor improvement opportunities
+
 
 ---
 
@@ -286,3 +291,51 @@ After getting familiar with the entry points and core modules:
 - [API Reference](./api_reference.md)
 - [Troubleshooting Guide](./troubleshooting.md)
 - [Contributing Guidelines](./contributing.md)
+
+## Update: 2025-06-21 21:13:28
+
+# Getting Started with CodeRipple
+
+*A comprehensive guide to help you start building with CodeRipple*
+
+> **Note**: This documentation builds upon previous content while providing enhanced clarity and additional details.
+
+## Quick Start Guide
+
+### Launch Options
+
+CodeRipple offers multiple entry points depending on your needs:
+
+```bash
+# For content validation and analysis
+python content_validation_tools.py [options]
+
+# For webhook integration and event handling
+python webhook_parser.py
+
+# To discover and analyze existing content
+python existing_content_discovery_tool.py
+```
+
+### Core Architecture
+
+CodeRipple is built around these essential modules:
+
+| Module | Description |
+|--------|-------------|
+| `building_inspector_agent` | Analyzes code structure and identifies architectural patterns |
+| `agent_context_flow` | Manages context and state across agent interactions |
+| `tourist_guide_agent` | Provides navigation and orientation through unfamiliar codebases |
+| `historian_agent` | Tracks changes and maintains version history |
+| `orchestrator_agent` | Coordinates activities between other agents and manages workflows |
+
+### Next Steps
+
+- Check out the [Configuration Guide](./configuration.md) to customize CodeRipple for your project
+- Review [Examples](./examples/) for common use cases
+- Join our [Community Forum](https://community.coderipple.dev) for support
+
+## Requirements
+
+- Python 3.8+
+- Required dependencies can be installed via `pip install -r requirements.txt`

@@ -3,6 +3,7 @@
 CodeRipple provides several powerful functions to help you generate contextually relevant documentation based on code changes. This section outlines the core functionality and how to use it effectively in your documentation workflow.
 
 
+
 ## Common Usage Patterns
 
 > **👍 Medium Quality Section** (Score: 74.5)
@@ -12,14 +13,38 @@ CodeRipple provides several powerful functions to help you generate contextually
 CodeRipple provides several powerful functions to help you generate contextually relevant documentation based on code changes. This section outlines the core functionality and how to use it effectively in your documentation workflow.
 
 
+
+## Common Usage Patterns
+
+> **👍 Medium Quality Section** (Score: 78.2)
+
+
+
+> **👍 Medium Quality Section** (Score: 74.5)
+
+
+
+CodeRipple provides several powerful functions to help you generate contextually relevant documentation based on code changes. This section outlines the core functionality and how to use it effectively in your documentation workflow.
+
+
+
 ### Core Functions
 
 > **👍 Medium Quality Section** (Score: 74.5)
 
 
 
+> **👍 Medium Quality Section** (Score: 74.5)
+
+
+
+
 
 #### Documentation Analysis
+
+> **👍 Medium Quality Section** (Score: 84.8)
+
+
 
 > **👍 Medium Quality Section** (Score: 84.8)
 
@@ -40,7 +65,12 @@ def analyze_change_patterns(file_paths, commit_messages):
 ```
 
 
+
 #### Code Example Extraction
+
+> **👍 Medium Quality Section** (Score: 84.8)
+
+
 
 > **👍 Medium Quality Section** (Score: 84.8)
 
@@ -61,7 +91,12 @@ def extract_code_examples_from_diff(git_diff, file_path):
 ```
 
 
+
 #### Content Generation
+
+> **👍 Medium Quality Section** (Score: 83.8)
+
+
 
 > **👍 Medium Quality Section** (Score: 83.8)
 
@@ -85,7 +120,12 @@ def generate_context_aware_content(section, git_analysis, file_changes, code_exa
 ```
 
 
+
 ### Key Data Structures
+
+> **👍 Medium Quality Section** (Score: 74.5)
+
+
 
 > **👍 Medium Quality Section** (Score: 74.0)
 
@@ -95,14 +135,24 @@ def generate_context_aware_content(section, git_analysis, file_changes, code_exa
 - **DocumentationFocus** - Represents what type of documentation should be emphasized
 
 
+
 ## Implementation Examples
 
 > **👍 Medium Quality Section** (Score: 74.5)
 
 
 
+> **👍 Medium Quality Section** (Score: 74.5)
+
+
+
+
 
 ### Basic Documentation Generation
+
+> **👍 Medium Quality Section** (Score: 83.8)
+
+
 
 > **👍 Medium Quality Section** (Score: 83.8)
 
@@ -135,9 +185,15 @@ print(docs)  # Output the generated documentation
 ```
 
 
+
 ## Recent Updates
 
 > **👍 Medium Quality Section** (Score: 74.5)
+
+
+
+> **👍 Medium Quality Section** (Score: 74.5)
+
 
 
 
@@ -148,11 +204,20 @@ print(docs)  # Output the generated documentation
 
 
 
+> **👍 Medium Quality Section** (Score: 74.5)
+
+
+
 - `analyze_git_changes()`: Analyzes git repository changes to identify documentation needs
 - `authenticate()`: Provides authentication mechanisms for secure webhook processing
 
 
+
 ### New Components
+
+> **👍 Medium Quality Section** (Score: 76.0)
+
+
 
 > **👍 Medium Quality Section** (Score: 76.0)
 
@@ -163,7 +228,12 @@ print(docs)  # Output the generated documentation
 The latest update includes significant improvements with 18,840 additions and 8,100 modifications to enhance system functionality and documentation generation capabilities.
 
 
+
 ## Best Practices
+
+> **👍 Medium Quality Section** (Score: 78.2)
+
+
 
 > **👍 Medium Quality Section** (Score: 78.2)
 
@@ -175,7 +245,12 @@ The latest update includes significant improvements with 18,840 additions and 8,
 4. **Combine with Manual Documentation**: Use CodeRipple to supplement, not replace, manual documentation efforts
 
 
+
 ## Integration Options
+
+> **👍 Medium Quality Section** (Score: 79.8)
+
+
 
 > **👍 Medium Quality Section** (Score: 79.8)
 
@@ -189,9 +264,15 @@ CodeRipple can be integrated with your development workflow through:
 - Command-line interface for manual triggers
 
 
+
 ## Update: 2025-06-20 14:26:30
 
 > **👍 Medium Quality Section** (Score: 74.5)
+
+
+
+> **👍 Medium Quality Section** (Score: 74.5)
+
 
 
 
@@ -202,9 +283,14 @@ CodeRipple can be integrated with your development workflow through:
 
 
 
+> **👍 Medium Quality Section** (Score: 76.5)
+
+
+
 *Enhanced documentation for understanding and implementing common patterns*
 
 > **Note**: This documentation builds upon existing content with additional clarity and examples.
+
 
 
 ### Common Usage Patterns
@@ -213,7 +299,12 @@ CodeRipple can be integrated with your development workflow through:
 
 
 
+> **👍 Medium Quality Section** (Score: 74.5)
+
+
+
 CodeRipple provides several core functions to analyze code changes and generate appropriate documentation. These functions work together to create context-aware documentation that reflects actual code modifications rather than generic templates.
+
 
 
 #### Core Functions
@@ -222,8 +313,17 @@ CodeRipple provides several core functions to analyze code changes and generate 
 
 
 
+> **👍 Medium Quality Section** (Score: 74.5)
+
+
+
+
 
 ##### `CodeExample()`
+
+> **👍 Medium Quality Section** (Score: 83.5)
+
+
 
 > **👍 Medium Quality Section** (Score: 83.5)
 
@@ -238,7 +338,12 @@ Represents a code example extracted from git changes, preserving the context and
 - `change_type`: Type of change (addition, modification, deletion)
 
 
+
 ##### `DocumentationFocus()`
+
+> **👍 Medium Quality Section** (Score: 84.0)
+
+
 
 > **👍 Medium Quality Section** (Score: 84.0)
 
@@ -250,6 +355,7 @@ Defines what aspects of documentation should be emphasized based on the nature o
 - `primary_focus`: Main documentation focus (API, usage, configuration, etc.)
 - `secondary_focus`: Additional documentation areas to address
 - `priority_level`: Importance level (high, medium, low)
+
 
 
 ##### `analyze_change_patterns(file_paths, commit_messages)`
@@ -273,6 +379,7 @@ focus = analyze_change_patterns(
 ```
 
 
+
 ##### `extract_code_examples_from_diff(git_diff, file_path)`
 
 Extracts meaningful code examples from git diff content that can be used in documentation.
@@ -293,6 +400,7 @@ examples = extract_code_examples_from_diff(
 ```
 
 
+
 ##### `generate_context_aware_content(section, git_analysis, file_changes, code_examples, doc_focus)`
 
 Generates documentation content based on actual code changes rather than generic templates.
@@ -308,7 +416,12 @@ Generates documentation content based on actual code changes rather than generic
 - Generated content string tailored to the specific code changes
 
 
+
 ### Integration Patterns
+
+> **👍 Medium Quality Section** (Score: 80.2)
+
+
 
 > **👍 Medium Quality Section** (Score: 80.2)
 
@@ -323,7 +436,12 @@ Typical workflow for integrating CodeRipple into your documentation process:
 5. Review and integrate the generated content into your documentation
 
 
+
 ### Best Practices
+
+> **👍 Medium Quality Section** (Score: 77.8)
+
+
 
 > **👍 Medium Quality Section** (Score: 77.8)
 
@@ -335,9 +453,15 @@ Typical workflow for integrating CodeRipple into your documentation process:
 - Consider the `doc_focus` recommendations when prioritizing documentation updates
 
 
+
 ## Update: 2025-06-20 14:40:35
 
 > **👍 Medium Quality Section** (Score: 74.5)
+
+
+
+> **👍 Medium Quality Section** (Score: 74.5)
+
 
 
 
@@ -348,9 +472,14 @@ Typical workflow for integrating CodeRipple into your documentation process:
 
 
 
+> **👍 Medium Quality Section** (Score: 76.5)
+
+
+
 *Comprehensive guide for implementing documentation patterns with CodeRipple*
 
 > **Note**: This documentation has been enhanced while preserving all existing functionality.
+
 
 
 ### Common Usage Patterns
@@ -359,7 +488,12 @@ Typical workflow for integrating CodeRipple into your documentation process:
 
 
 
+> **👍 Medium Quality Section** (Score: 74.5)
+
+
+
 CodeRipple provides several powerful functions to analyze code changes and generate contextually relevant documentation. Below are the core functions and their implementation details.
+
 
 
 #### Core Functions
@@ -368,8 +502,17 @@ CodeRipple provides several powerful functions to analyze code changes and gener
 
 
 
+> **👍 Medium Quality Section** (Score: 74.5)
+
+
+
+
 
 ##### `CodeExample()`
+
+> **👍 Medium Quality Section** (Score: 79.8)
+
+
 
 > **👍 Medium Quality Section** (Score: 79.8)
 
@@ -383,7 +526,12 @@ CodeRipple provides several powerful functions to analyze code changes and gener
 - `is_complete`: Boolean indicating if this is a complete, runnable example
 
 
+
 ##### `DocumentationFocus()`
+
+> **👍 Medium Quality Section** (Score: 79.8)
+
+
 
 > **👍 Medium Quality Section** (Score: 79.8)
 
@@ -397,9 +545,15 @@ CodeRipple provides several powerful functions to analyze code changes and gener
 - `suggested_sections`: Recommended documentation sections to update
 
 
+
 #### Analysis Functions
 
 > **👍 Medium Quality Section** (Score: 74.5)
+
+
+
+> **👍 Medium Quality Section** (Score: 74.5)
+
 
 
 
@@ -424,6 +578,7 @@ focus = analyze_change_patterns(
 ```
 
 
+
 ##### `extract_code_examples_from_diff(git_diff, file_path)`
 **Purpose**: Extracts meaningful, usable code examples from git diff content.
 
@@ -441,6 +596,7 @@ examples = extract_code_examples_from_diff(
     "src/auth/utils.py"
 )
 ```
+
 
 
 ##### `generate_context_aware_content(section, git_analysis, file_changes, code_examples, doc_focus)`
@@ -468,7 +624,12 @@ content = generate_context_aware_content(
 ```
 
 
+
 ### Implementation Patterns
+
+> **👍 Medium Quality Section** (Score: 81.2)
+
+
 
 > **👍 Medium Quality Section** (Score: 81.2)
 
@@ -485,9 +646,15 @@ For optimal results with CodeRipple, consider these implementation patterns:
 4. **Tailor Documentation to Change Scope**: Generate more detailed documentation for significant changes and simpler updates for minor changes.
 
 
+
 ## Update: 2025-06-20 14:58:07
 
 > **👍 Medium Quality Section** (Score: 74.5)
+
+
+
+> **👍 Medium Quality Section** (Score: 74.5)
+
 
 
 
@@ -498,9 +665,14 @@ For optimal results with CodeRipple, consider these implementation patterns:
 
 
 
+> **👍 Medium Quality Section** (Score: 76.5)
+
+
+
 *Comprehensive documentation for intelligent documentation generation*
 
 > **Note**: This documentation has been enhanced while preserving all existing functionality.
+
 
 
 ### Common Usage Patterns
@@ -509,10 +681,19 @@ For optimal results with CodeRipple, consider these implementation patterns:
 
 
 
+> **👍 Medium Quality Section** (Score: 74.5)
+
+
+
 CodeRipple provides a set of powerful functions to analyze code changes and generate contextually relevant documentation. Below are the core functions and their usage patterns:
 
 
+
 #### Core Data Structures
+
+> **👍 Medium Quality Section** (Score: 78.8)
+
+
 
 > **👍 Medium Quality Section** (Score: 79.8)
 
@@ -527,7 +708,12 @@ CodeRipple provides a set of powerful functions to analyze code changes and gene
   - Helps tailor documentation to the nature of code changes
 
 
+
 #### Analysis Functions
+
+> **👍 Medium Quality Section** (Score: 72.8)
+
+
 
 > **👍 Medium Quality Section** (Score: 72.8)
 
@@ -561,7 +747,12 @@ CodeRipple provides a set of powerful functions to analyze code changes and gene
     ```
 
 
+
 #### Content Generation
+
+> **👍 Medium Quality Section** (Score: 74.8)
+
+
 
 > **👍 Medium Quality Section** (Score: 74.8)
 
@@ -589,7 +780,12 @@ CodeRipple provides a set of powerful functions to analyze code changes and gene
     ```
 
 
+
 ### Integration Workflow
+
+> **👍 Medium Quality Section** (Score: 80.2)
+
+
 
 > **👍 Medium Quality Section** (Score: 80.2)
 
@@ -603,7 +799,12 @@ A typical workflow for using these patterns involves:
 4. Integrating the generated content into your documentation system
 
 
+
 ### Best Practices
+
+> **👍 Medium Quality Section** (Score: 77.8)
+
+
 
 > **👍 Medium Quality Section** (Score: 74.0)
 
@@ -614,9 +815,15 @@ A typical workflow for using these patterns involves:
 - Review generated documentation for accuracy before publishing
 
 
+
 ## Update: 2025-06-20 15:05:53
 
 > **👍 Medium Quality Section** (Score: 74.5)
+
+
+
+> **👍 Medium Quality Section** (Score: 74.5)
+
 
 
 
@@ -627,10 +834,19 @@ A typical workflow for using these patterns involves:
 
 
 
+> **👍 Medium Quality Section** (Score: 74.5)
+
+
+
 > **Note**: This documentation has been enhanced while preserving all existing functionality.
 
 
+
 ### Common Usage Patterns
+
+> **👍 Medium Quality Section** (Score: 74.5)
+
+
 
 > **👍 Medium Quality Section** (Score: 78.2)
 
@@ -639,7 +855,12 @@ A typical workflow for using these patterns involves:
 CodeRipple provides several key functions to help you analyze code changes and generate appropriate documentation. Below are the core functions and their usage patterns.
 
 
+
 #### Core Data Structures
+
+> **👍 Medium Quality Section** (Score: 78.8)
+
+
 
 > **👍 Medium Quality Section** (Score: 78.8)
 
@@ -654,7 +875,12 @@ CodeRipple provides several key functions to help you analyze code changes and g
   - Helps prioritize documentation efforts based on the nature of code changes
 
 
+
 #### Analysis Functions
+
+> **👍 Medium Quality Section** (Score: 74.8)
+
+
 
 > **👍 Medium Quality Section** (Score: 74.8)
 
@@ -700,7 +926,12 @@ CodeRipple provides several key functions to help you analyze code changes and g
   - List of `CodeExample` objects with extracted code snippets
 
 
+
 #### Content Generation
+
+> **👍 Medium Quality Section** (Score: 79.2)
+
+
 
 > **👍 Medium Quality Section** (Score: 79.2)
 
@@ -732,7 +963,12 @@ CodeRipple provides several key functions to help you analyze code changes and g
   - Generated content string optimized for the specific changes
 
 
+
 ### Best Practices
+
+> **👍 Medium Quality Section** (Score: 78.2)
+
+
 
 > **👍 Medium Quality Section** (Score: 78.2)
 
@@ -742,3 +978,145 @@ CodeRipple provides several key functions to help you analyze code changes and g
 2. Use extracted code examples to provide real-world usage scenarios
 3. Generate documentation as close as possible to when code changes are made
 4. Consider combining multiple related changes into cohesive documentation updates
+
+
+## Update: 2025-06-21 21:05:27
+
+> **👍 Medium Quality Section** (Score: 74.5)
+
+
+
+
+## Patterns for CodeRipple
+
+> **👍 Medium Quality Section** (Score: 74.5)
+
+
+
+> **Note**: This documentation has been enhanced while preserving all existing functionality.
+
+
+### Common Usage Patterns
+
+> **👍 Medium Quality Section** (Score: 74.5)
+
+
+
+CodeRipple provides several powerful functions to analyze code changes and generate contextually relevant documentation. Below are the core functions and their usage patterns.
+
+
+#### Core Data Structures
+
+> **👍 Medium Quality Section** (Score: 78.8)
+
+
+
+- **`CodeExample`** - A structured representation of code examples extracted from git changes
+  - Contains code snippets, context, and metadata for documentation generation
+  - Useful for automatically including relevant code samples in documentation
+
+- **`DocumentationFocus`** - An object that defines which aspects of documentation should be emphasized
+  - Helps prioritize API references, tutorials, migration guides, etc. based on code changes
+  - Ensures documentation efforts align with the nature of code changes
+
+
+#### Analysis Functions
+
+> **👍 Medium Quality Section** (Score: 74.2)
+
+
+
+- **`analyze_change_patterns(file_paths, commit_messages)`**
+  
+  Analyzes file changes and commit messages to intelligently determine documentation focus.
+  
+  **Parameters:**
+  - `file_paths`: List of changed file paths (strings)
+  - `commit_messages`: List of commit messages providing context (strings)
+  
+  **Returns:**
+  - `DocumentationFocus` object indicating what type of documentation to prioritize
+  
+  **Example:**
+  ```python
+  focus = analyze_change_patterns(
+      ["src/api/users.js", "src/components/UserForm.jsx"],
+      ["feat: add user registration API", "docs: update README"]
+  )
+  # focus might indicate API documentation should be prioritized
+  ```
+
+- **`extract_code_examples_from_diff(git_diff, file_path)`**
+  
+  Extracts meaningful, usable code examples from git diff content for inclusion in documentation.
+  
+  **Parameters:**
+  - `git_diff`: Raw git diff content (string)
+  - `file_path`: Path to the file being analyzed (string)
+  
+  **Returns:**
+  - List of `CodeExample` objects containing extracted code snippets
+  
+  **Example:**
+  ```python
+  examples = extract_code_examples_from_diff(diff_content, "src/api/users.js")
+  # Returns code examples that demonstrate API usage
+  ```
+
+
+#### Content Generation
+
+> **👍 Medium Quality Section** (Score: 79.2)
+
+
+
+- **`generate_context_aware_content(section, git_analysis, file_changes, code_examples, doc_focus)`**
+  
+  Generates documentation content based on actual code changes rather than generic templates.
+  
+  **Parameters:**
+  - `section`: Documentation section to generate (string: 'discovery', 'getting_started', etc.)
+  - `git_analysis`: Results from git analysis tool (object)
+  - `file_changes`: List of changed files with metadata (list)
+  - `code_examples`: Extracted code examples (`CodeExample` objects)
+  - `doc_focus`: Documentation focus analysis (`DocumentationFocus` object)
+  
+  **Returns:**
+  - Generated content string tailored to the specific code changes
+  
+  **Example:**
+  ```python
+  content = generate_context_aware_content(
+      'api_reference',
+      git_analysis_result,
+      changed_files,
+      extracted_examples,
+      documentation_focus
+  )
+  # Returns markdown content for API reference documentation
+  ```
+
+
+### Integration Workflow
+
+> **👍 Medium Quality Section** (Score: 80.2)
+
+
+
+A typical workflow for integrating CodeRipple into your documentation process:
+
+1. Analyze code changes using `analyze_change_patterns()`
+2. Extract code examples with `extract_code_examples_from_diff()`
+3. Generate appropriate documentation with `generate_context_aware_content()`
+4. Review and publish the generated documentation
+
+
+### Best Practices
+
+> **👍 Medium Quality Section** (Score: 74.0)
+
+
+
+- Run CodeRipple as part of your CI/CD pipeline to keep documentation in sync with code
+- Use the `DocumentationFocus` output to prioritize documentation efforts
+- Combine automatically generated content with manual reviews for optimal quality
