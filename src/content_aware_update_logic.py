@@ -20,6 +20,30 @@ except ImportError:
     def tool(func):
         return func
 
+# Import deduplication tools with fallback
+deduplication_available = False
+try:
+    from content_deduplication_tools import deduplicate_content, analyze_content_duplication, remove_quality_annotations
+    deduplication_available = True
+except ImportError:
+    # Fallback functions if deduplication tools not available
+    def deduplicate_content(content, similarity_threshold=0.8):
+        # Simple fallback that just removes some obvious quality score patterns
+        cleaned = re.sub(r'>\s*\*\*.*?[Ss]core.*?\*\*.*?\n', '', content, flags=re.IGNORECASE)
+        return {"status": "success", "content": [{"json": {"cleaned_content": cleaned}}]}
+    def analyze_content_duplication(content):
+        return {"status": "success", "content": [{"json": {"total_sections": 1, "potential_duplicates": 0}}]}
+    def remove_quality_annotations(content):
+        # Remove common quality score patterns
+        patterns = [
+            r'>\s*\*\*.*?[Ss]core.*?\*\*.*?\n',
+            r'>\s*\*\*.*?[Qq]uality.*?\*\*.*?\n',
+        ]
+        cleaned = content
+        for pattern in patterns:
+            cleaned = re.sub(pattern, '', cleaned, flags=re.IGNORECASE)
+        return {"status": "success", "content": [{"json": {"cleaned_content": cleaned}}]}
+
 
 @dataclass
 class ContentUpdate:
@@ -176,11 +200,27 @@ class ContentAwareUpdater:
         # Extract specific changes from git diff
         change_content = self._extract_change_content(git_diff, change_type)
         
+        # Combine and clean the content
+        combined_content = foundation_content + "\n\n" + change_content
+        
+        # Clean any quality annotations that might have been included
+        clean_result = remove_quality_annotations(combined_content)
+        if clean_result.get('status') == 'success' and clean_result.get('content'):
+            cleaned_data = clean_result['content'][0].get('json', {})
+            combined_content = cleaned_data.get('cleaned_content', combined_content)
+        
+        # Apply deduplication to ensure clean initial content
+        dedup_result = deduplicate_content(combined_content, similarity_threshold=0.8)
+        if dedup_result.get('status') == 'success' and dedup_result.get('content'):
+            dedup_data = dedup_result['content'][0].get('json', {})
+            if dedup_data.get('deduplicated', False):
+                combined_content = dedup_data.get('cleaned_content', combined_content)
+        
         updates = [
             ContentUpdate(
                 update_type='section_add',
                 target_section='main',
-                new_content=foundation_content + "\n\n" + change_content,
+                new_content=combined_content,
                 existing_content="",
                 merge_strategy='create',
                 confidence=0.8,
@@ -418,19 +458,31 @@ class ContentAwareUpdater:
         return False, ""
     
     def _generate_section_update(self, existing_content: str, affected_files: List[str], git_diff: str, change_type: str, section_title: str) -> str:
-        """Generate updated content for a specific section"""
+        """Generate updated content for a specific section with deduplication"""
         
         # Start with existing content
         updated_content = existing_content
+        
+        # Clean existing content of quality annotations
+        clean_result = remove_quality_annotations(updated_content)
+        if clean_result.get('status') == 'success' and clean_result.get('content'):
+            cleaned_data = clean_result['content'][0].get('json', {})
+            updated_content = cleaned_data.get('cleaned_content', updated_content)
         
         # Add change-specific information
         change_info = self._extract_section_relevant_changes(git_diff, change_type, section_title)
         
         if change_info:
-            # Append new information to existing content
-            if not updated_content.endswith('\n'):
-                updated_content += '\n'
-            updated_content += f"\n### Recent Updates\n\n{change_info}\n"
+            # Intelligently merge new information with existing content
+            merged_content = self._intelligent_content_merge(updated_content, change_info, section_title)
+            updated_content = merged_content
+        
+        # Apply deduplication to prevent content accumulation
+        dedup_result = deduplicate_content(updated_content, similarity_threshold=0.7)
+        if dedup_result.get('status') == 'success' and dedup_result.get('content'):
+            dedup_data = dedup_result['content'][0].get('json', {})
+            if dedup_data.get('deduplicated', False):
+                updated_content = dedup_data.get('cleaned_content', updated_content)
         
         return updated_content
     
@@ -457,6 +509,76 @@ class ContentAwareUpdater:
                 return "Installation requirements may have been updated. Check the latest dependencies."
         
         return f"Section updated to reflect recent {change_type} changes."
+    
+    def _intelligent_content_merge(self, existing_content: str, new_info: str, section_title: str) -> str:
+        """Intelligently merge new information with existing content"""
+        
+        # Check if the new information is already covered in existing content
+        existing_lower = existing_content.lower()
+        new_lower = new_info.lower()
+        
+        # Extract key phrases from new information to check for duplicates
+        new_key_phrases = re.findall(r'[a-zA-Z_][a-zA-Z0-9_]*', new_lower)
+        
+        # Calculate overlap percentage
+        overlap_count = sum(1 for phrase in new_key_phrases if phrase in existing_lower)
+        overlap_percentage = overlap_count / len(new_key_phrases) if new_key_phrases else 0
+        
+        # If high overlap, enhance existing content instead of appending
+        if overlap_percentage > 0.6:
+            return self._enhance_existing_content(existing_content, new_info, section_title)
+        else:
+            # Low overlap, append new information
+            return self._append_new_information(existing_content, new_info, section_title)
+    
+    def _enhance_existing_content(self, existing_content: str, new_info: str, section_title: str) -> str:
+        """Enhance existing content with new information instead of duplicating"""
+        
+        # Find the best location to integrate new information
+        lines = existing_content.split('\n')
+        enhanced_lines = []
+        info_integrated = False
+        
+        for i, line in enumerate(lines):
+            enhanced_lines.append(line)
+            
+            # Look for appropriate insertion points
+            if not info_integrated and any(keyword in line.lower() for keyword in ['function', 'feature', 'update', 'recent']):
+                # Insert enhanced information after relevant lines
+                if i < len(lines) - 1 and not lines[i + 1].strip():
+                    # There's already a blank line, use it
+                    enhanced_lines.append(f"*Updated: {new_info.strip()}*")
+                    info_integrated = True
+                elif line.strip() and not line.startswith('#'):
+                    # Add enhanced info with proper spacing
+                    enhanced_lines.append(f"*({new_info.strip()})*")
+                    info_integrated = True
+        
+        # If we couldn't integrate, append at the end
+        if not info_integrated:
+            if not existing_content.endswith('\n'):
+                enhanced_lines.append('')
+            enhanced_lines.append(f"### Recent Updates\n\n{new_info}")
+        
+        return '\n'.join(enhanced_lines)
+    
+    def _append_new_information(self, existing_content: str, new_info: str, section_title: str) -> str:
+        """Append new information to existing content with proper formatting"""
+        
+        updated_content = existing_content
+        
+        # Ensure proper spacing before new content
+        if not updated_content.endswith('\n'):
+            updated_content += '\n'
+        
+        # Add new information with appropriate header
+        if '### Recent Updates' not in updated_content:
+            updated_content += f"\n### Recent Updates\n\n{new_info}\n"
+        else:
+            # There's already a Recent Updates section, append to it
+            updated_content += f"\n{new_info}\n"
+        
+        return updated_content
     
     def _identify_new_sections_needed(self, target_doc: Dict[str, Any], affected_files: List[str], change_type: str) -> List[ContentUpdate]:
         """Identify what new sections should be added to existing documentation"""
@@ -498,7 +620,8 @@ def apply_content_aware_updates(
     git_diff: str = "",
     target_category: str = "user",
     source_analysis: Dict[str, Any] = None,
-    existing_docs: Dict[str, Any] = None
+    existing_docs: Dict[str, Any] = None,
+    enable_deduplication: bool = True
 ) -> Dict[str, Any]:
     """
     Apply intelligent content updates that preserve existing valuable information.
@@ -513,6 +636,7 @@ def apply_content_aware_updates(
         target_category: Documentation category (user, system, decisions)
         source_analysis: Source code analysis results for project understanding
         existing_docs: Existing documentation analysis for context awareness
+        enable_deduplication: Whether to apply content deduplication (default: True)
         
     Returns:
         Dictionary containing update decisions and specific content updates
@@ -520,6 +644,37 @@ def apply_content_aware_updates(
     try:
         updater = ContentAwareUpdater(source_analysis, existing_docs)
         decision = updater.decide_update_strategy(change_type, affected_files, git_diff, target_category)
+        
+        # Apply final deduplication to all content if enabled
+        processed_updates = []
+        for update in decision.updates:
+            processed_content = update.new_content
+            
+            if enable_deduplication:
+                # Apply deduplication to each update
+                dedup_result = deduplicate_content(processed_content, similarity_threshold=0.7)
+                if dedup_result.get('status') == 'success' and dedup_result.get('content'):
+                    dedup_data = dedup_result['content'][0].get('json', {})
+                    if dedup_data.get('deduplicated', False):
+                        processed_content = dedup_data.get('cleaned_content', processed_content)
+                
+                # Remove quality annotations
+                clean_result = remove_quality_annotations(processed_content)
+                if clean_result.get('status') == 'success' and clean_result.get('content'):
+                    cleaned_data = clean_result['content'][0].get('json', {})
+                    processed_content = cleaned_data.get('cleaned_content', processed_content)
+            
+            processed_updates.append({
+                'update_type': update.update_type,
+                'target_section': update.target_section,
+                'new_content': processed_content,
+                'merge_strategy': update.merge_strategy,
+                'confidence': update.confidence,
+                'rationale': update.rationale,
+                'content_preview': processed_content[:200] + "..." if len(processed_content) > 200 else processed_content,
+                'deduplication_applied': enable_deduplication,
+                'deduplication_method': 'full' if deduplication_available else 'basic'
+            })
         
         return {
             'status': 'success',
@@ -529,24 +684,14 @@ def apply_content_aware_updates(
                 'target_file': decision.target_file,
                 'preservation_notes': decision.preservation_notes
             },
-            'content_updates': [
-                {
-                    'update_type': update.update_type,
-                    'target_section': update.target_section,
-                    'new_content': update.new_content,
-                    'merge_strategy': update.merge_strategy,
-                    'confidence': update.confidence,
-                    'rationale': update.rationale,
-                    'content_preview': update.new_content[:200] + "..." if len(update.new_content) > 200 else update.new_content
-                }
-                for update in decision.updates
-            ],
-            'summary': f"Strategy: {decision.strategy} for {target_category} docs. {len(decision.updates)} updates planned for {decision.target_file}",
+            'content_updates': processed_updates,
+            'summary': f"Strategy: {decision.strategy} for {target_category} docs. {len(decision.updates)} updates planned for {decision.target_file}. Deduplication: {'enabled' if enable_deduplication else 'disabled'} ({'available' if deduplication_available else 'fallback'})",
             'insights': [
                 f"Update strategy: {decision.strategy}",
                 f"Target file: {decision.target_file}",
                 f"Planned updates: {len(decision.updates)}",
-                f"Content preservation: {len(decision.preservation_notes)} items to preserve"
+                f"Content preservation: {len(decision.preservation_notes)} items to preserve",
+                f"Deduplication applied: {enable_deduplication} ({'full' if deduplication_available else 'basic'})"
             ]
         }
         

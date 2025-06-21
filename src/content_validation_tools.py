@@ -1225,6 +1225,13 @@ def _get_tier_display_info(tier: str, score: float, threshold: float) -> Dict[st
 
 def _add_quality_tier_notice(content: str, tier: str, score: float, threshold: float) -> str:
     """Add quality tier notice to content."""
+    from config import get_config
+    config = get_config()
+    
+    # Skip quality score annotations if disabled in configuration
+    if not config.show_quality_scores:
+        return content
+    
     tier_info = _get_tier_display_info(tier, score, threshold)
     
     notice = f"""
@@ -1531,9 +1538,9 @@ def _create_partial_content(header_section: Dict[str, Any], passed_sections: Lis
     
     # Add passed sections
     for section_result in passed_sections:
-        # Add quality tier notice for non-high quality sections
+        # Add quality tier notice for non-high quality sections (if enabled)
         section_content = section_result.section_content
-        if section_result.quality_tier not in ['high']:
+        if section_result.quality_tier not in ['high'] and config.show_quality_scores:
             tier_icon = '👍' if section_result.quality_tier == 'medium' else '📝'
             tier_name = section_result.quality_tier.title()
             

@@ -51,6 +51,17 @@ from content_validation_tools import (
     validate_and_improve_content
 )
 
+# Import deduplication tools
+try:
+    from content_deduplication_tools import deduplicate_content, remove_quality_annotations
+    deduplication_available = True
+except ImportError:
+    deduplication_available = False
+    def deduplicate_content(content, similarity_threshold=0.8):
+        return {"status": "success", "content": [{"json": {"cleaned_content": content}}]}
+    def remove_quality_annotations(content):
+        return {"status": "success", "content": [{"json": {"cleaned_content": content}}]}
+
 
 @dataclass
 class DocumentationUpdate:
@@ -214,7 +225,54 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
             if 'enhanced_content' in validation_result:
                 content = validation_result['enhanced_content']
         
-        # Content passed validation - proceed with writing
+        # Apply content deduplication and cleaning before writing
+        print(f"   🔄 Applying content deduplication {'(full)' if deduplication_available else '(basic fallback)'}...")
+        
+        # Remove quality annotations if they shouldn't be shown
+        config = get_config()
+        if not config.show_quality_scores:
+            clean_result = remove_quality_annotations(content)
+            if clean_result.get('status') == 'success' and clean_result.get('content'):
+                cleaned_data = clean_result['content'][0].get('json', {})
+                content = cleaned_data.get('cleaned_content', content)
+                annotations_removed = cleaned_data.get('annotations_removed', 0)
+                if annotations_removed > 0:
+                    print(f"   🧹 Removed {annotations_removed} quality score annotations")
+        
+        # Apply deduplication for existing files being updated
+        if action in ["update", "append"] and os.path.exists(full_path):
+            # Read existing content first
+            existing_content = ""
+            try:
+                with open(full_path, 'r', encoding='utf-8') as f:
+                    existing_content = f.read()
+            except:
+                existing_content = ""
+            
+            # Combine with new content for deduplication if appending
+            if action == "append":
+                combined_content = existing_content + "\n\n" + content
+            else:
+                combined_content = content
+            
+            # Apply deduplication
+            dedup_result = deduplicate_content(combined_content, similarity_threshold=0.8)
+            if dedup_result.get('status') == 'success' and dedup_result.get('content'):
+                dedup_data = dedup_result['content'][0].get('json', {})
+                content = dedup_data.get('cleaned_content', combined_content)
+                
+                # Log deduplication results
+                if dedup_data.get('deduplicated', False):
+                    original_sections = dedup_data.get('original_sections', 0)
+                    final_sections = dedup_data.get('final_sections', 0)
+                    removed_duplicates = dedup_data.get('removed_duplicates', [])
+                    print(f"   ✂️ Deduplication: {original_sections} → {final_sections} sections")
+                    if removed_duplicates:
+                        print(f"   🗑️ Removed duplicates: {', '.join(removed_duplicates[:3])}")
+                else:
+                    print(f"   ✅ No duplicates found in content")
+        
+        # Content passed validation and deduplication - proceed with writing
         if action == "create":
             with open(full_path, 'w', encoding='utf-8') as f:
                 f.write(content)
@@ -237,7 +295,9 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
             'file_path': full_path,
             'content_length': len(content),
             'validation_score': validation_result.get('overall_quality_score', validation_result.get('quality_score', 0.0)),
-            'validation_warnings': validation_result.get('warnings', [])
+            'validation_warnings': validation_result.get('warnings', []),
+            'deduplication_applied': action in ["update", "append"],
+            'deduplication_method': 'full' if deduplication_available else 'fallback'
         }
         
     except Exception as e:
@@ -1012,7 +1072,7 @@ def _generate_documentation_updates(workflow_analysis: Dict[str, Any], change_ty
             content = _generate_content_for_section(section, change_type, affected_files, recommendations)
             updates.append(DocumentationUpdate(
                 section=section,
-                action='update' if change_type in ['feature', 'bugfix'] else 'append',
+                action='update',  # Always use update to prevent content duplication
                 content=content,
                 reason=f"{change_type} changes affect {section}",
                 priority=priority_level
@@ -1078,25 +1138,54 @@ def _create_document_with_header(update: DocumentationUpdate, repository_name: s
 
 
 def _update_existing_document(existing_content: str, update: DocumentationUpdate) -> str:
-    """Update existing document while preserving structure"""
-    lines = existing_content.split('\n')
+    """Update existing document by replacing content instead of appending"""
+    # Implement a simple replacement strategy to prevent content duplication
     
     # Update timestamp if it exists
+    lines = existing_content.split('\n')
     updated_lines = []
+    
     for line in lines:
         if line.startswith('*Last updated:'):
             updated_lines.append(f"*Last updated: {_get_current_timestamp()}*")
         else:
             updated_lines.append(line)
     
-    # Add new content at the end
-    updated_content = '\n'.join(updated_lines)
-    
+    # For update action, replace the existing content instead of appending
+    # This prevents the content duplication issue seen in patterns.md
     if update.action == "append":
+        # Only append for truly additive content (like historical records)
+        updated_content = '\n'.join(updated_lines)
         return updated_content + "\n\n---\n\n" + update.content
     else:
-        # For "update" action, we'll append with a section header
-        return updated_content + f"\n\n## Update: {_get_current_timestamp()}\n\n" + update.content
+        # For "update" action, replace the entire content to prevent duplication
+        # Use the new content as the authoritative version
+        header_lines = []
+        content_started = False
+        
+        # Preserve header metadata (title, auto-generated notice, etc.)
+        for line in updated_lines:
+            if line.startswith('#') and not content_started:
+                header_lines.append(line)
+            elif line.startswith('*') and 'automatically maintained' in line.lower():
+                header_lines.append(line)
+            elif line.startswith('*Last updated:'):
+                header_lines.append(line)
+            elif line.strip() == '---':
+                header_lines.append(line)
+                content_started = True
+                break
+            elif not content_started:
+                header_lines.append(line)
+            else:
+                content_started = True
+                break
+        
+        # Combine preserved header with new content
+        if header_lines:
+            return '\n'.join(header_lines) + '\n\n' + update.content
+        else:
+            return update.content
 
 
 def _get_current_timestamp() -> str:
