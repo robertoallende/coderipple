@@ -5,7 +5,7 @@ Enhances agents' ability to read and understand existing documentation content,
 not just discover file names. This enables intelligent content updates rather
 than wholesale replacement.
 
-Step 2 of the content generation improvement plan.
+Existing content discovery for intelligent documentation updates.
 """
 
 import os

@@ -47,7 +47,7 @@ def orchestrator_agent(webhook_payload: str, event_type: str, github_token: Opti
         OrchestrationResult with decisions on which agents to invoke
     """
     
-    # Step 1: Parse the webhook payload
+    # Parse the webhook payload
     parser = GitHubWebhookParser()
     webhook_event = parser.parse_webhook_payload(webhook_payload, event_type)
     
@@ -59,11 +59,11 @@ def orchestrator_agent(webhook_payload: str, event_type: str, github_token: Opti
             summary="Failed to parse webhook payload"
         )
     
-    # Step 2: Enrich with git diff data
+    # Enrich with git diff data
     if github_token:
         parser.enrich_commits_with_diff_data(webhook_event, github_token)
     
-    # Step 3: Analyze changes using git analysis tool
+    # Analyze changes using git analysis tool
     git_analysis = {}
     if webhook_event.commits and webhook_event.commits[0].diff_data:
         git_analysis = analyze_git_diff(webhook_event.commits[0].diff_data)
@@ -93,26 +93,26 @@ def orchestrator_agent(webhook_payload: str, event_type: str, github_token: Opti
             'summary': f'Inferred {change_type} changes from file modifications'
         }
     
-    # Step 4: Initialize shared context for agent coordination (Step 4C)
+    # Initialize shared context for agent coordination
     context_init_result = initialize_shared_context(
         repository_name=webhook_event.repository_name,
         repository_url=webhook_event.repository_url,
         current_commit=webhook_event.after_sha
     )
     
-    # Step 4.5: Check and bootstrap user documentation if missing (Step 6.4)
+    # Check and bootstrap user documentation if missing
     bootstrap_result = _check_and_bootstrap_user_documentation()
     
-    # Step 5: Apply Layer Selection Decision Tree
+    # Apply Layer Selection Decision Tree
     agent_decisions = _apply_decision_tree(webhook_event, git_analysis)
     
-    # Step 6: Execute selected agents with shared context
+    # Execute selected agents with shared context
     agent_results = _execute_selected_agents(webhook_event, git_analysis, agent_decisions)
     
-    # Step 7: Get final documentation status (Step 4C)
+    # Get final documentation status
     doc_status = get_documentation_status()
     
-    # Step 8: Generate summary
+    # Generate summary
     summary = _generate_orchestration_summary(webhook_event, git_analysis, agent_decisions, doc_status)
     
     return OrchestrationResult(
@@ -292,7 +292,7 @@ def _generate_orchestration_summary(webhook_event: WebhookEvent, git_analysis: D
         agent_types = [d.agent_type for d in agent_decisions]
         summary += f"Invoking {agent_count} agents: {', '.join(agent_types)}."
     
-    # Add Step 4C context flow information
+    # Add context flow information
     if doc_status and doc_status.get('status') == 'success':
         total_files = doc_status.get('total_files_generated', 0)
         active_agents = doc_status.get('active_agents', 0)
@@ -303,7 +303,7 @@ def _generate_orchestration_summary(webhook_event: WebhookEvent, git_analysis: D
 
 def _check_and_bootstrap_user_documentation() -> Dict[str, Any]:
     """
-    Check if user documentation is complete and bootstrap if missing (Step 6.4).
+    Check if user documentation is complete and bootstrap if missing.
     
     This ensures that the Tourist Guide Agent's promises in the README are backed
     by actual user documentation files.

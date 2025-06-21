@@ -106,7 +106,7 @@ def write_system_documentation_file(file_path: str, content: str, action: str = 
         if dir_path and not os.path.exists(dir_path):
             os.makedirs(dir_path)
         
-        # Step 4D: Validate content quality before writing
+        # Validate content quality before writing
         validation_result = enforce_quality_standards(
             content=content,
             file_path=full_path,
@@ -211,7 +211,7 @@ def read_existing_system_documentation(file_path: str) -> Dict[str, Any]:
 def building_inspector_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any], context: Dict[str, Any]) -> BuildingInspectorResult:
     """
     Building Inspector Agent that updates system documentation based on code changes.
-    Uses Step 4C context flow to share system state and reference other agents.
+    Uses context flow to share system state and reference other agents.
     
     Args:
         webhook_event: Parsed webhook event data
@@ -226,7 +226,7 @@ def building_inspector_agent(webhook_event: WebhookEvent, git_analysis: Dict[str
     affected_files = git_analysis.get('affected_components', [])
     commit_messages = [commit.message for commit in webhook_event.commits]
     
-    # Step 4C: Check if other agents have relevant context
+    # Check if other agents have relevant context
     cross_ref_suggestions = suggest_cross_references('building_inspector', f"System architecture changes for {change_type}")
     
     # Use the system analysis tool
@@ -235,23 +235,23 @@ def building_inspector_agent(webhook_event: WebhookEvent, git_analysis: Dict[str
     # Generate documentation updates
     updates = _generate_system_documentation_updates(system_analysis, change_type, affected_files)
     
-    # Step 4D: Enhance content with Bedrock for system documentation
+    # Enhance content with Bedrock for system documentation
     enhanced_updates = _enhance_system_updates_with_bedrock(updates, system_analysis, context)
     updates = enhanced_updates if enhanced_updates else updates
     
     # Write documentation files
     write_results = _write_system_documentation_files(updates, webhook_event.repository_name)
     
-    # Step 4C: Extract current capabilities from our analysis
+    # Extract current capabilities from our analysis
     current_capabilities = _extract_system_capabilities(system_analysis, affected_files, change_type)
     
-    # Step 4C: Identify key insights about the system
+    # Identify key insights about the system
     key_insights = _extract_system_insights(system_analysis, change_type, affected_files)
     
-    # Step 4C: Create cross-references to other agents if they exist
+    # Create cross-references to other agents if they exist
     cross_references = _build_cross_references(cross_ref_suggestions)
     
-    # Step 4C: Register our state in shared context
+    # Register our state in shared context
     generated_files = [update.section + '.md' for update in updates]
     register_result = register_agent_state(
         agent_name="Building Inspector",
@@ -712,7 +712,7 @@ def _assess_overall_system_impact(system_analysis: Dict[str, Any], change_type: 
 
 
 def _extract_system_capabilities(system_analysis: Dict[str, Any], affected_files: List[str], change_type: str) -> List[str]:
-    """Extract current system capabilities from analysis (Step 4C)"""
+    """Extract current system capabilities from analysis"""
     
     capabilities = []
     system_changes = system_analysis.get('system_changes', {})
@@ -756,7 +756,7 @@ def _extract_system_capabilities(system_analysis: Dict[str, Any], affected_files
 
 
 def _extract_system_insights(system_analysis: Dict[str, Any], change_type: str, affected_files: List[str]) -> List[str]:
-    """Extract key insights about the system (Step 4C)"""
+    """Extract key insights about the system"""
     
     insights = []
     system_changes = system_analysis.get('system_changes', {})
@@ -795,7 +795,7 @@ def _extract_system_insights(system_analysis: Dict[str, Any], change_type: str, 
 
 
 def _build_cross_references(cross_ref_suggestions: Dict[str, Any]) -> Dict[str, str]:
-    """Build cross-references to other agents' work (Step 4C)"""
+    """Build cross-references to other agents' work"""
     
     cross_references = {}
     
@@ -823,7 +823,7 @@ def _build_cross_references(cross_ref_suggestions: Dict[str, Any]) -> Dict[str, 
 
 def _enhance_system_updates_with_bedrock(updates: List[SystemDocumentationUpdate], system_analysis: Dict[str, Any], context: Dict[str, Any]) -> List[SystemDocumentationUpdate]:
     """
-    Enhance system documentation updates using Bedrock AI integration (Step 4D).
+    Enhance system documentation updates using Bedrock AI integration.
     
     Args:
         updates: List of system documentation updates to enhance
@@ -898,12 +898,12 @@ def _enhance_system_updates_with_bedrock(updates: List[SystemDocumentationUpdate
 def _generate_system_content_with_step5d(section: str, change_type: str, affected_files: List[str], 
                                         recommendations: List[str], system_analysis: Dict[str, Any]) -> str:
     """
-    STEP 5D: Generate system content using Step 5 tools for meaningful documentation.
+    Generate system content using comprehensive analysis tools for meaningful documentation.
     
-    This function integrates the Step 5 tools for Building Inspector system documentation.
+    This function integrates analysis tools for Building Inspector system documentation.
     """
     try:
-        # Use the general Step 5D function with system-specific parameters
+        # Use the general content generation function with system-specific parameters
         from content_generation_tools import DocumentationFocus, CodeExample
         
         # Create a system-focused DocumentationFocus
@@ -934,7 +934,7 @@ def _generate_system_content_with_step5d(section: str, change_type: str, affecte
             'diff': ''
         }
         
-        # Use the Step 5D context-rich content generation
+        # Use the context-rich content generation
         rich_content = generate_context_rich_content(
             section=section,
             git_analysis=git_analysis,
@@ -953,5 +953,5 @@ def _generate_system_content_with_step5d(section: str, change_type: str, affecte
             
     except Exception as e:
         # Fallback to original method on any error
-        print(f"⚠ Step 5D system content generation failed for {section}: {str(e)}")
+        print(f"⚠ System content generation failed for {section}: {str(e)}")
         return _generate_system_content_for_section(section, change_type, affected_files, recommendations)

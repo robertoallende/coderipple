@@ -1,5 +1,5 @@
 """
-Bedrock Integration Tools for Step 4D: Amazon Bedrock Integration
+Amazon Bedrock Integration Tools for AI-Enhanced Documentation
 
 This module provides Strands @tool decorated functions that use Amazon Bedrock
 for content enhancement, consistency checking, and dynamic example generation.

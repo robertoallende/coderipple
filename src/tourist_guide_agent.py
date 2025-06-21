@@ -128,7 +128,7 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
         if dir_path and not os.path.exists(dir_path):
             os.makedirs(dir_path)
         
-        # Step 4D: Validate content quality before writing (unless skipped for testing)
+        # Validate content quality before writing (unless skipped for testing)
         if skip_validation:
             validation_result = {
                 'write_approved': True,
@@ -138,7 +138,7 @@ def write_documentation_file(file_path: str, content: str, action: str = "create
                 'suggestions': []
             }
         else:
-            # Step 8 Subtask 4: Partial Success Handling with Progressive Quality Standards
+            # Partial Success Handling with Progressive Quality Standards
             config = get_config()
             
             if config.enable_partial_success:
@@ -361,7 +361,7 @@ def read_existing_documentation(file_path: str) -> Dict[str, Any]:
 
 def _retry_content_improvement(content: str, validation_result: Dict[str, Any], file_path: str, max_retries: int = 3) -> Dict[str, Any]:
     """
-    Step 8 Subtask 2: Retry mechanism with iterative improvement using validation feedback.
+    Retry mechanism with iterative improvement using validation feedback.
     
     Args:
         content: The original content that failed validation
@@ -559,7 +559,7 @@ This is the final attempt - please create the best possible version of this cont
 def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any], context: Dict[str, Any]) -> TouristGuideResult:
     """
     Tourist Guide Agent that updates user-facing documentation based on code changes.
-    Uses intelligent content generation from Step 4B and context flow from Step 4C.
+    Uses intelligent content generation and context flow for multi-agent coordination.
     
     Args:
         webhook_event: Parsed webhook event data
@@ -574,7 +574,7 @@ def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any
     affected_files = git_analysis.get('affected_components', [])
     commit_messages = [commit.message for commit in webhook_event.commits]
     
-    # Step 4C: Get current system capabilities from Building Inspector if available
+    # Get current system capabilities from Building Inspector if available
     building_inspector_state = get_agent_state('building_inspector')
     current_system_capabilities = []
     if building_inspector_state.get('status') == 'success':
@@ -587,13 +587,13 @@ def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any
             'tourist_guide'
         )
     
-    # Step 4C: Get cross-reference suggestions for user documentation
+    # Get cross-reference suggestions for user documentation
     cross_ref_suggestions = suggest_cross_references('tourist_guide', f"User documentation for {change_type} changes")
     
-    # Step 4B: Analyze change patterns to determine documentation focus
+    # Analyze change patterns to determine documentation focus
     doc_focus = analyze_change_patterns(affected_files, commit_messages)
     
-    # Step 4B: Extract code examples from git diff (if available)
+    # Extract code examples from git diff (if available)
     code_examples = []
     git_diff = context.get('git_diff', '')
     if git_diff:
@@ -604,17 +604,17 @@ def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any
     # Use the workflow analysis tool (existing)
     workflow_analysis = analyze_user_workflow_impact(change_type, affected_files, commit_messages)
     
-    # Step 4C: Enhance workflow analysis with system capabilities
+    # Enhance workflow analysis with system capabilities
     workflow_analysis = _enhance_workflow_with_system_capabilities(
         workflow_analysis, current_system_capabilities, change_type
     )
     
-    # Step 4B: Generate intelligent documentation updates
+    # Generate intelligent documentation updates
     updates = _generate_intelligent_documentation_updates(
         workflow_analysis, git_analysis, doc_focus, code_examples, affected_files
     )
     
-    # Step 4D: Enhance content with Bedrock
+    # Enhance content with Bedrock
     enhanced_updates = _enhance_updates_with_bedrock(updates, git_analysis, context)
     updates = enhanced_updates if enhanced_updates else updates
     
@@ -629,14 +629,14 @@ def tourist_guide_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any
         if readme_write_result['status'] == 'success':
             print(f"✓ {readme_write_result['operation'].title()} {readme_write_result['file_path']}")
     
-    # Step 4C: Extract user-facing capabilities and insights
+    # Extract user-facing capabilities and insights
     user_capabilities = _extract_user_facing_capabilities(affected_files, change_type, current_system_capabilities)
     user_insights = _extract_user_insights(doc_focus, change_type, code_examples)
     
-    # Step 4C: Build cross-references to other agents
+    # Build cross-references to other agents
     cross_references = _build_user_cross_references(cross_ref_suggestions, building_inspector_state)
     
-    # Step 4C: Register our state in shared context
+    # Register our state in shared context
     generated_files = [update.section + '.md' for update in updates]
     if readme_result.get('status') == 'success':
         generated_files.append('README.md')
@@ -792,7 +792,7 @@ def _generate_intelligent_documentation_updates(workflow_analysis: Dict[str, Any
                                                doc_focus: DocumentationFocus, code_examples: List[CodeExample], 
                                                affected_files: List[str]) -> List[DocumentationUpdate]:
     """
-    Generate intelligent documentation updates using Step 4B content generation.
+    Generate intelligent documentation updates using intelligent content generation.
     
     Args:
         workflow_analysis: Traditional workflow analysis
@@ -947,7 +947,7 @@ def _generate_intelligent_reason(section: str, doc_focus: DocumentationFocus,
 
 def _assess_user_impact_intelligent(doc_focus: DocumentationFocus, change_type: str, 
                                    code_examples: List[CodeExample]) -> str:
-    """Assess user impact using intelligent analysis from Step 4B"""
+    """Assess user impact using intelligent analysis"""
     
     impact_description = f"{doc_focus.user_impact_level.title()} impact: "
     
@@ -1426,7 +1426,7 @@ def _update_navigation_section(existing_readme: str, all_docs: Dict[str, List[Di
 def _enhance_workflow_with_system_capabilities(workflow_analysis: Dict[str, Any], 
                                              system_capabilities: List[str], 
                                              change_type: str) -> Dict[str, Any]:
-    """Enhance workflow analysis with current system capabilities (Step 4C)"""
+    """Enhance workflow analysis with current system capabilities"""
     
     enhanced_analysis = workflow_analysis.copy()
     
@@ -1455,7 +1455,7 @@ def _enhance_workflow_with_system_capabilities(workflow_analysis: Dict[str, Any]
 
 def _extract_user_facing_capabilities(affected_files: List[str], change_type: str, 
                                     system_capabilities: List[str]) -> List[str]:
-    """Extract user-facing capabilities (Step 4C)"""
+    """Extract user-facing capabilities"""
     
     user_capabilities = []
     
@@ -1503,7 +1503,7 @@ def _extract_user_facing_capabilities(affected_files: List[str], change_type: st
 
 def _extract_user_insights(doc_focus: DocumentationFocus, change_type: str, 
                          code_examples: List[CodeExample]) -> List[str]:
-    """Extract insights relevant to users (Step 4C)"""
+    """Extract insights relevant to users"""
     
     insights = []
     
@@ -1542,7 +1542,7 @@ def _extract_user_insights(doc_focus: DocumentationFocus, change_type: str,
 
 def _build_user_cross_references(cross_ref_suggestions: Dict[str, Any], 
                                 building_inspector_state: Dict[str, Any]) -> Dict[str, str]:
-    """Build cross-references to other agents' work for users (Step 4C)"""
+    """Build cross-references to other agents' work for users"""
     
     cross_references = {}
     
@@ -1579,7 +1579,7 @@ def _build_user_cross_references(cross_ref_suggestions: Dict[str, Any],
 
 def _enhance_updates_with_bedrock(updates: List[DocumentationUpdate], git_analysis: Dict[str, Any], context: Dict[str, Any]) -> List[DocumentationUpdate]:
     """
-    Enhance documentation updates using Bedrock AI integration (Step 4D).
+    Enhance documentation updates using Bedrock AI integration.
     
     Args:
         updates: List of documentation updates to enhance
@@ -1653,7 +1653,7 @@ def _enhance_updates_with_bedrock(updates: List[DocumentationUpdate], git_analys
 
 def _check_cross_agent_consistency(agent_state: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Check consistency across documentation layers using Bedrock (Step 4D).
+    Check consistency across documentation layers using Bedrock.
     
     Args:
         agent_state: Current agent state including generated content
@@ -1720,7 +1720,7 @@ def _check_cross_agent_consistency(agent_state: Dict[str, Any]) -> Dict[str, Any
 
 def _generate_dynamic_examples_for_users(code_context: Dict[str, Any], git_analysis: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
-    Generate dynamic code examples for user documentation using Bedrock (Step 4D).
+    Generate dynamic code examples for user documentation using Bedrock.
     
     Args:
         code_context: Context about recent code changes
@@ -1766,7 +1766,7 @@ def _generate_dynamic_examples_for_users(code_context: Dict[str, Any], git_analy
         return []
 
 
-# Step 6.1 & 6.2: Bootstrap User Documentation Structure
+# Bootstrap User Documentation Structure
 USER_DOCUMENTATION_STRUCTURE = {
     'discovery': 'user/overview.md',
     'getting_started': 'user/getting_started.md', 

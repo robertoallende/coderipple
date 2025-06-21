@@ -1,5 +1,5 @@
 """
-Quality Measurement Alignment Tools for Step 8: Quality Measurement Alignment
+Quality Measurement Alignment Tools for Bedrock and Validation Pipeline
 
 This module provides Strands @tool decorated functions that align scoring methodologies
 between Bedrock enhancement and validation pipeline systems to prevent conflicts

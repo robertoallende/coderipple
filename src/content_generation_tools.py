@@ -1,9 +1,9 @@
 """
-Content Generation Tools for Step 4B: Intelligent Content Generation
+Content Generation Tools for Intelligent Documentation Creation
 
 This module provides tools for generating context-aware documentation content
 based on actual git changes rather than generic templates.
-Enhanced with Step 4F: Real Diff Integration for specific, targeted documentation.
+Enhanced with real diff integration for specific, targeted documentation.
 """
 
 import re
@@ -390,7 +390,7 @@ def generate_targeted_content_from_diff(git_diff: str, section: str, change_type
                                       doc_type: str = "user") -> dict:
     """
     Generate targeted documentation content based on specific git diff analysis.
-    Enhanced for Step 4F: Real Diff Integration.
+    Enhanced for real diff integration.
     
     Args:
         git_diff: Raw git diff output
@@ -690,12 +690,12 @@ def generate_context_rich_content(section: str, git_analysis: Dict[str, Any],
                                 doc_focus: DocumentationFocus, change_type: str,
                                 project_root: str = ".") -> str:
     """
-    STEP 5D: Generate context-rich content using all Step 5 tools for meaningful documentation.
+    Generate context-rich content using comprehensive analysis tools for meaningful documentation.
     
     This function integrates:
-    - Step 5A: Source code analysis for project understanding
-    - Step 5B: Existing content discovery for context awareness
-    - Step 5C: Content-aware update logic for intelligent merging
+    - Source code analysis for project understanding
+    - Existing content discovery for context awareness
+    - Content-aware update logic for intelligent merging
     
     Args:
         section: Documentation section to generate ('discovery', 'getting_started', etc.)
@@ -710,15 +710,15 @@ def generate_context_rich_content(section: str, git_analysis: Dict[str, Any],
         Generated content string with rich context
     """
     try:
-        # Step 5A: Get source code analysis for project understanding
+        # Get source code analysis for project understanding
         from source_code_analysis_tool import analyze_source_code
         source_analysis = analyze_source_code(project_root)
         
-        # Step 5B: Discover existing content for context awareness
+        # Discover existing content for context awareness
         from existing_content_discovery_tool import analyze_existing_content
         existing_content = analyze_existing_content(None, source_analysis)
         
-        # Step 5C: Apply content-aware update logic
+        # Apply content-aware update logic
         from content_aware_update_logic import apply_content_aware_updates
         
         # Map section to documentation category

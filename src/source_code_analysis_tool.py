@@ -5,7 +5,7 @@ Analyzes project source code to understand functionality, structure, and purpose
 This tool provides the foundational understanding that agents need to generate
 meaningful documentation, rather than relying solely on git diffs.
 
-Step 1 of the content generation improvement plan.
+Source code analysis for intelligent documentation generation.
 """
 
 import os

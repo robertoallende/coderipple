@@ -106,7 +106,7 @@ def write_decision_documentation_file(file_path: str, content: str, action: str 
         if dir_path and not os.path.exists(dir_path):
             os.makedirs(dir_path)
         
-        # Step 4D: Validate content quality before writing
+        # Validate content quality before writing
         validation_result = enforce_quality_standards(
             content=content,
             file_path=full_path,
@@ -225,7 +225,7 @@ def historian_agent(webhook_event: WebhookEvent, git_analysis: Dict[str, Any], c
     # Generate documentation updates
     updates = _generate_decision_documentation_updates(decision_analysis, change_type, affected_files, webhook_event)
     
-    # Step 4D: Enhance content with Bedrock for decision documentation
+    # Enhance content with Bedrock for decision documentation
     enhanced_updates = _enhance_decision_updates_with_bedrock(updates, decision_analysis, context)
     updates = enhanced_updates if enhanced_updates else updates
     
@@ -676,7 +676,7 @@ def _assess_overall_decision_impact(decision_analysis: Dict[str, Any], change_ty
 
 def _enhance_decision_updates_with_bedrock(updates: List[DecisionDocumentationUpdate], decision_analysis: Dict[str, Any], context: Dict[str, Any]) -> List[DecisionDocumentationUpdate]:
     """
-    Enhance decision documentation updates using Bedrock AI integration (Step 4D).
+    Enhance decision documentation updates using Bedrock AI integration.
     
     Args:
         updates: List of decision documentation updates to enhance

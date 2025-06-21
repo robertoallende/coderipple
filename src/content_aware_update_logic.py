@@ -5,7 +5,7 @@ Implements intelligent content updates that merge new information with existing
 documentation instead of wholesale replacement. This is the core logic that
 enables agents to preserve valuable existing context while adding new information.
 
-Step 3 (5C) of the content generation improvement plan.
+Content-aware update logic for intelligent content merging.
 """
 
 import os
@@ -503,7 +503,7 @@ def apply_content_aware_updates(
     """
     Apply intelligent content updates that preserve existing valuable information.
     
-    This tool implements the core logic for Step 5C - content-aware updates that
+    This tool implements the core logic for content-aware updates that
     merge new information with existing documentation instead of wholesale replacement.
     
     Args:
@@ -511,8 +511,8 @@ def apply_content_aware_updates(
         affected_files: List of files changed in the commit
         git_diff: Git diff content for analysis
         target_category: Documentation category (user, system, decisions)
-        source_analysis: Source code analysis results from Step 5A
-        existing_docs: Existing documentation analysis from Step 5B
+        source_analysis: Source code analysis results for project understanding
+        existing_docs: Existing documentation analysis for context awareness
         
     Returns:
         Dictionary containing update decisions and specific content updates

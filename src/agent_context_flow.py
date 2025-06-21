@@ -1,5 +1,5 @@
 """
-Agent Context Flow for Step 4C: Cross-Agent Context Flow
+Agent Context Flow for Multi-Agent Communication and State Management
 
 This module provides tools and mechanisms for agents to share their current state
 and reference each other's outputs, enabling consistency across documentation layers.
