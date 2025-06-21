@@ -5,19 +5,377 @@ Tests the intelligent content generation capabilities including change pattern a
 code example extraction, and context-aware content generation.
 """
 
+import unittest
+from unittest.mock import patch, MagicMock
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+# Add src directory to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from content_generation_tools import (
     analyze_change_patterns,
     extract_code_examples_from_diff,
     generate_context_aware_content,
+    generate_targeted_content_from_diff,
+    generate_api_documentation_from_diff,
+    generate_migration_guide_from_diff,
+    generate_context_rich_content,
+    enhance_generic_content_with_context,
     DocumentationFocus,
     CodeExample
 )
 
 
+class TestDocumentationFocus(unittest.TestCase):
+    """Test documentation focus analysis."""
+
+    def test_analyze_change_patterns_api_focus(self):
+        """Test API-focused change detection."""
+        file_paths = ['src/api/users.py', 'src/endpoints/auth.py']
+        commit_messages = ['Add new user authentication endpoint']
+        
+        focus = analyze_change_patterns(file_paths, commit_messages)
+        
+        self.assertEqual(focus.primary_focus, 'api')
+        self.assertIn('API', focus.affected_areas)
+        self.assertIn('API Reference', focus.suggested_sections)
+
+    def test_analyze_change_patterns_cli_focus(self):
+        """Test CLI-focused change detection."""
+        file_paths = ['src/cli.py', 'bin/deploy.sh']
+        commit_messages = ['Add new deploy command', 'implement cli interface']
+        
+        focus = analyze_change_patterns(file_paths, commit_messages)
+        
+        self.assertEqual(focus.primary_focus, 'cli')
+        self.assertIn('CLI', focus.affected_areas)
+        self.assertIn('Command Reference', focus.suggested_sections)
+
+    def test_analyze_change_patterns_config_focus(self):
+        """Test configuration-focused change detection."""
+        file_paths = ['config/settings.yaml', 'src/config.py']
+        commit_messages = ['Update configuration options']
+        
+        focus = analyze_change_patterns(file_paths, commit_messages)
+        
+        self.assertEqual(focus.primary_focus, 'config')
+        self.assertIn('Configuration', focus.affected_areas)
+        self.assertIn('Configuration', focus.suggested_sections)
+
+    def test_analyze_change_patterns_architecture_focus(self):
+        """Test architecture-focused change detection."""
+        file_paths = ['src/core/engine.py', 'lib/utils.py']
+        commit_messages = ['Refactor core architecture']
+        
+        focus = analyze_change_patterns(file_paths, commit_messages)
+        
+        self.assertEqual(focus.primary_focus, 'architecture')
+        self.assertIn('Architecture', focus.affected_areas)
+        self.assertIn('System Architecture', focus.suggested_sections)
+
+    def test_analyze_change_patterns_breaking_changes(self):
+        """Test detection of breaking changes."""
+        file_paths = ['src/api/v2.py']
+        commit_messages = ['breaking: remove deprecated API', 'change api signature']
+        
+        focus = analyze_change_patterns(file_paths, commit_messages)
+        
+        self.assertEqual(focus.user_impact_level, 'high')
+
+    def test_analyze_change_patterns_empty_input(self):
+        """Test with empty input."""
+        focus = analyze_change_patterns([], [])
+        
+        # Should return valid focus even with empty input
+        self.assertIsInstance(focus.primary_focus, str)
+        self.assertIsInstance(focus.affected_areas, list)
+        self.assertIsInstance(focus.suggested_sections, list)
+
+
+class TestCodeExamples(unittest.TestCase):
+    """Test code example extraction."""
+
+    def test_extract_code_examples_python(self):
+        """Test extracting Python code examples."""
+        git_diff = """
+@@ -1,3 +1,8 @@
+ import os
++
++def new_function():
++    '''New function added'''
++    return "example"
++
+ def existing_function():
+     pass
+"""
+        
+        examples = extract_code_examples_from_diff(git_diff, 'src/example.py')
+        
+        self.assertTrue(len(examples) >= 1)
+        
+        # Should have detected the new function
+        function_examples = [ex for ex in examples if 'function' in ex.description.lower()]
+        self.assertTrue(len(function_examples) > 0)
+        
+        if function_examples:
+            example = function_examples[0]
+            self.assertEqual(example.language, 'python')
+            self.assertEqual(example.change_type, 'added')
+            self.assertIn('new_function', example.code)
+
+    def test_extract_code_examples_javascript(self):
+        """Test extracting JavaScript code examples."""
+        git_diff = """
+@@ -1,2 +1,6 @@
+ const util = require('util');
++
++function newFeature() {
++    return 'example';
++}
+"""
+        
+        examples = extract_code_examples_from_diff(git_diff, 'src/example.js')
+        
+        if examples:
+            self.assertEqual(examples[0].language, 'javascript')
+
+    def test_extract_code_examples_empty_diff(self):
+        """Test with empty diff."""
+        examples = extract_code_examples_from_diff('', 'test.py')
+        self.assertEqual(examples, [])
+
+    def test_extract_code_examples_no_file_path(self):
+        """Test with no file path."""
+        examples = extract_code_examples_from_diff('some diff', '')
+        self.assertEqual(examples, [])
+
+    def test_extract_code_examples_unknown_language(self):
+        """Test with unknown file extension."""
+        git_diff = """
+@@ -1,1 +1,3 @@
+ existing line
++new line 1
++new line 2
+"""
+        
+        examples = extract_code_examples_from_diff(git_diff, 'unknown.xyz')
+        
+        if examples:
+            self.assertEqual(examples[0].language, 'text')
+
+
+class TestContentGeneration(unittest.TestCase):
+    """Test content generation functions."""
+
+    def setUp(self):
+        """Set up test data."""
+        self.git_analysis = {
+            'change_type': 'feature',
+            'affected_components': ['API', 'Database'],
+            'summary': 'Added new user management functionality'
+        }
+        
+        self.file_changes = ['src/api/users.py', 'src/models/user.py']
+        
+        self.code_examples = [
+            CodeExample(
+                language='python',
+                code='def create_user(name): return User(name)',
+                description='Create new user',
+                file_path='src/api/users.py',
+                change_type='added'
+            )
+        ]
+        
+        self.doc_focus = DocumentationFocus(
+            primary_focus='api',
+            affected_areas=['API'],
+            user_impact_level='medium',
+            suggested_sections=['API Reference']
+        )
+
+    def test_generate_context_aware_content_discovery(self):
+        """Test discovery section content generation."""
+        content = generate_context_aware_content(
+            'discovery', self.git_analysis, self.file_changes, 
+            self.code_examples, self.doc_focus
+        )
+        
+        self.assertIn('Recent Changes', content)
+        self.assertIn('Feature', content)
+        self.assertIn('user management', content)
+
+    def test_generate_context_aware_content_getting_started_cli(self):
+        """Test getting started content for CLI focus."""
+        cli_focus = DocumentationFocus(
+            primary_focus='cli',
+            affected_areas=['CLI'],
+            user_impact_level='medium',
+            suggested_sections=['Command Reference']
+        )
+        
+        content = generate_context_aware_content(
+            'getting_started', self.git_analysis, self.file_changes,
+            self.code_examples, cli_focus
+        )
+        
+        self.assertIn('Command Line Interface', content)
+
+    def test_generate_context_aware_content_getting_started_api(self):
+        """Test getting started content for API focus."""
+        content = generate_context_aware_content(
+            'getting_started', self.git_analysis, self.file_changes,
+            self.code_examples, self.doc_focus
+        )
+        
+        self.assertIn('API Usage', content)
+        self.assertIn('endpoints', content)
+
+    def test_generate_context_aware_content_architecture(self):
+        """Test architecture section content generation."""
+        content = generate_context_aware_content(
+            'architecture', self.git_analysis, self.file_changes,
+            self.code_examples, self.doc_focus
+        )
+        
+        self.assertIn('System Changes', content)
+        self.assertIn('Affected Components', content)
+        self.assertIn('API', content)
+        self.assertIn('Database', content)
+
+    def test_generate_context_aware_content_high_impact(self):
+        """Test content generation for high impact changes."""
+        high_impact_focus = DocumentationFocus(
+            primary_focus='api',
+            affected_areas=['API'],
+            user_impact_level='high',
+            suggested_sections=['API Reference']
+        )
+        
+        content = generate_context_aware_content(
+            'discovery', self.git_analysis, self.file_changes,
+            self.code_examples, high_impact_focus
+        )
+        
+        self.assertIn('Important', content)
+        self.assertIn('breaking changes', content)
+
+
+class TestStrandsTools(unittest.TestCase):
+    """Test Strands @tool decorated functions."""
+
+    def test_generate_targeted_content_from_diff_basic(self):
+        """Test basic targeted content generation."""
+        result = generate_targeted_content_from_diff('sample diff', 'discovery', 'feature', 'user')
+        
+        self.assertIn('status', result)
+        # Function should handle the request
+
+    def test_generate_api_documentation_from_diff_basic(self):
+        """Test basic API documentation generation."""
+        result = generate_api_documentation_from_diff('sample diff', 'api.py')
+        
+        self.assertIn('status', result)
+        # Function should handle the request
+
+    def test_generate_migration_guide_from_diff_basic(self):
+        """Test migration guide generation."""
+        result = generate_migration_guide_from_diff('sample diff', 'breaking_changes')
+        
+        self.assertIn('status', result)
+        # Function should handle the request
+
+    def test_generate_context_rich_content_basic(self):
+        """Test context-rich content generation."""
+        git_analysis = {'change_type': 'feature', 'summary': 'Test changes'}
+        file_changes = ['test.py']
+        code_examples = []
+        doc_focus = DocumentationFocus('api', [], 'medium', [])
+        
+        result = generate_context_rich_content('discovery', git_analysis, file_changes, code_examples, doc_focus, 'feature')
+        
+        self.assertIsInstance(result, str)
+        # Should return enhanced content string
+
+    def test_enhance_generic_content_with_context_basic(self):
+        """Test content enhancement with context."""
+        generic_content = "# Basic README\n\nThis is a project."
+        git_analysis = {'summary': 'Added new features'}
+        
+        result = enhance_generic_content_with_context(generic_content, git_analysis, [])
+        
+        self.assertIsInstance(result, str)
+        # Should return enhanced content
+
+
+class TestDataClasses(unittest.TestCase):
+    """Test data class functionality."""
+
+    def test_code_example_dataclass(self):
+        """Test CodeExample dataclass."""
+        example = CodeExample(
+            language='python',
+            code='def test(): pass',
+            description='Test function',
+            file_path='test.py',
+            change_type='added'
+        )
+        
+        self.assertEqual(example.language, 'python')
+        self.assertEqual(example.change_type, 'added')
+
+    def test_documentation_focus_dataclass(self):
+        """Test DocumentationFocus dataclass."""
+        focus = DocumentationFocus(
+            primary_focus='api',
+            affected_areas=['API', 'Database'],
+            user_impact_level='high',
+            suggested_sections=['API Reference', 'Migration Guide']
+        )
+        
+        self.assertEqual(focus.primary_focus, 'api')
+        self.assertEqual(focus.user_impact_level, 'high')
+        self.assertEqual(len(focus.affected_areas), 2)
+
+
+class TestUtilityFunctions(unittest.TestCase):
+    """Test utility and helper functions."""
+
+    def test_analyze_change_patterns_scoring(self):
+        """Test the scoring mechanism in change pattern analysis."""
+        # Test that scoring works correctly
+        file_paths = ['src/api/test.py', 'src/api/another.py']  # Should score API higher
+        commit_messages = ['api changes']
+        
+        focus = analyze_change_patterns(file_paths, commit_messages)
+        
+        # With 2 API files, should definitely be API focused
+        self.assertEqual(focus.primary_focus, 'api')
+
+    def test_extract_code_examples_edge_cases(self):
+        """Test edge cases in code example extraction."""
+        # Test with malformed diff
+        malformed_diff = "not a real diff format"
+        examples = extract_code_examples_from_diff(malformed_diff, 'test.py')
+        
+        # Should handle gracefully
+        self.assertIsInstance(examples, list)
+
+    def test_generate_context_aware_content_unknown_section(self):
+        """Test content generation with unknown section."""
+        git_analysis = {'change_type': 'unknown', 'summary': 'Changes'}
+        
+        content = generate_context_aware_content(
+            'unknown_section', git_analysis, [], [], 
+            DocumentationFocus('api', [], 'low', [])
+        )
+        
+        # Should return string even for unknown sections
+        self.assertIsInstance(content, str)
+
+
+# Keep the original test functions for backwards compatibility
 def test_change_pattern_analysis():
     """Test analysis of change patterns to determine documentation focus"""
     

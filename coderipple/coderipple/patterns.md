@@ -1,103 +1,97 @@
-# Common Usage Patterns
+# Usage Patterns
 
 *This document is automatically maintained by CodeRipple Tourist Guide Agent*  
 *Repository: coderipple*  
-*Last updated: 2025-06-21 23:24:36*
+*Last updated: 2025-06-22 01:16:25*
 
 ---
 
-## Patterns in CodeRipple
+# CodeRipple Patterns
 
-*Enhanced documentation for intelligent documentation generation*
+*A multi-agent documentation system that intelligently processes webhooks and generates contextual documentation*
 
-> **Note**: This documentation has been updated to provide more comprehensive information while preserving the original content.
+## Common Usage Patterns
 
-### Common Usage Patterns
+CodeRipple analyzes your code changes and automatically generates appropriate documentation. Understanding these core functions will help you integrate and customize the system for your projects.
 
-CodeRipple provides several powerful functions to analyze code changes and generate contextually relevant documentation. Below are the key components and their usage patterns.
+### Core Components
 
-#### Core Data Structures
+#### Data Structures
 
-- **`CodeExample`** - A structured representation of code examples extracted from git changes, containing the snippet, language, and context.
+- **`CodeExample`** - A structured representation of code examples extracted from git changes
+  - Contains the extracted code snippet, language, and contextual information
+  - Used to populate examples in generated documentation
 
-- **`DocumentationFocus`** - An object that determines which aspects of documentation should be emphasized based on the nature of code changes.
+- **`DocumentationFocus`** - Determines what type of documentation should be emphasized based on change analysis
+  - Helps prioritize API docs, tutorials, migration guides, etc.
+  - Adapts documentation style to match the nature of code changes
 
-#### Analysis Functions
+#### Key Functions
 
 - **`analyze_change_patterns(file_paths, commit_messages)`**
-
-  Analyzes file changes and commit messages to intelligently determine what type of documentation should be prioritized.
-
-  **Parameters:**
-  - `file_paths`: List of changed file paths in the repository
-  - `commit_messages`: List of commit messages providing context for the changes
-
-  **Returns:**
-  - A `DocumentationFocus` object indicating which documentation aspects to prioritize (e.g., API reference, tutorials, migration guides)
+  - Analyzes file changes and commit messages to determine optimal documentation focus
+  - **Parameters:**
+    - `file_paths`: List of changed file paths
+    - `commit_messages`: List of commit messages for context
+  - **Returns:** `DocumentationFocus` object indicating what type of documentation to prioritize
 
 - **`extract_code_examples_from_diff(git_diff, file_path)`**
-
-  Extracts meaningful, usable code examples from git diffs that can be included in documentation.
-
-  **Parameters:**
-  - `git_diff`: Raw git diff content showing code changes
-  - `file_path`: Path to the file being analyzed
-
-  **Returns:**
-  - List of `CodeExample` objects containing extracted code snippets with appropriate context
-
-#### Content Generation
+  - Extracts usable code examples from git diff content
+  - Intelligently selects meaningful code snippets that demonstrate usage
+  - **Parameters:**
+    - `git_diff`: Raw git diff content
+    - `file_path`: Path to the file being analyzed
+  - **Returns:** List of `CodeExample` objects with extracted code snippets
 
 - **`generate_context_aware_content(section, git_analysis, file_changes, code_examples, doc_focus)`**
+  - Generates documentation content based on actual code changes rather than generic templates
+  - Adapts content style and depth based on the documentation focus
+  - **Parameters:**
+    - `section`: Documentation section to generate ('discovery', 'getting_started', etc.)
+    - `git_analysis`: Results from git analysis tool
+    - `file_changes`: List of changed files
+    - `code_examples`: Extracted code examples
+    - `doc_focus`: Documentation focus analysis
+  - **Returns:** Generated content string tailored to the specific changes
 
-  Generates documentation content based on actual code changes rather than using generic templates.
+## Recent Updates
 
-  **Parameters:**
-  - `section`: Documentation section to generate ('discovery', 'getting_started', 'api_reference', etc.)
-  - `git_analysis`: Results from git analysis tool providing change context
-  - `file_changes`: List of changed files with their modifications
-  - `code_examples`: Extracted code examples from the changes
-  - `doc_focus`: Documentation focus analysis results
+### New Functions
 
-  **Returns:**
-  - Generated content string tailored to the specific code changes
+- **`analyze_git_changes()`** - Performs comprehensive analysis of git repository changes
+- **`share_agent_context()`** - Enables context sharing between different documentation agents
 
-### Implementation Examples
+### New Classes
+
+- **`CommitInfo`** - Structured representation of git commit metadata
+- **`DocumentationUpdate`** - Manages the documentation update workflow
+- **`inheriting`** - Handles inheritance relationships in code documentation
+
+## Implementation Example
 
 ```python
+# Example workflow using CodeRipple
 
-# Example: Analyzing changes and generating focused documentation
+# 1. Analyze changes to determine documentation focus
+file_paths = ["src/api/endpoints.py", "src/models/user.py"]
+commit_messages = ["Add new user authentication endpoint", "Update user model with validation"]
 
-from coderipple import analyze_change_patterns, extract_code_examples_from_diff, generate_context_aware_content
+doc_focus = analyze_change_patterns(file_paths, commit_messages)
 
-# Get information about repository changes
+# 2. Extract code examples from the changes
+git_diff = get_git_diff()  # Your function to retrieve diff content
+code_examples = []
+for file_path in file_paths:
+    examples = extract_code_examples_from_diff(git_diff, file_path)
+    code_examples.extend(examples)
 
-changed_files = ['src/api/users.py', 'src/models/user.py']
-commit_msgs = ['Add user authentication endpoint', 'Update user model with new fields']
+# 3. Generate appropriate documentation
+git_analysis = analyze_git_changes()
+file_changes = get_file_changes()  # Your function to get file changes
 
-# Analyze what documentation needs focus
-
-doc_focus = analyze_change_patterns(changed_files, commit_msgs)
-
-# Extract code examples from the git diff
-
-git_diff = """diff --git a/src/api/users.py b/src/api/users.py
-..."""
-code_examples = extract_code_examples_from_diff(git_diff, 'src/api/users.py')
-
-# Generate appropriate documentation
-
-api_docs = generate_context_aware_content(
-    section='api_reference',
-    git_analysis=repo_analysis,
-    file_changes=changed_files,
-    code_examples=code_examples,
-    doc_focus=doc_focus
-)
+# Generate different documentation sections
+api_docs = generate_context_aware_content('api', git_analysis, file_changes, code_examples, doc_focus)
+quickstart = generate_context_aware_content('getting_started', git_analysis, file_changes, code_examples, doc_focus)
 ```
 
-### Best Practices
-
-- Run analysis functions immediately after significant commits to keep documentation in sync with code
-- Use the `DocumentationFocus` output to prioritize which sections of documentation to update first
-- Include extracted code examples in your documentation to provide practical implementation guidance
+*Note: This update includes 3366 additions and 697 modifications to improve system functionality. Documentation was generated based on source analysis and configuration_update changes.*
