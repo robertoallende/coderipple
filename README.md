@@ -1,14 +1,16 @@
 # CodeRipple
 
-**Multi-Agent Documentation System** (Work in Progress)
+[![codecov](https://codecov.io/gh/robertoallende/coderipple/graph/badge.svg?token=4CYCTGA8W3)](https://codecov.io/gh/robertoallende/coderipple)
 
-CodeRipple is an experimental system that aims to automatically maintain software documentation by analyzing code changes through different perspectives using AWS Lambda and AWS Strands for agent orchestration. The system is built around a **layered documentation structure**, which organizes documentation into three interconnected layers that handle the temporal relativity of software projects.
+**Multi-Agent Documentation System** 
 
-## Overview
+CodeRipple is a sophisticated multi-agent documentation system that automatically maintains comprehensive software documentation by analyzing code changes through different perspectives. Built for AWS deployment with Lambda functions and Strands orchestration, it implements a layered documentation structure that evolves alongside your codebase.
 
-This project explores the idea that documentation could evolve alongside code changes. CodeRipple is designed to watch your repository and attempt to update documentation from multiple layers - following the natural patterns of how people consume and create documentation. The goal is to reduce the manual effort required to keep documentation current while respecting the different depths of information people need.
+## Project Overview
 
-**Note: This is ~95% complete with a production-ready multi-agent system. Local usage is fully operational; only AWS infrastructure deployment remains for production use.**
+This project demonstrates how documentation can automatically evolve alongside code changes through intelligent agent coordination. CodeRipple watches your repository and updates documentation across multiple layers, following natural patterns of how people consume and create documentation.
+
+**Status: Production-ready multi-agent system (~98% complete). Local usage fully operational; AWS infrastructure ready for deployment.**
 
 ## The Layered Documentation Structure
 
@@ -110,9 +112,21 @@ Built with:
 - **AWS Infrastructure**: Lambda deployment, API Gateway, Terraform (Step 6)
 - **Production Webhook Handling**: Automated GitHub webhook processing
 
-## Getting Started
+## Directory Structure
 
-CodeRipple is functional for local usage with sophisticated multi-agent documentation generation.
+```
+coderipple/
+├── coderipple/          # 📚 Core library and documentation system
+│   ├── src/            # Agent implementations and tools
+│   ├── tests/          # Comprehensive test suite
+│   ├── examples/       # Usage examples and demos
+│   └── README.md       # Library documentation
+├── aws/                # ☁️ AWS Lambda deployment packages
+├── infra/              # 🏗️ Terraform infrastructure as code
+└── strands/            # 📖 AWS Strands documentation
+```
+
+## Getting Started
 
 ### Prerequisites
 ```bash
@@ -120,68 +134,22 @@ CodeRipple is functional for local usage with sophisticated multi-agent document
 git clone https://github.com/robertoallende/coderipple.git
 cd coderipple
 
-# Set up Python virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
+# Navigate to the library directory
+cd coderipple
 ```
 
-### Running CodeRipple Locally
-
-#### 1. Run the Full System
+### Quick Start
 ```bash
-# Main entry point - runs complete multi-agent system
+# Set up environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
+# Run the system
 python run_coderipple.py
 ```
 
-#### 2. Test Individual Components
-```bash
-# Test source code analysis tool
-python src/source_code_analysis_tool.py
-
-# Test existing content discovery
-python src/existing_content_discovery_tool.py
-
-# Test individual agents
-python src/tourist_guide_agent.py
-python src/building_inspector_agent.py
-python src/historian_agent.py
-python src/orchestrator_agent.py
-```
-
-#### 3. Run With Sample Data
-```bash
-# Test webhook processing
-python examples/test_webhook.py examples/sample.json push
-
-# Test with diff fetching (requires internet)
-python examples/test_webhook.py examples/sample.json push --fetch-diff
-
-# For private repositories
-export GITHUB_TOKEN=your_github_personal_access_token
-python examples/test_webhook.py examples/sample.json push --fetch-diff
-```
-
-#### 4. Run Comprehensive Tests
-```bash
-# Run all tests (82 tests covering all components)
-./run_tests.sh
-
-# Run specific test suites
-python -m unittest tests.test_source_code_analysis_tool -v
-python -m unittest tests.test_existing_content_discovery_tool -v
-python -m unittest tests.test_tourist_guide_agent -v
-```
-
-### What Works Locally
-- ✅ **Complete multi-agent system** with intelligent content generation
-- ✅ **Source code analysis** that understands your project structure
-- ✅ **Documentation discovery** that reads existing docs and identifies gaps
-- ✅ **Content validation** with quality scoring and improvement suggestions
-- ✅ **AI-enhanced content** via Amazon Bedrock (requires AWS credentials)
-- ✅ **Cross-agent coordination** for comprehensive documentation updates
+For detailed library usage, see [`coderipple/README.md`](./coderipple/README.md).
 
 ## Success Criteria
 
@@ -197,17 +165,20 @@ A successful implementation should result in:
 - **Better Architectural Decisions**: Historical context preserved and accessible
 - **Less Documentation Debt**: Clear update responsibilities and patterns
 
+## Deployment
+
+### Local Development
+See [`coderipple/README.md`](./coderipple/README.md) for local development and testing.
+
+### AWS Deployment  
+- **Lambda Functions**: Deploy agents as serverless functions (`aws/` directory)
+- **Infrastructure**: Terraform scripts in `infra/` directory
+- **Webhooks**: API Gateway integration for GitHub webhook handling
+
 ## Key Technologies
 
-AWS Lambda, AWS Strands, Amazon Bedrock, GitHub Webhooks, Terraform, Layered Documentation Structure
-
-## Demo Scenario (Planned)
-
-- Initial commit triggers all agents to create baseline documentation
-- Feature addition shows coordinated updates across all documentation layers
-- Bug fix demonstrates selective agent activation based on change type
-- Refactoring shows how agents handle architectural changes differently
+AWS Lambda, AWS Strands, Amazon Bedrock, GitHub Webhooks, Terraform, Multi-Agent Architecture
 
 ---
 
-*CodeRipple: An experiment in making documentation flow with code changes through the natural layers of understanding.*
+*CodeRipple: Making documentation flow with code changes through intelligent multi-agent coordination.*
