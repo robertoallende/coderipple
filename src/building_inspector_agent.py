@@ -440,8 +440,8 @@ def _generate_system_documentation_updates(system_analysis: Dict[str, Any], chan
     # Create SystemDocumentationUpdate objects
     for section, recommendations in section_updates.items():
         if recommendations:
-            # Use STEP 5D: context-rich content generation with system focus
-            content = _generate_system_content_with_step5d(section, change_type, affected_files, recommendations, system_analysis)
+            # Use context-rich content generation with system focus
+            content = _generate_system_content_with_context_analysis(section, change_type, affected_files, recommendations, system_analysis)
             
             # Building Inspector uses rewrite pattern for major changes
             action = 'rewrite' if change_type == 'refactor' else 'update'
@@ -895,7 +895,7 @@ def _enhance_system_updates_with_bedrock(updates: List[SystemDocumentationUpdate
     return enhanced_updates
 
 
-def _generate_system_content_with_step5d(section: str, change_type: str, affected_files: List[str], 
+def _generate_system_content_with_context_analysis(section: str, change_type: str, affected_files: List[str], 
                                         recommendations: List[str], system_analysis: Dict[str, Any]) -> str:
     """
     Generate system content using comprehensive analysis tools for meaningful documentation.

@@ -812,7 +812,7 @@ def _generate_intelligent_documentation_updates(workflow_analysis: Dict[str, Any
     sections_to_update = _determine_sections_from_focus(doc_focus, workflow_analysis)
     
     for section in sections_to_update:
-        # Use STEP 5D: context-rich content generation with all smart tools
+        # Use context-rich content generation with comprehensive analysis tools
         intelligent_content = generate_context_rich_content(
             section=section,
             git_analysis=git_analysis,
