@@ -225,6 +225,48 @@ The system implements the Three Mirror Documentation Framework through specializ
 - Environment variables properly configured
 - Local testing passes with mock webhook payloads
 
+#### Step 9.1 Sub-tasks
+
+#####  Sub-task 9.1a: Lambda Handler Creation
+
+    - Create aws/lambda/lambda_handler.py with basic webhook processing
+    - Implement Strands orchestrator integration
+    - Add error handling and logging structure
+    - Checkpoint: Handler can import and initialize agents
+
+##### Sub-task 9.1b: Dependency Management
+
+    - Create aws/lambda/requirements.txt for Lambda-specific dependencies
+    - Resolve version conflicts between CodeRipple and Lambda requirements
+    - Optimize package size (remove dev dependencies)
+    - Checkpoint: pip install -r requirements.txt works clean
+
+##### Sub-task 9.1c: Code Integration
+
+    - Copy/symlink CodeRipple source code to aws/lambda/src/
+    - Modify import paths for Lambda environment
+    - Configure environment variable handling
+    - Checkpoint: All agents import successfully in Lambda context
+
+##### Sub-task 9.1d: Local Testing Setup
+
+    - Create mock webhook payloads for testing
+    - Set up local Lambda testing with SAM CLI or similar
+    - Create validation scripts for agent functionality
+    - Checkpoint: Lambda function processes mock webhooks locally
+
+##### Sub-task 9.1e: Package Creation
+
+    - Create deployment ZIP with proper structure
+    - Validate package size requirements (<50MB)
+    - Test ZIP extraction and execution
+    - Checkpoint: Deployable package ready for AWS
+
+*Benefits*:
+    - Faster debugging: Issues caught at each checkpoint
+    - Risk reduction: Problems isolated to smaller scope
+    - Progress tracking: Clear milestones for project management
+
 ### Sub-task 9.2: Terraform Infrastructure Setup
 **Goal:** Define all AWS resources as Infrastructure as Code with secure state management
 **Outcome:** Complete Terraform configuration with encrypted remote state that can provision entire stack
