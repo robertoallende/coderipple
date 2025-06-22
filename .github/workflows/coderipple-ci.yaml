@@ -60,3 +60,44 @@ jobs:
           # It tells Codecov to apply coverage to files relative to the 'coderipple' directory
           # rather than the root of the repo.
           flags: coderipple
+
+  test_lambda: # New job to test AWS Lambda functions
+    name: Run AWS Lambda tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          allow-prereleases: true
+
+      - name: Install lambda dependencies
+        run: |
+          # Install pytest and pytest-cov for testing and coverage
+          pip install pytest pytest-cov
+          
+          # Install lambda-specific dependencies
+          if [ -f aws/lambda/requirements.txt ]; then
+            pip install -r aws/lambda/requirements.txt
+          else
+            echo "Error: aws/lambda/requirements.txt not found. Please ensure it exists."
+            exit 1
+          fi
+
+      - name: Run lambda tests with coverage
+        run: |
+          cd aws/lambda
+          # Run tests with coverage on lambda_handler.py
+          pytest tests/ --cov=lambda_handler --cov-branch --cov-report=xml
+
+      - name: Upload lambda results to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./aws/lambda/coverage.xml
+          flags: lambda
