@@ -104,13 +104,15 @@ python src/webhook_parser.py
 - Provides confidence levels and methodology transparency
 - Maintains backward compatibility with existing validation pipeline
 
-#### Step 9: Infrastructure & Integration (AWS Lambda deployment, API Gateway, Terraform)
+#### Step 9: Infrastructure & Integration (AWS Single Lambda Deployment)
 
-**Next Steps for Production:**
-1. AWS Lambda functions for each agent
-2. API Gateway webhook endpoints
-3. Terraform infrastructure as code
-4. Production deployment automation
+**Production Deployment Architecture:**
+- Single AWS Lambda function containing all agents (Strands-native approach)
+- API Gateway webhook endpoint for GitHub integration
+- GitHub repository storage for documentation (with PR workflow option)
+- Terraform infrastructure as code with automated deployment pipeline
+
+**Status:** Ready for implementation - all agent code complete, needs Lambda packaging and AWS infrastructure
 
 ## 3. Architecture
 
@@ -159,8 +161,8 @@ The system implements the Three Mirror Documentation Framework through specializ
 ### Configuration Management
 **Environment Variable Configuration System:**
 - **Source repository path** - configurable via `CODERIPPLE_SOURCE_REPO`
-- **Output documentation path** - configurable via `CODERIPPLE_OUTPUT_DIR`
-- **Default output** - `coderipple/` (maintains backward compatibility)
+- **Documentation strategy** - configurable via `CODERIPPLE_DOC_STRATEGY` (`github_direct`, `github_pr`)
+- **GitHub integration** - configurable via `GITHUB_TOKEN` for repository access
 - **Agent enablement control** - `CODERIPPLE_ENABLED_AGENTS`
 - **Quality score configuration** - `CODERIPPLE_MIN_QUALITY_SCORE`
 - **Cloud-agnostic design** for Lambda deployment
@@ -189,21 +191,135 @@ The system implements the Three Mirror Documentation Framework through specializ
 
 ### Step 9: Infrastructure & Integration (Next Priority)
 
-**AWS Lambda Deployment:**
-- Deploy each agent as separate Lambda functions
-- Use Strands session management for agent coordination
-- API Gateway for webhooks, S3 for documentation storage
+**Single Lambda Deployment (Strands-Native Approach):**
+- Deploy all agents in single Lambda function for optimal Strands coordination
+- Use Strands built-in session management and agent communication
+- API Gateway webhook endpoint, GitHub repository for documentation storage
 
 **Infrastructure as Code:**
 - Terraform deployment for all AWS resources
-- Production deployment automation
-- Monitoring and logging setup
+- Automated CI/CD pipeline with GitHub Actions
+- CloudWatch monitoring and logging setup
 
 **Integration Points:**
-- GitHub webhook configuration
-- API Gateway endpoints
-- S3 bucket setup for documentation storage
-- DynamoDB for agent state (if needed)
+- GitHub webhook configuration and validation
+- API Gateway with proper CORS and authentication
+- GitHub repository integration for documentation storage and versioning
+- CloudWatch dashboards for monitoring agent performance
+
+## Step 9 Implementation Details
+
+### Sub-task 9.1: Lambda Function Packaging
+**Goal:** Create deployable Lambda package with all dependencies and agents
+**Outcome:** Single ZIP file ready for AWS deployment with proper entry point
+
+**Tasks:**
+- Create `lambda_handler.py` with Strands agent orchestration
+- Package all source code and dependencies into deployment ZIP
+- Configure Lambda environment variables for GitHub integration and configuration
+- Test package locally with SAM CLI or similar tool
+
+**Acceptance Criteria:**
+- Lambda package < 50MB (or use Lambda layers for large dependencies)
+- All agents can be invoked through single entry point
+- Environment variables properly configured
+- Local testing passes with mock webhook payloads
+
+### Sub-task 9.2: Terraform Infrastructure Setup
+**Goal:** Define all AWS resources as Infrastructure as Code
+**Outcome:** Complete Terraform configuration that can provision entire stack
+
+**Tasks:**
+- Create Terraform modules for Lambda, API Gateway, and IAM roles
+- Configure proper IAM permissions for Lambda to access Bedrock and GitHub API
+- Set up API Gateway with webhook endpoint and CORS configuration
+- Configure GitHub API access and webhook secret management
+
+**Acceptance Criteria:**
+- `terraform plan` shows correct resource creation
+- IAM permissions follow principle of least privilege
+- GitHub API permissions configured for repository access
+- API Gateway properly routes webhook requests to Lambda
+
+### Sub-task 9.3: GitHub Webhook Integration
+**Goal:** Establish secure connection between GitHub and AWS infrastructure
+**Outcome:** GitHub webhooks successfully trigger Lambda execution
+
+**Tasks:**
+- Configure GitHub webhook with API Gateway endpoint URL
+- Implement webhook signature verification for security
+- Set up webhook payload validation and error handling
+- Test webhook delivery with actual GitHub repository
+
+**Acceptance Criteria:**
+- GitHub webhook delivers events to API Gateway successfully
+- Webhook signatures verified to prevent unauthorized requests
+- Proper error responses returned for invalid payloads
+- End-to-end test: commit triggers documentation update
+
+### Sub-task 9.4: GitHub Repository Documentation Integration
+**Goal:** Integrate documentation storage directly with GitHub repository
+**Outcome:** All generated documentation committed to repository with version control
+
+**Tasks:**
+- Modify `write_documentation_file()` function to use GitHub API
+- Implement direct commit strategy for trusted documentation updates
+- Add pull request workflow option for documentation review
+- Configure branch strategy and commit message templates
+
+**Acceptance Criteria:**
+- Documentation files successfully committed to GitHub repository
+- Proper folder structure maintained in repository
+- Git version control tracks all documentation changes
+- Pull request workflow available for documentation review when enabled
+
+### Sub-task 9.5: CloudWatch Monitoring & Logging
+**Goal:** Implement comprehensive monitoring for production operation
+**Outcome:** Full visibility into system performance and error tracking
+
+**Tasks:**
+- Configure CloudWatch log groups for Lambda function
+- Set up CloudWatch metrics for agent execution times and success rates
+- Create CloudWatch alarms for error conditions and performance thresholds
+- Build CloudWatch dashboard for system monitoring
+
+**Acceptance Criteria:**
+- All Lambda logs properly captured in CloudWatch
+- Custom metrics track agent performance and documentation generation
+- Alarms trigger on errors or performance degradation
+- Dashboard provides clear visibility into system health
+
+### Sub-task 9.6: CI/CD Pipeline Implementation
+**Goal:** Automate deployment process with proper testing and validation
+**Outcome:** Reliable, automated deployment pipeline from code to production
+
+**Tasks:**
+- Create GitHub Actions workflow for automated testing and deployment
+- Implement Terraform plan/apply automation with proper approval gates
+- Set up staging environment for testing before production deployment
+- Configure automatic rollback on deployment failures
+
+**Acceptance Criteria:**
+- GitHub Actions successfully builds and tests code changes
+- Terraform deployment automated with manual approval for production
+- Staging environment mirrors production for safe testing
+- Rollback mechanism works correctly on deployment failures
+
+### Sub-task 9.7: Performance Optimization & Testing
+**Goal:** Ensure Lambda performance meets production requirements
+**Outcome:** Optimized Lambda function with acceptable cold start and execution times
+
+**Tasks:**
+- Optimize Lambda cold start time through dependency management
+- Configure appropriate memory allocation for agent workloads
+- Implement Lambda warming strategy if needed
+- Load test system with realistic webhook volumes
+
+**Acceptance Criteria:**
+- Cold start time < 10 seconds for typical webhook processing
+- Agent execution completes within Lambda timeout limits
+- System handles expected webhook volume without throttling
+- Performance meets SLA requirements for documentation generation
 
 ### Success Criteria
 - Autonomous Operation: System runs without human intervention
@@ -269,33 +385,336 @@ Basic Template Content with Quality Warnings
 4. **Fallback Strategies:** Ensure users always get some usable content
 5. **Transparency:** Show what quality thresholds mean and how to improve
 
-### Implementation Examples
+### Step 9 Technical Implementation
 
-**Git Analysis Tool:**
+**Lambda Handler Architecture:**
 ```python
-@tool
-def analyze_git_changes(git_diff: str, change_type: str) -> dict:
-    """Extract specific changes for targeted documentation"""
-    pass
+# lambda_handler.py - Single Lambda with Strands Orchestration
+from strands import Agent
+import json
+import boto3
+
+def lambda_handler(event, context):
+    """Main Lambda entry point for GitHub webhook processing"""
+    
+    # Parse webhook payload
+    webhook_payload = json.loads(event['body'])
+    
+    # Create Strands agent with all specialist agents as tools
+    orchestrator = Agent(
+        tools=[
+            tourist_guide_agent,
+            building_inspector_agent, 
+            historian_agent,
+            git_analysis_tool
+        ],
+        system_prompt="Process GitHub webhooks and coordinate documentation agents",
+        conversation_manager=SlidingWindowConversationManager(window_size=10)
+    )
+    
+    # Process webhook through Strands agent loop
+    result = orchestrator(f"Process webhook event: {json.dumps(webhook_payload)}")
+    
+    # Determine documentation strategy from environment
+    strategy = os.getenv('CODERIPPLE_DOC_STRATEGY', 'github_direct')
+    
+    if strategy == 'github_pr':
+        # Create PR with documentation updates for review
+        pr_result = create_documentation_pr(result.generated_files, webhook_payload)
+        return {
+            'statusCode': 200,
+            'body': json.dumps({
+                'message': 'Documentation PR created',
+                'pr_url': pr_result.get('html_url'),
+                'files_updated': len(result.generated_files)
+            })
+        }
+    else:
+        # Direct commit to repository (default)
+        commit_results = []
+        for file_data in result.generated_files:
+            commit_result = write_documentation_file(
+                file_data['path'], 
+                file_data['content'], 
+                'update'
+            )
+            commit_results.append(commit_result)
+        
+        return {
+            'statusCode': 200,
+            'body': json.dumps({
+                'message': 'Documentation updated successfully',
+                'files_updated': len(commit_results),
+                'commits': [r.get('commit_url') for r in commit_results if r.get('commit_url')]
+            })
+        }
 ```
 
-**Content Generation:**
+**GitHub Repository Integration for Documentation Storage:**
 ```python
-@tool
-def generate_context_aware_content(section: str, git_analysis: dict, file_changes: list):
-    """Generate content based on actual changes rather than generic templates"""
-    pass
+# Modified write_documentation_file for GitHub
+import requests
+import base64
+from config import get_github_token, get_repository_info
+
+def write_documentation_file(file_path: str, content: str, action: str) -> Dict[str, Any]:
+    """Write documentation directly to GitHub repository"""
+    
+    github_token = get_github_token()
+    repo_owner, repo_name = get_repository_info()
+    
+    # GitHub API endpoint
+    url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}"
+    
+    headers = {
+        'Authorization': f'token {github_token}',
+        'Accept': 'application/vnd.github.v3+json'
+    }
+    
+    try:
+        # Get existing file SHA if it exists (for updates)
+        existing_file = requests.get(url, headers=headers)
+        sha = existing_file.json().get('sha') if existing_file.status_code == 200 else None
+        
+        # Prepare commit data
+        data = {
+            'message': f'🤖 Auto-update {file_path} via CodeRipple',
+            'content': base64.b64encode(content.encode()).decode(),
+            'committer': {
+                'name': 'CodeRipple Bot',
+                'email': 'coderipple@users.noreply.github.com'
+            }
+        }
+        
+        if sha:
+            data['sha'] = sha  # Required for updates
+        
+        response = requests.put(url, json=data, headers=headers)
+        
+        return {
+            'status': 'success' if response.status_code in [200, 201] else 'error',
+            'operation': action,
+            'file_path': file_path,
+            'commit_url': response.json().get('commit', {}).get('html_url'),
+            'github_url': f"https://github.com/{repo_owner}/{repo_name}/blob/main/{file_path}"
+        }
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
+
+def create_documentation_pr(files: List[dict], webhook_event: WebhookEvent) -> Dict[str, Any]:
+    """Create pull request with documentation updates for review workflow"""
+    
+    github_token = get_github_token()
+    repo_owner, repo_name = get_repository_info()
+    
+    # Create new branch
+    branch_name = f"docs-update-{webhook_event.after_sha[:8]}"
+    
+    try:
+        # Create branch from main
+        create_branch(branch_name, webhook_event.after_sha)
+        
+        # Commit all documentation files to branch
+        for file_data in files:
+            commit_file_to_branch(
+                branch_name, 
+                file_data['path'], 
+                file_data['content'],
+                f"Update {file_data['path']}"
+            )
+        
+        # Create pull request
+        pr_data = {
+            'title': f'📚 Documentation update for {webhook_event.commits[0].message[:50]}...',
+            'head': branch_name,
+            'base': 'main',
+            'body': f"""
+## 🤖 Automated Documentation Update
+
+This PR was automatically generated by CodeRipple in response to commit [{webhook_event.after_sha[:8]}]({webhook_event.commits[0].url}).
+
+### Changes Made:
+{chr(10).join([f"- Updated `{f['path']}`" for f in files])}
+
+### Commit Analysis:
+- **Change Type**: {webhook_event.change_type}
+- **Files Modified**: {len(webhook_event.commits[0].modified_files)} files
+- **Agent Actions**: {len(files)} documentation updates
+
+*Generated by CodeRipple multi-agent documentation system*
+            """
+        }
+        
+        return create_pull_request(pr_data)
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
 ```
 
-**Cross-Agent Context:**
+**Terraform Infrastructure:**
+```hcl
+# terraform/main.tf - Complete AWS Infrastructure
+resource "aws_lambda_function" "coderipple" {
+  filename         = "coderipple-lambda.zip"
+  function_name    = "coderipple-orchestrator"
+  role            = aws_iam_role.lambda_role.arn
+  handler         = "lambda_handler.lambda_handler"
+  runtime         = "python3.9"
+  timeout         = 900  # 15 minutes
+  memory_size     = 2048  # 2GB for all agents
+  
+  environment {
+    variables = {
+      GITHUB_TOKEN = var.github_token
+      CODERIPPLE_MIN_QUALITY_SCORE = "70"
+      CODERIPPLE_DOC_STRATEGY = "github_direct"  # or "github_pr" for PR workflow
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+  }
+}
+
+resource "aws_api_gateway_rest_api" "coderipple" {
+  name = "coderipple-webhook-api"
+  
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+}
+
+# GitHub integration configuration
+variable "github_token" {
+  description = "GitHub personal access token for repository access"
+  type        = string
+  sensitive   = true
+}
+
+# IAM role for Lambda with GitHub API access
+resource "aws_iam_role_policy" "lambda_github_policy" {
+  name = "coderipple-lambda-github-policy"
+  role = aws_iam_role.lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream", 
+          "logs:PutLogEvents"
+        ]
+        Resource = "arn:aws:logs:*:*:*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "bedrock:InvokeModel",
+          "bedrock:InvokeModelWithResponseStream"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+```
+
+**GitHub Actions CI/CD Pipeline:**
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy CodeRipple to AWS
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install pytest coverage
+    - name: Run tests with coverage
+      run: |
+        coverage run -m pytest
+        coverage report --fail-under=80
+    
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v3
+    - name: Package Lambda
+      run: |
+        zip -r coderipple-lambda.zip src/ requirements.txt lambda_handler.py
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    - name: Deploy with Terraform
+      run: |
+        cd terraform
+        terraform init
+        terraform plan
+        terraform apply -auto-approve
+```
+
+**CloudWatch Monitoring Setup:**
 ```python
-def share_agent_context(agent_results: dict, conversation_state: dict):
-    """Make agent outputs available to subsequent agents"""
-    pass
+# Enhanced Lambda handler with metrics
+import boto3
+import time
+from datetime import datetime
+
+cloudwatch = boto3.client('cloudwatch')
+
+def put_custom_metric(metric_name: str, value: float, unit: str = 'Count'):
+    """Send custom metrics to CloudWatch"""
+    cloudwatch.put_metric_data(
+        Namespace='CodeRipple',
+        MetricData=[
+            {
+                'MetricName': metric_name,
+                'Value': value,
+                'Unit': unit,
+                'Timestamp': datetime.utcnow()
+            }
+        ]
+    )
+
+def lambda_handler(event, context):
+    start_time = time.time()
+    
+    try:
+        # Process webhook
+        result = orchestrator(webhook_payload)
+        
+        # Track success metrics
+        execution_time = time.time() - start_time
+        put_custom_metric('ExecutionTime', execution_time, 'Seconds')
+        put_custom_metric('DocumentationGenerated', len(result.generated_files))
+        put_custom_metric('WebhookProcessed', 1)
+        
+        return success_response
+        
+    except Exception as e:
+        put_custom_metric('ProcessingErrors', 1)
+        raise
 ```
 
 ### Demo Scenario
 - Initial commit triggers all agents to create baseline documentation
-- Feature addition shows coordinated updates across all documentation types
+- Feature addition shows coordinated updates across all documentation types  
 - Bug fix demonstrates selective agent activation based on change type
 - Refactoring shows how agents handle architectural changes differently
+- Production deployment handles real GitHub webhook traffic with monitoring
