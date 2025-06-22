@@ -1,60 +1,42 @@
-annotated-types==0.7.0
-anyio==4.9.0
-aws-requests-auth==0.4.3
-boto3==1.38.32
-botocore==1.38.32
-certifi==2025.4.26
-charset-normalizer==3.4.2
-click==8.2.1
-colorama==0.4.6
-dill==0.4.0
-docstring-parser==0.15
-googleapis-common-protos==1.70.0
-h11==0.16.0
-httpcore==1.0.9
-httpx==0.28.1
-httpx-sse==0.4.0
-idna==3.10
-importlib_metadata==8.7.0
-jmespath==1.0.1
-markdown-it-py==3.0.0
-mcp==1.9.3
-mdurl==0.1.2
-mpmath==1.3.0
-opentelemetry-api==1.34.0
-opentelemetry-exporter-otlp-proto-common==1.34.0
-opentelemetry-exporter-otlp-proto-http==1.34.0
-opentelemetry-proto==1.34.0
-opentelemetry-sdk==1.34.0
-opentelemetry-semantic-conventions==0.55b0
-pillow==11.2.1
-prompt_toolkit==3.0.51
-protobuf==5.29.5
-pydantic==2.11.5
-pydantic-settings==2.9.1
-pydantic_core==2.33.2
-Pygments==2.19.1
-PyJWT==2.10.1
-python-dateutil==2.9.0.post0
-python-dotenv==1.1.0
-python-multipart==0.0.20
-requests==2.32.3
-rich==14.0.0
-s3transfer==0.13.0
-six==1.17.0
-slack_bolt==1.23.0
-slack_sdk==3.35.0
-sniffio==1.3.1
-sse-starlette==2.3.6
-starlette==0.47.0
+# Core AWS Strands framework for agent orchestration
 strands-agents==0.1.6
 strands-agents-tools==0.1.4
-sympy==1.14.0
-tenacity==9.1.2
-typing-inspection==0.4.1
+
+# AWS SDK for Lambda runtime and services
+boto3==1.38.32
+botocore==1.38.32
+
+# HTTP requests for GitHub API integration  
+requests==2.32.3
+
+# JSON Web Token handling for GitHub authentication
+PyJWT==2.10.1
+
+# Environment variable and configuration management
+python-dotenv==1.1.0
+pydantic==2.11.5
+pydantic-core==2.33.2
+
+# Date/time utilities
+python-dateutil==2.9.0.post0
+
+# Core dependencies for Strands agents
+annotated-types==0.7.0
 typing_extensions==4.14.0
-urllib3==2.4.0
-uvicorn==0.34.3
-watchdog==6.0.0
-wcwidth==0.2.13
-zipp==3.23.0
+
+# HTTP client for modern async requests
+httpx==0.28.1
+httpcore==1.0.9
+h11==0.16.0
+sniffio==1.3.1
+anyio==4.9.0
+certifi==2025.4.26
+idna==3.10
+
+# Retry and resilience patterns
+tenacity==9.1.2
+
+# Amazon Bedrock and AWS service integration
+jmespath==1.0.1
+s3transfer==0.13.0
+six==1.17.0
