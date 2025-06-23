@@ -97,7 +97,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: test-secret-key
           AWS_DEFAULT_REGION: us-east-1
         run: |
-          cd aws/lambda
+          cd aws/lambda_orchestrator
           # Run tests with coverage on lambda_handler.py
           pytest tests/ --cov=lambda_handler --cov-branch --cov-report=xml
 
