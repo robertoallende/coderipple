@@ -84,9 +84,9 @@ jobs:
           
           # Install lambda-specific dependencies
           if [ -f aws/lambda/requirements.txt ]; then
-            pip install -r aws/lambda/requirements.txt
+            pip install -r aws/lambda_orchestrator/requirements.txt
           else
-            echo "Error: aws/lambda/requirements.txt not found. Please ensure it exists."
+            echo "Error: aws/lambda_orchestrator/requirements.txt not found. Please ensure it exists."
             exit 1
           fi
 
@@ -105,5 +105,5 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./aws/lambda/coverage.xml
+          files: ./aws/lambda_orchestrator/coverage.xml
           flags: lambda
