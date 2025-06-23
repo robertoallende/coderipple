@@ -82,9 +82,21 @@ jobs:
           # Install pytest and pytest-cov for testing and coverage
           pip install pytest pytest-cov
           
-          # Install lambda-specific dependencies
+          # First install main coderipple package dependencies
+          if [ -f coderipple/requirements.txt ]; then
+            pip install -r coderipple/requirements.txt
+          else
+            echo "Error: coderipple/requirements.txt not found. Please ensure it exists."
+            exit 1
+          fi
+          
+          # Install main coderipple package in editable mode
+          pip install -e coderipple/
+          
+          # Install lambda orchestrator package in editable mode
           if [ -f aws/lambda_orchestrator/requirements.txt ]; then
             pip install -r aws/lambda_orchestrator/requirements.txt
+            pip install -e aws/lambda_orchestrator/
           else
             echo "Error: aws/lambda_orchestrator/requirements.txt not found. Please ensure it exists."
             exit 1
