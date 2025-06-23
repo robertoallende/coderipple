@@ -16,6 +16,15 @@ from typing import Dict, Any, Optional
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+# Initialize configuration from environment variables
+try:
+    from src.config import CodeRippleConfig
+    config = CodeRippleConfig()
+    logger.info("CodeRipple configuration loaded successfully")
+except ImportError as e:
+    logger.warning(f"Could not load CodeRipple config: {e}, using environment variables directly")
+    config = None
+
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
@@ -27,6 +36,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
     Returns:
         Dict containing HTTP response for API Gateway
+
     """
     start_time = time.time()
     request_id = context.aws_request_id
@@ -221,15 +231,27 @@ def initialize_strands_orchestrator():
     Creates a Strands Agent with specialist agents as tools for Lambda environment.
     """
     try:
-        # Import required modules (will be added in Sub-task 9.1c)
-        from strands import Agent
-        from strands.agent.conversation_manager import SlidingWindowConversationManager
+        # Import required modules
+        from strands.agent.agent import Agent
+        from strands.agent.conversation_manager.sliding_window_conversation_manager import SlidingWindowConversationManager
         
-        # Import CodeRipple agents as tools (will be available after Sub-task 9.1c)
-        # from src.tourist_guide_agent import tourist_guide_agent
-        # from src.building_inspector_agent import building_inspector_agent  
-        # from src.historian_agent import historian_agent
-        # from src.git_analysis_tool import analyze_git_diff
+        # Import CodeRipple agent tools
+        from src.tourist_guide_agent import (
+            analyze_user_workflow_impact,
+            generate_main_readme,
+            bootstrap_user_documentation
+        )
+        from src.building_inspector_agent import (
+            analyze_system_changes,
+            write_system_documentation_file,
+            read_existing_system_documentation
+        )
+        from src.historian_agent import (
+            analyze_decision_significance,
+            write_decision_documentation_file,
+            read_existing_decision_documentation
+        )
+        from src.git_analysis_tool import analyze_git_diff
         
         # Configure conversation manager for Lambda context
         conversation_manager = SlidingWindowConversationManager(
@@ -239,10 +261,16 @@ def initialize_strands_orchestrator():
         # Create orchestrator agent with specialist agents as tools
         orchestrator = Agent(
             tools=[
-                # tourist_guide_agent,    # How to ENGAGE
-                # building_inspector_agent, # What it IS  
-                # historian_agent,        # Why it BECAME
-                # analyze_git_diff        # Git analysis tool
+                analyze_user_workflow_impact,
+                generate_main_readme,
+                bootstrap_user_documentation,
+                analyze_system_changes,
+                write_system_documentation_file,
+                read_existing_system_documentation,
+                analyze_decision_significance,
+                write_decision_documentation_file,
+                read_existing_decision_documentation,
+                analyze_git_diff
             ],
             system_prompt="""You are the CodeRipple Orchestrator Agent running in AWS Lambda.
 

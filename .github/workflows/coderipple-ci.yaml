@@ -36,6 +36,7 @@ jobs:
           fi
 
       - name: Add coderipple/src to Python path
+
         # This is crucial so that Python can find modules from coderipple/src
         # when running tests from the coderipple directory.
         run: |
