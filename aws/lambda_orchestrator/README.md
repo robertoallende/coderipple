@@ -197,7 +197,7 @@ pip install -e .
 
 ## Related Documentation
 
-- [Main CodeRipple Documentation](../../coderipple/CLAUDE.md)
+- [Main CodeRipple Documentation](../../CLAUDE.md)
 - [Strands Framework](./strands/)
 - [GitHub Webhook Documentation](https://docs.github.com/en/developers/webhooks-and-events/webhooks)
 - [AWS Lambda Python](https://docs.aws.amazon.com/lambda/latest/dg/lambda-python.html)
