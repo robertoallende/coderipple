@@ -40,7 +40,7 @@ def test_imports():
     
     # Test 3: CodeRipple configuration
     try:
-        from src.config import CodeRippleConfig
+        from config import CodeRippleConfig
         config = CodeRippleConfig()
         print("✅ CodeRipple configuration imports successful")
         success_count += 1
@@ -51,7 +51,7 @@ def test_imports():
     
     # Test 4: Tourist Guide Agent
     try:
-        from src.tourist_guide_agent import tourist_guide_agent
+        from tourist_guide_agent import tourist_guide_agent
         print("✅ Tourist Guide Agent import successful")
         success_count += 1
     except Exception as e:
@@ -61,7 +61,7 @@ def test_imports():
     
     # Test 5: Building Inspector Agent
     try:
-        from src.building_inspector_agent import building_inspector_agent
+        from building_inspector_agent import building_inspector_agent
         print("✅ Building Inspector Agent import successful")
         success_count += 1
     except Exception as e:
@@ -71,7 +71,7 @@ def test_imports():
     
     # Test 6: Historian Agent
     try:
-        from src.historian_agent import historian_agent
+        from historian_agent import historian_agent
         print("✅ Historian Agent import successful")
         success_count += 1
     except Exception as e:
@@ -81,7 +81,7 @@ def test_imports():
     
     # Test 7: Git Analysis Tool
     try:
-        from src.git_analysis_tool import analyze_git_diff
+        from git_analysis_tool import analyze_git_diff
         print("✅ Git Analysis Tool import successful")
         success_count += 1
     except Exception as e:
@@ -117,10 +117,10 @@ def test_strands_agent_creation():
     try:
         from strands import Agent
         from strands.agent.conversation_manager import SlidingWindowConversationManager
-        from src.tourist_guide_agent import tourist_guide_agent
-        from src.building_inspector_agent import building_inspector_agent
-        from src.historian_agent import historian_agent
-        from src.git_analysis_tool import analyze_git_diff
+        from tourist_guide_agent import tourist_guide_agent
+        from building_inspector_agent import building_inspector_agent
+        from historian_agent import historian_agent
+        from git_analysis_tool import analyze_git_diff
         
         # Create conversation manager
         conversation_manager = SlidingWindowConversationManager(window_size=10)

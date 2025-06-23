@@ -45,8 +45,8 @@ def create_github_push_payload():
                     "username": "developer"
                 },
                 "added": [
-                    "aws/lambda/lambda_handler.py",
-                    "aws/lambda/test_handler.py"
+                    "aws/lambda_orchestrator/lambda_handler.py",
+                    "aws/lambda_orchestrator/test_handler.py"
                 ],
                 "removed": [],
                 "modified": [

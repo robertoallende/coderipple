@@ -1,13 +1,13 @@
 """
-Setup configuration for CodeRipple Lambda handler package
+Setup configuration for CodeRipple Lambda Orchestrator package
 """
 
 from setuptools import setup, find_packages
 
 setup(
-    name="coderipple-lambda",
+    name="coderipple-lambda-orchestrator", 
     version="1.0.0",
-    description="AWS Lambda handler for CodeRipple multi-agent documentation system",
+    description="AWS Lambda orchestrator for CodeRipple multi-agent documentation system - acts as conductor and orchestra",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     python_requires=">=3.11",
