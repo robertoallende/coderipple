@@ -244,12 +244,13 @@ resource "aws_lambda_function" "coderipple_orchestrator" {
   # Deployment configuration
   publish = true
   
-  # Ensure IAM role is created before Lambda function
+  # Ensure IAM role and CloudWatch log group are created before Lambda function
   depends_on = [
     aws_iam_role_policy_attachment.lambda_basic_execution,
     aws_iam_role_policy_attachment.lambda_bedrock_access,
     aws_iam_role_policy_attachment.lambda_cloudwatch_enhanced,
-    aws_iam_role_policy_attachment.lambda_parameter_store
+    aws_iam_role_policy_attachment.lambda_parameter_store,
+    aws_cloudwatch_log_group.lambda_logs
   ]
 
   tags = {
@@ -379,5 +380,124 @@ resource "aws_api_gateway_deployment" "webhook_deployment" {
 
   lifecycle {
     create_before_destroy = true
+  }
+}
+
+# ================================
+# CloudWatch Logging
+# ================================
+
+# CloudWatch log group for Lambda function
+resource "aws_cloudwatch_log_group" "lambda_logs" {
+  name              = "/aws/lambda/${var.lambda_function_name}"
+  retention_in_days = var.log_retention_days
+
+  tags = {
+    Name        = "${var.lambda_function_name}-logs"
+    Environment = var.environment
+    Service     = "lambda"
+  }
+}
+
+# CloudWatch log group for API Gateway
+resource "aws_cloudwatch_log_group" "api_gateway_logs" {
+  name              = "/aws/apigateway/${var.api_gateway_name}"
+  retention_in_days = var.log_retention_days
+
+  tags = {
+    Name        = "${var.api_gateway_name}-logs"
+    Environment = var.environment
+    Service     = "apigateway"
+  }
+}
+
+# API Gateway account configuration for CloudWatch logging
+resource "aws_api_gateway_account" "api_gateway_account" {
+  cloudwatch_role_arn = aws_iam_role.api_gateway_cloudwatch_role.arn
+}
+
+# IAM role for API Gateway CloudWatch logging
+resource "aws_iam_role" "api_gateway_cloudwatch_role" {
+  name = "${var.project_name}-api-gateway-cloudwatch-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "apigateway.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name = "${var.project_name}-api-gateway-cloudwatch-role"
+  }
+}
+
+# Attach CloudWatch logging policy to API Gateway role
+resource "aws_iam_role_policy_attachment" "api_gateway_cloudwatch_logs" {
+  role       = aws_iam_role.api_gateway_cloudwatch_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+}
+
+# API Gateway stage configuration with logging
+resource "aws_api_gateway_stage" "webhook_stage" {
+  deployment_id = aws_api_gateway_deployment.webhook_deployment.id
+  rest_api_id   = aws_api_gateway_rest_api.coderipple_webhook_api.id
+  stage_name    = var.api_gateway_stage
+
+  # Enable detailed CloudWatch metrics
+  xray_tracing_enabled = false
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_gateway_logs.arn
+    format = jsonencode({
+      requestId      = "$context.requestId"
+      ip             = "$context.identity.sourceIp"
+      caller         = "$context.identity.caller"
+      user           = "$context.identity.user"
+      requestTime    = "$context.requestTime"
+      httpMethod     = "$context.httpMethod"
+      resourcePath   = "$context.resourcePath"
+      status         = "$context.status"
+      protocol       = "$context.protocol"
+      responseLength = "$context.responseLength"
+      responseTime   = "$context.responseTime"
+      error_message  = "$context.error.message"
+      error_type     = "$context.error.messageString"
+    })
+  }
+
+  # Method-level logging settings
+  depends_on = [
+    aws_api_gateway_account.api_gateway_account,
+    aws_cloudwatch_log_group.api_gateway_logs
+  ]
+
+  tags = {
+    Name        = "${var.api_gateway_name}-${var.api_gateway_stage}"
+    Environment = var.environment
+  }
+}
+
+# API Gateway method settings for detailed logging
+resource "aws_api_gateway_method_settings" "webhook_method_settings" {
+  rest_api_id = aws_api_gateway_rest_api.coderipple_webhook_api.id
+  stage_name  = aws_api_gateway_stage.webhook_stage.stage_name
+  method_path = "*/*"
+
+  settings {
+    # Enable detailed CloudWatch metrics
+    metrics_enabled    = true
+    data_trace_enabled = true
+    logging_level      = "INFO"
+
+    # Throttling settings
+    throttling_rate_limit  = 100
+    throttling_burst_limit = 50
   }
 }

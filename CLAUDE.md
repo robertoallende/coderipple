@@ -461,28 +461,57 @@ terraform apply
 
 ### Sub-task 9.8: CloudWatch Observability & Performance Monitoring
 **Goal:** Implement comprehensive monitoring and observability for production operation
-**Outcome:** Full visibility into system performance, execution times, and operational health
+**Outcome:** Full visibility into system performance, execution times, and operational health with proactive alerting
 
 **Tasks:**
-- Configure CloudWatch log groups with structured logging for Lambda function
+- Configure CloudWatch log groups with structured logging for Lambda function (completed in 9.2g)
 - Implement custom CloudWatch metrics for execution times and performance tracking
-- Set up CloudWatch alarms for error conditions, performance thresholds, and SLA monitoring
+- Set up comprehensive CloudWatch alarms for proactive monitoring
 - Create CloudWatch dashboard for real-time system monitoring and troubleshooting
 - Add distributed tracing for multi-agent execution flow visibility
+- Configure notification channels for critical alerts
+
+**CloudWatch Alarms to Implement:**
+- **Lambda Timeout Alarm**: Alert when execution time > 14 minutes (approaching 15-minute limit)
+- **Lambda Error Rate Alarm**: Alert when error rate > 5% over 5-minute period
+- **API Gateway Error Alarm**: Alert on 4XX/5XX response rates > 10%
+- **Memory Utilization Alarm**: Alert when Lambda memory usage > 90% of 2GB allocation
+- **Cold Start Frequency Alarm**: Alert when cold starts > 50% of invocations
+- **Bedrock API Latency Alarm**: Alert when AI model response time > 30 seconds
+- **Documentation Generation Failure**: Alert when no files generated for valid webhooks
+- **Agent Execution Time Alarm**: Alert when individual agents take > 5 minutes
+
+**CloudWatch Dashboard Components:**
+- **System Overview**: Request volume, success rates, error counts
+- **Performance Metrics**: Execution times, memory usage, cold starts
+- **Agent Performance**: Individual agent execution times and success rates
+- **API Gateway Health**: Request patterns, response times, error rates
+- **Bedrock Integration**: AI model usage, response times, token consumption
+- **Business Metrics**: Documentation files generated, quality scores, repository activity
+- **Resource Utilization**: Lambda concurrency, memory patterns, cost tracking
 
 **Key Metrics to Track:**
 - **Execution Performance**: Total Lambda execution time, individual agent processing time, Bedrock API response times
 - **Documentation Generation**: Files generated per webhook, documentation quality scores, agent coordination efficiency
 - **System Health**: Error rates, retry attempts, webhook processing success rate, GitHub API response times
-- **Resource Utilization**: Memory usage patterns, cold start frequency, concurrent execution count
+- **Resource Utilization**: Memory usage patterns, cold start frequency, concurrent execution count, cost metrics
 - **Business Metrics**: Documentation coverage improvement, commit-to-documentation latency, agent activation patterns
+- **Security Metrics**: Failed authentication attempts, unusual IP patterns, rate limiting triggers
+
+**Notification Strategy:**
+- **Critical Alerts**: SNS topic for immediate Slack/email notifications
+- **Warning Alerts**: Dashboard alerts for non-critical issues
+- **Daily Summary**: Automated reports with system health and usage statistics
 
 **Acceptance Criteria:**
 - All Lambda logs captured in CloudWatch with structured JSON format
 - Custom metrics provide detailed visibility into single Lambda multi-agent execution
-- Alarms trigger on performance degradation (>30s execution time) or error conditions (>5% failure rate)
+- Comprehensive alarm coverage for all critical system components and performance thresholds
+- Interactive dashboard provides real-time visibility into system health and performance
+- Alarms trigger appropriately on performance degradation or error conditions with minimal false positives
 - Dashboard enables quick identification of bottlenecks in agent coordination or external API calls
-- Distributed tracing shows execution flow through orchestrator and specialist agents
+- Notification channels deliver timely alerts to appropriate stakeholders
+- Cost tracking and optimization recommendations available through monitoring data
 
 ### Sub-task 9.9: Comprehensive Parameter Store Configuration Management
 **Goal:** Implement secure configuration storage using AWS Systems Manager Parameter Store
