@@ -7,8 +7,7 @@ import sys
 import os
 import traceback
 
-# Add current directory to Python path for Lambda context
-sys.path.insert(0, os.path.dirname(__file__))
+# Package is now installed, no path manipulation needed
 
 def test_imports():
     """Test all imports required for Lambda function."""
