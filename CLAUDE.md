@@ -348,6 +348,14 @@ terraform plan
 terraform apply
 ```
 
+**Manual Deployment Strategy:**
+- **Approach**: Separate GitHub Actions workflow for infrastructure deployment
+- **Trigger**: Manual workflow dispatch only (no automatic deployments)
+- **Safety**: Always runs `terraform plan`, requires manual selection for `terraform apply`
+- **Control**: Workflow input options for plan/apply/destroy actions
+- **Separation**: Infrastructure deployment separate from CI/CD testing workflows
+- **Default Behavior**: CI workflows run tests only, never deploy infrastructure
+
 **AWS Credentials Management:**
 - **Approach**: GitHub repository secrets with IAM user (Option 1)
 - **Security**: Safe for public repositories when using GitHub Secrets
@@ -360,6 +368,9 @@ terraform apply
 - Terraform configuration supports both local and remote state
 - Local development uses local state for fast iteration
 - GitHub Actions uses S3 backend for reliable deployment
+- Separate manual deployment workflow prevents accidental infrastructure changes
+- Manual workflow dispatch with plan/apply/destroy options for controlled deployment
+- CI/CD workflows run tests only, never automatically deploy infrastructure
 - AWS credentials managed securely through GitHub repository secrets
 - IAM user configured with minimal required permissions only
 - `terraform plan` shows correct resource creation in both modes
