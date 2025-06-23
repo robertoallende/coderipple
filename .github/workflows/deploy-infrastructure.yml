@@ -1,0 +1,261 @@
+# CodeRipple Infrastructure Deployment Workflow
+# Manual deployment workflow for AWS infrastructure using Terraform
+# Supports plan/apply/destroy operations with S3 backend for state management
+
+name: Deploy Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action to perform'
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+        default: 'plan'
+      
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+        default: 'dev'
+      
+      confirm_apply:
+        description: 'Type "yes" to confirm apply/destroy operations'
+        required: false
+        type: string
+        default: ''
+
+env:
+  AWS_DEFAULT_REGION: ap-southeast-2
+  TF_VAR_aws_region: ap-southeast-2
+  TF_VAR_environment: ${{ github.event.inputs.environment }}
+  TF_VAR_project_name: coderipple
+  
+  # GitHub repository configuration
+  TF_VAR_github_repo_owner: ${{ github.repository_owner }}
+  TF_VAR_github_repo_name: ${{ github.event.repository.name }}
+  
+  # Lambda configuration for multi-agent system
+  TF_VAR_lambda_function_name: coderipple-orchestrator-${{ github.event.inputs.environment }}
+  TF_VAR_lambda_memory_size: 2048
+  TF_VAR_lambda_timeout: 900
+  TF_VAR_lambda_runtime: python3.13
+  
+  # API Gateway configuration
+  TF_VAR_api_gateway_name: coderipple-webhook-api-${{ github.event.inputs.environment }}
+  TF_VAR_api_gateway_stage: ${{ github.event.inputs.environment }}
+  
+  # CloudWatch configuration
+  TF_VAR_log_retention_days: 14
+
+jobs:
+  terraform:
+    name: Terraform ${{ github.event.inputs.action }}
+    runs-on: ubuntu-latest
+    
+    # Environment protection for production
+    environment: ${{ github.event.inputs.environment }}
+    
+    defaults:
+      run:
+        working-directory: infra/terraform
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.0"
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+      
+      - name: Validate confirmation for destructive operations
+        if: github.event.inputs.action != 'plan'
+        run: |
+          if [ "${{ github.event.inputs.confirm_apply }}" != "yes" ]; then
+            echo "❌ Confirmation required for ${{ github.event.inputs.action }} operation"
+            echo "Please set 'confirm_apply' input to 'yes' to proceed"
+            exit 1
+          fi
+          echo "✅ Confirmation received for ${{ github.event.inputs.action }} operation"
+      
+      - name: Create S3 backend configuration
+        run: |
+          cat > backend-config.tf << EOF
+          terraform {
+            backend "s3" {
+              bucket         = "coderipple-terraform-state-${{ github.event.inputs.environment }}"
+              key            = "coderipple/terraform.tfstate"
+              region         = "${{ env.AWS_DEFAULT_REGION }}"
+              encrypt        = true
+              dynamodb_table = "coderipple-terraform-locks-${{ github.event.inputs.environment }}"
+            }
+          }
+          EOF
+          echo "Created S3 backend configuration for ${{ github.event.inputs.environment }}"
+      
+      - name: Initialize Terraform with S3 backend
+        run: |
+          terraform init \
+            -backend-config="bucket=coderipple-terraform-state-${{ github.event.inputs.environment }}" \
+            -backend-config="key=coderipple/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_DEFAULT_REGION }}" \
+            -backend-config="encrypt=true" \
+            -backend-config="dynamodb_table=coderipple-terraform-locks-${{ github.event.inputs.environment }}"
+      
+      - name: Validate Terraform configuration
+        run: terraform validate
+      
+      - name: Check lambda_orchestrator directory
+        run: |
+          if [ ! -d "../../aws/lambda_orchestrator" ]; then
+            echo "❌ Lambda orchestrator directory not found at ../../aws/lambda_orchestrator"
+            echo "This directory is required for Lambda deployment package creation"
+            echo "Available directories:"
+            ls -la ../../aws/ || echo "aws directory not found"
+            exit 1
+          fi
+          echo "✅ Lambda orchestrator directory found"
+          ls -la ../../aws/lambda_orchestrator/
+      
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan \
+            -var-file="../terraform.tfvars" \
+            -out=tfplan \
+            -detailed-exitcode
+        continue-on-error: true
+      
+      - name: Terraform Plan Summary
+        run: |
+          echo "## Terraform Plan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** ${{ github.event.inputs.action }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Region:** ${{ env.AWS_DEFAULT_REGION }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.plan.outcome }}" == "success" ]; then
+            if [ "${{ steps.plan.outputs.exitcode }}" == "0" ]; then
+              echo "✅ **Plan Status:** No changes detected" >> $GITHUB_STEP_SUMMARY
+            elif [ "${{ steps.plan.outputs.exitcode }}" == "2" ]; then
+              echo "📋 **Plan Status:** Changes detected and ready to apply" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ **Plan Status:** Plan failed - check logs for details" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Terraform Apply
+        if: github.event.inputs.action == 'apply' && steps.plan.outcome == 'success'
+        run: |
+          echo "🚀 Applying Terraform configuration for ${{ github.event.inputs.environment }}..."
+          terraform apply tfplan
+          
+          echo "## Deployment Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Infrastructure deployed successfully**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Key Outputs" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          terraform output >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Terraform Destroy
+        if: github.event.inputs.action == 'destroy'
+        run: |
+          echo "🗑️ Destroying Terraform configuration for ${{ github.event.inputs.environment }}..."
+          terraform destroy \
+            -var-file="../terraform.tfvars" \
+            -auto-approve
+          
+          echo "## Destruction Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Infrastructure destroyed successfully**" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Output webhook URL for GitHub configuration
+        if: github.event.inputs.action == 'apply' && steps.plan.outcome == 'success'
+        run: |
+          WEBHOOK_URL=$(terraform output -raw webhook_url)
+          echo "## 🔗 Next Steps: GitHub Webhook Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Configure your GitHub webhook with the following settings:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Payload URL:** \`$WEBHOOK_URL\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Content Type:** \`application/json\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Events:** \`push\`, \`pull_request\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **SSL Verification:** ✅ Enable" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Repository: \`${{ env.TF_VAR_github_repo_owner }}/${{ env.TF_VAR_github_repo_name }}\`" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Save Terraform outputs
+        if: github.event.inputs.action == 'apply' && steps.plan.outcome == 'success'
+        run: |
+          terraform output -json > terraform-outputs.json
+          echo "Terraform outputs saved for reference"
+      
+      - name: Upload Terraform outputs
+        if: github.event.inputs.action == 'apply' && steps.plan.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-outputs-${{ github.event.inputs.environment }}
+          path: infra/terraform/terraform-outputs.json
+          retention-days: 30
+
+  security-check:
+    name: Security and Cost Check
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action != 'destroy'
+    
+    defaults:
+      run:
+        working-directory: infra/terraform
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.0"
+      
+      - name: Security scan with Checkov
+        continue-on-error: true
+        run: |
+          pip install checkov
+          checkov -f main.tf --framework terraform --output cli --quiet
+      
+      - name: Cost estimation
+        continue-on-error: true
+        run: |
+          echo "## 💰 Estimated Monthly Costs" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Lambda Function:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Memory: 2048MB, Est. monthly cost: ~$5-20 (depends on usage)" >> $GITHUB_STEP_SUMMARY
+          echo "- Execution time: 15min max, Bedrock API calls included" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**API Gateway:**" >> $GITHUB_STEP_SUMMARY
+          echo "- REST API: ~$3.50 per million requests" >> $GITHUB_STEP_SUMMARY
+          echo "- Typical webhook usage: <$1/month" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**CloudWatch:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Log storage (14 days): ~$1-5/month" >> $GITHUB_STEP_SUMMARY
+          echo "- Custom metrics: First 10 metrics free" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total Estimated:** ~$10-30/month for typical usage" >> $GITHUB_STEP_SUMMARY
