@@ -264,3 +264,120 @@ resource "aws_lambda_alias" "coderipple_orchestrator_alias" {
   function_name    = aws_lambda_function.coderipple_orchestrator.function_name
   function_version = aws_lambda_function.coderipple_orchestrator.version
 }
+
+# ================================
+# API Gateway
+# ================================
+
+# API Gateway REST API for GitHub webhooks
+resource "aws_api_gateway_rest_api" "coderipple_webhook_api" {
+  name        = var.api_gateway_name
+  description = "API Gateway for CodeRipple GitHub webhook integration"
+  
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+
+  tags = {
+    Name = var.api_gateway_name
+  }
+}
+
+# API Gateway resource for webhook endpoint (root path)
+resource "aws_api_gateway_resource" "webhook_resource" {
+  rest_api_id = aws_api_gateway_rest_api.coderipple_webhook_api.id
+  parent_id   = aws_api_gateway_rest_api.coderipple_webhook_api.root_resource_id
+  path_part   = "webhook"
+}
+
+# API Gateway method for POST requests
+resource "aws_api_gateway_method" "webhook_post" {
+  rest_api_id   = aws_api_gateway_rest_api.coderipple_webhook_api.id
+  resource_id   = aws_api_gateway_resource.webhook_resource.id
+  http_method   = "POST"
+  authorization = "NONE"
+
+  # Enable CORS for browser-based testing (optional)
+  request_parameters = {
+    "method.request.header.X-GitHub-Delivery" = false
+    "method.request.header.X-GitHub-Event"    = false
+    "method.request.header.X-Hub-Signature"   = false
+    "method.request.header.X-Hub-Signature-256" = false
+  }
+}
+
+# API Gateway integration with Lambda function
+resource "aws_api_gateway_integration" "lambda_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.coderipple_webhook_api.id
+  resource_id             = aws_api_gateway_resource.webhook_resource.id
+  http_method             = aws_api_gateway_method.webhook_post.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.coderipple_orchestrator.invoke_arn
+}
+
+# API Gateway method response
+resource "aws_api_gateway_method_response" "webhook_response_200" {
+  rest_api_id = aws_api_gateway_rest_api.coderipple_webhook_api.id
+  resource_id = aws_api_gateway_resource.webhook_resource.id
+  http_method = aws_api_gateway_method.webhook_post.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+}
+
+# API Gateway integration response
+resource "aws_api_gateway_integration_response" "lambda_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.coderipple_webhook_api.id
+  resource_id = aws_api_gateway_resource.webhook_resource.id
+  http_method = aws_api_gateway_method.webhook_post.http_method
+  status_code = aws_api_gateway_method_response.webhook_response_200.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+  }
+
+  depends_on = [aws_api_gateway_integration.lambda_integration]
+}
+
+# Lambda permission for API Gateway to invoke the function
+resource "aws_lambda_permission" "api_gateway_invoke" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.coderipple_orchestrator.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.coderipple_webhook_api.execution_arn}/*/*"
+}
+
+# API Gateway deployment
+resource "aws_api_gateway_deployment" "webhook_deployment" {
+  rest_api_id = aws_api_gateway_rest_api.coderipple_webhook_api.id
+  stage_name  = var.api_gateway_stage
+
+  # Ensure all methods and integrations are created before deployment
+  depends_on = [
+    aws_api_gateway_method.webhook_post,
+    aws_api_gateway_integration.lambda_integration,
+    aws_api_gateway_method_response.webhook_response_200,
+    aws_api_gateway_integration_response.lambda_integration_response
+  ]
+
+  # Force redeployment when configuration changes
+  triggers = {
+    redeployment = sha1(jsonencode([
+      aws_api_gateway_resource.webhook_resource.id,
+      aws_api_gateway_method.webhook_post.id,
+      aws_api_gateway_integration.lambda_integration.id,
+    ]))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
