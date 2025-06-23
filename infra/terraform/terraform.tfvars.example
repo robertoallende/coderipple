@@ -1,0 +1,58 @@
+# Example Terraform variables file for CodeRipple deployment
+# Copy this file to terraform.tfvars and fill in your values
+# terraform.tfvars is gitignored for security
+
+# ================================
+# REQUIRED VARIABLES
+# ================================
+
+# GitHub repository configuration (REQUIRED)
+github_repo_owner = "your-github-username"  # e.g., "robertoallende"
+github_repo_name  = "your-repo-name"        # e.g., "coderipple"
+
+# ================================
+# OPTIONAL VARIABLES
+# ================================
+
+# AWS Configuration
+aws_region = "ap-southeast-2"  # Sydney region (default)
+
+# GitHub Integration (optional - can use GITHUB_TOKEN environment variable instead)
+# github_token = "ghp_your_github_token_here"
+
+# Lambda Configuration
+lambda_function_name = "coderipple-orchestrator"
+lambda_memory_size   = 2048  # MB - required for multi-agent processing
+lambda_timeout       = 900   # seconds (15 minutes)
+lambda_runtime      = "python3.13"
+
+# API Gateway Configuration
+api_gateway_name  = "coderipple-webhook-api"
+api_gateway_stage = "prod"
+
+# CloudWatch Configuration
+log_retention_days = 14  # days
+
+# Environment Configuration
+environment  = "prod"
+project_name = "coderipple"
+
+# Note: CodeRipple runtime configuration (doc strategy, quality scores, enabled agents)
+# will be stored in AWS Parameter Store and managed separately from Terraform.
+# See CLAUDE.md Step 9.9 for Parameter Store configuration.
+
+# ================================
+# USAGE NOTES
+# ================================
+
+# 1. Copy this file to terraform.tfvars:
+#    cp terraform.tfvars.example terraform.tfvars
+#
+# 2. Edit terraform.tfvars with your actual values
+#
+# 3. The terraform.tfvars file is gitignored for security
+#
+# 4. For GitHub token, you can either:
+#    - Set it in terraform.tfvars (not recommended for security)
+#    - Use environment variable: export GITHUB_TOKEN="your_token"
+#    - Use it via GitHub Actions secrets (recommended for CI/CD)
