@@ -83,7 +83,7 @@ jobs:
           pip install pytest pytest-cov
           
           # Install lambda-specific dependencies
-          if [ -f aws/lambda/requirements.txt ]; then
+          if [ -f aws/lambda_orchestrator/requirements.txt ]; then
             pip install -r aws/lambda_orchestrator/requirements.txt
           else
             echo "Error: aws/lambda_orchestrator/requirements.txt not found. Please ensure it exists."
