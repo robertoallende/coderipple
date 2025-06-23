@@ -267,24 +267,106 @@ The system implements the Three Mirror Documentation Framework through specializ
     - Risk reduction: Problems isolated to smaller scope
     - Progress tracking: Clear milestones for project management
 
-### Sub-task 9.2: Terraform Infrastructure Setup
-**Goal:** Define all AWS resources as Infrastructure as Code with secure state management
-**Outcome:** Complete Terraform configuration with encrypted remote state that can provision entire stack
+### Sub-task 9.2: Terraform Infrastructure Setup (Hybrid State Management)
+**Goal:** Define all AWS resources as Infrastructure as Code with flexible state management
+**Outcome:** Complete Terraform configuration supporting both local development and CI/CD deployment
+
+**Approach:** Hybrid state management strategy
+- **Local Development**: Use local state for fast iteration and testing
+- **GitHub Actions CI/CD**: Use S3 backend for reliable automated deployment
+- **Flexibility**: Switch between approaches based on environment
+
+#### Directory Structure
+```
+infra/
+├── terraform/
+│   ├── main.tf              # Core AWS resources (Lambda, API Gateway, IAM)
+│   ├── variables.tf         # Input variables for configuration
+│   ├── outputs.tf           # Output values (API Gateway URL, etc.)
+│   ├── backend.tf           # Backend configuration (S3 for CI/CD)
+│   ├── terraform.tfvars     # Local configuration values (gitignored)
+│   └── .terraform/          # Terraform working directory (gitignored)
+│       └── terraform.tfstate # Local state file (gitignored)
+```
+
+#### GitIgnore Configuration
+Add to `.gitignore`:
+```
+# Terraform state files and working directory
+infra/terraform/.terraform/
+infra/terraform/terraform.tfstate*
+infra/terraform/.terraform.lock.hcl
+infra/terraform/terraform.tfvars
+```
 
 **Tasks:**
-- Set up secure Terraform state storage using S3 backend with DynamoDB locking
-- Create Terraform modules for Lambda, API Gateway, and IAM roles
-- Configure proper IAM permissions for Lambda to access Bedrock, Parameter Store, and GitHub API
+- Create Terraform configuration files with hybrid backend support
+- Configure Lambda function with proper IAM role for Bedrock access
 - Set up API Gateway with webhook endpoint and CORS configuration
-- Initialize Parameter Store with configuration values for runtime flexibility
+- Create IAM roles and policies following principle of least privilege
+- Support both local state (development) and S3 state (CI/CD)
+
+**Configuration Files:**
+
+**main.tf:**
+- AWS provider configuration
+- Lambda function with deployment package from lambda_orchestrator
+- API Gateway REST API with webhook endpoint
+- IAM roles for Lambda execution and Bedrock access
+- CloudWatch log groups for monitoring
+
+**variables.tf:**
+- GitHub repository owner and name
+- Lambda configuration (memory, timeout)
+- Environment-specific settings
+- GitHub token (optional, can use environment variables)
+
+**outputs.tf:**
+- API Gateway webhook URL for GitHub configuration
+- Lambda function ARN and log group names
+- Deployment information
+
+**backend.tf:**
+- Conditional S3 backend configuration for CI/CD
+- Local backend as default for development
+
+**Deployment Strategies:**
+
+**Local Development:**
+```bash
+cd infra/terraform
+terraform init  # Uses local backend by default
+terraform plan
+terraform apply
+```
+
+**GitHub Actions Deployment:**
+```bash
+cd infra/terraform
+terraform init -backend-config="bucket=coderipple-terraform-state"
+terraform plan
+terraform apply
+```
+
+**AWS Credentials Management:**
+- **Approach**: GitHub repository secrets with IAM user (Option 1)
+- **Security**: Safe for public repositories when using GitHub Secrets
+- **Region**: ap-southeast-2 (Sydney) as default AWS region
+- **Required Secrets**: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION
+- **IAM Permissions**: Minimal required permissions for Lambda, API Gateway, IAM roles, CloudWatch, S3 state bucket
+- **Security Features**: GitHub encrypts secrets, redacts from logs, principle of least privilege
 
 **Acceptance Criteria:**
-- Terraform state stored securely in encrypted S3 bucket with DynamoDB locks
-- `terraform plan` shows correct resource creation
-- IAM permissions follow principle of least privilege including Parameter Store access
-- GitHub API permissions configured for repository access
+- Terraform configuration supports both local and remote state
+- Local development uses local state for fast iteration
+- GitHub Actions uses S3 backend for reliable deployment
+- AWS credentials managed securely through GitHub repository secrets
+- IAM user configured with minimal required permissions only
+- `terraform plan` shows correct resource creation in both modes
+- IAM permissions follow principle of least privilege
 - API Gateway properly routes webhook requests to Lambda
-- Parameter Store initialized with configuration hierarchy
+- Configuration supports environment-specific deployments
+- All resources deployed to ap-southeast-2 (Sydney) region
 
 ### Sub-task 9.3: GitHub Webhook Integration
 **Goal:** Establish secure connection between GitHub and AWS infrastructure
