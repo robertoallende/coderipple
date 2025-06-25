@@ -129,7 +129,19 @@ coderipple/
 ## Getting Started
 
 ### Prerequisites
+
+**Python 3.13.x Required** - CodeRipple requires Python 3.13.x for:
+- AWS Lambda runtime compatibility (`python3.13`)
+- Strands Agents SDK compatibility (requires Python 3.10+)
+- Latest performance and security improvements
+
 ```bash
+# Verify Python version
+python3 --version  # Should show Python 3.13.x
+
+# Validate CodeRipple compatibility
+python3 scripts/validate_python_version.py
+
 # Clone the repository
 git clone https://github.com/robertoallende/coderipple.git
 cd coderipple

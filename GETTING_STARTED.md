@@ -9,10 +9,27 @@ This guide will walk you through deploying CodeRipple, a sophisticated multi-age
 Before you begin, ensure you have the following:
 
 ### Required Tools
+- **Python 3.13.x** - Download from [python.org](https://www.python.org/downloads/)
 - **AWS CLI** configured with appropriate permissions
 - **Terraform** (v1.0+) for infrastructure deployment
-- **Python 3.8+** with pip
 - **Git** for repository management
+
+### Python Version Requirement
+CodeRipple requires Python 3.13.x to ensure compatibility with:
+- AWS Lambda runtime (`python3.13`)
+- Strands Agents SDK (requires Python 3.10+)
+- Latest performance and security improvements
+
+**Verify your Python version:**
+```bash
+python3 --version
+# Expected output: Python 3.13.x
+
+# Validate CodeRipple compatibility
+python3 scripts/validate_python_version.py
+```
+
+If you have a different version, please install Python 3.13.x before continuing.
 
 ### AWS Requirements
 - AWS account with administrative access

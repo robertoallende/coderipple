@@ -21,6 +21,11 @@ jobs:
           # You can remove this line if you encounter no issues without it.
           allow-prereleases: true
 
+      - name: Validate Python version
+        run: |
+          echo "Validating Python version for CodeRipple compatibility..."
+          python scripts/validate_python_version.py
+
       - name: Install dependencies for coderipple
         run: |
           # Install pytest and pytest-cov for testing and coverage

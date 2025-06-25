@@ -1,6 +1,10 @@
 #!/bin/bash
 # Test runner script that activates virtual environment and runs all tests
 
+# Validate Python version first
+echo "🐍 Validating Python version..."
+python3 ../scripts/validate_python_version.py
+
 # Activate virtual environment
 source venv/bin/activate
 

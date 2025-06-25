@@ -7,7 +7,19 @@ The CodeRipple library provides sophisticated multi-agent documentation generati
 ## Installation & Setup
 
 ### Prerequisites
+
+**Python 3.13.x Required** - The CodeRipple library requires Python 3.13.x for:
+- AWS Lambda runtime compatibility (`python3.13`)
+- Strands Agents SDK compatibility (requires Python 3.10+)
+- Latest performance and security improvements
+
 ```bash
+# Verify Python version
+python3 --version  # Must be 3.13.x
+
+# Validate compatibility (from project root)
+python3 scripts/validate_python_version.py
+
 # Set up Python virtual environment
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
