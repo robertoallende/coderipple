@@ -34,14 +34,16 @@ on:
         default: ''
 
 env:
-  AWS_DEFAULT_REGION: ap-southeast-2
-  TF_VAR_aws_region: ap-southeast-2
+  AWS_DEFAULT_REGION: ${{ secrets.TF_VAR_aws_region }}
+  TF_VAR_aws_region: ${{ secrets.TF_VAR_aws_region }}
   TF_VAR_environment: ${{ github.event.inputs.environment }}
   TF_VAR_project_name: coderipple
   
   # GitHub repository configuration
-  TF_VAR_github_repo_owner: ${{ github.repository_owner }}
-  TF_VAR_github_repo_name: ${{ github.event.repository.name }}
+  TF_VAR_github_repository_owner: ${{ secrets.TF_VAR_github_repository_owner }}
+  TF_VAR_github_repository_name: ${{ secrets.TF_VAR_github_repository_name }}
+  TF_VAR_github_webhook_secret: ${{ secrets.TF_VAR_github_webhook_secret }}
+  TF_VAR_coderipple_min_quality_score: ${{ secrets.TF_VAR_coderipple_min_quality_score }}
   
   # Lambda configuration for multi-agent system
   TF_VAR_lambda_function_name: coderipple-orchestrator-${{ github.event.inputs.environment }}
@@ -137,7 +139,6 @@ jobs:
         id: plan
         run: |
           terraform plan \
-            -var-file="../terraform.tfvars" \
             -out=tfplan \
             -detailed-exitcode
         continue-on-error: true
@@ -181,7 +182,6 @@ jobs:
         run: |
           echo "🗑️ Destroying Terraform configuration for ${{ github.event.inputs.environment }}..."
           terraform destroy \
-            -var-file="../terraform.tfvars" \
             -auto-approve
           
           echo "## Destruction Results" >> $GITHUB_STEP_SUMMARY
@@ -201,7 +201,7 @@ jobs:
           echo "- **Events:** \`push\`, \`pull_request\`" >> $GITHUB_STEP_SUMMARY
           echo "- **SSL Verification:** ✅ Enable" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Repository: \`${{ env.TF_VAR_github_repo_owner }}/${{ env.TF_VAR_github_repo_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Repository: \`${{ secrets.TF_VAR_github_repository_owner }}/${{ secrets.TF_VAR_github_repository_name }}\`" >> $GITHUB_STEP_SUMMARY
       
       - name: Save Terraform outputs
         if: github.event.inputs.action == 'apply' && steps.plan.outcome == 'success'
