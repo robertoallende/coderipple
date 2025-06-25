@@ -170,6 +170,7 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
 * **11**: Secure deployment practices and CI/CD security
   * **11.1**: [GitHub Actions Security Configuration](011_deployment_001.md) - GitHub Secrets-based variable management
   * **11.2**: [Bootstrap Action for Terraform State Management](011_deployment_002.md) - First-time infrastructure setup with S3 backend
+  * **11.3**: [AWS Region Unification](011_deployment_003.md) - Standardize all AWS resources to us-west-2 region
 
 ### Deployment Status
 
