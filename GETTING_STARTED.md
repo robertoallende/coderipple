@@ -98,18 +98,22 @@ python -c "from coderipple.src.config import get_config; print(get_config())"
 
 ## Step 3: AWS Infrastructure Deployment
 
-### Navigate to Infrastructure Directory
-```bash
-cd infra
+You have two options for deploying the AWS infrastructure:
+
+### Option A: Automated Deployment via GitHub Actions (Recommended)
+
+CodeRipple includes GitHub Actions workflows for automated deployment:
+
+#### 1. Set up GitHub Secrets
+In your GitHub repository, go to Settings → Secrets and variables → Actions, and add:
+```
+AWS_ACCESS_KEY_ID=your_aws_access_key
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+CODECOV_TOKEN=your_codecov_token (optional, for test coverage)
 ```
 
-### Initialize Terraform
-```bash
-terraform init
-```
-
-### Configure Terraform Variables
-Create `terraform.tfvars`:
+#### 2. Configure Terraform Variables
+Create or update `infra/terraform.tfvars`:
 ```hcl
 # AWS Configuration
 aws_region = "us-east-1"  # Choose your preferred region
@@ -121,22 +125,56 @@ github_webhook_secret = "your-webhook-secret"  # Generate a random string
 
 # CodeRipple Configuration
 coderipple_min_quality_score = 70
-coderipple_doc_strategy = "github_direct"
 ```
 
-### Deploy Infrastructure
+#### 3. Deploy Infrastructure
+1. Go to your GitHub repository
+2. Navigate to Actions → Deploy Infrastructure
+3. Click "Run workflow"
+4. Select:
+   - **Action:** `apply`
+   - **Environment:** `dev` (or `staging`/`prod`)
+   - **Confirm apply:** `yes`
+5. Click "Run workflow"
+
+**✅ Success Indicator:** The workflow completes successfully and provides the webhook URL in the summary
+
+#### 4. Continuous Integration
+The repository also includes automated testing via GitHub Actions:
+- **Tests run automatically** on every push
+- **Coverage reports** are uploaded to Codecov
+- **Both core library and Lambda functions** are tested
+
+### Option B: Manual Deployment via Terraform
+
+If you prefer manual deployment:
+
+#### Navigate to Infrastructure Directory
+```bash
+cd infra/terraform
+```
+
+#### Initialize Terraform
+```bash
+terraform init
+```
+
+#### Configure Terraform Variables
+Create `terraform.tfvars` as shown above.
+
+#### Deploy Infrastructure
 ```bash
 # Review deployment plan
-terraform plan
+terraform plan -var-file="../terraform.tfvars"
 
 # Deploy infrastructure
-terraform apply
+terraform apply -var-file="../terraform.tfvars"
 ```
 
 **✅ Success Indicator:** Terraform completes without errors and outputs the API Gateway URL
 
 ### Configure AWS Parameter Store
-The Terraform deployment automatically creates Parameter Store entries. Verify they're set:
+The deployment automatically creates Parameter Store entries. Verify they're set:
 ```bash
 aws ssm get-parameters-by-path --path "/coderipple" --recursive
 ```
@@ -144,9 +182,15 @@ aws ssm get-parameters-by-path --path "/coderipple" --recursive
 ## Step 4: GitHub Webhook Configuration
 
 ### Get Your API Gateway URL
+
+**If using GitHub Actions:**
+- Check the workflow summary for the webhook URL
+- Or run: `terraform output webhook_url` from `infra/terraform/`
+
+**If using manual deployment:**
 ```bash
-# From the infra directory
-terraform output api_gateway_url
+# From the infra/terraform directory
+terraform output webhook_url
 ```
 
 ### Configure GitHub Webhook
@@ -207,6 +251,23 @@ aws logs filter-log-events --log-group-name "/aws/lambda/coderipple-orchestrator
 
 ## Step 6: Production Readiness
 
+### Automated CI/CD Pipeline
+CodeRipple includes comprehensive GitHub Actions workflows:
+
+**Continuous Integration (`coderipple-ci.yaml`):**
+- Runs automatically on every push
+- Tests both core library (`coderipple/`) and Lambda functions (`aws/lambda_orchestrator/`)
+- Uploads coverage reports to Codecov
+- Uses Python 3.13 for testing
+
+**Infrastructure Deployment (`deploy-infrastructure.yml`):**
+- Manual workflow for infrastructure management
+- Supports `plan`, `apply`, and `destroy` operations
+- Multi-environment support (dev/staging/prod)
+- Includes security scanning with Checkov
+- Provides cost estimation
+- S3 backend for Terraform state management
+
 ### Monitor System Health
 - **CloudWatch Dashboards:** Monitor Lambda execution metrics
 - **Error Alerts:** Configure SNS notifications for failures
@@ -228,17 +289,19 @@ aws logs filter-log-events --log-group-name "/aws/lambda/coderipple-orchestrator
 
 ### Common Issues
 
-**Issue: Terraform deployment fails**
+**Issue: GitHub Actions deployment fails**
 ```bash
-# Check AWS credentials
-aws sts get-caller-identity
-
-# Verify required permissions
-aws iam get-user
-
-# Check region availability
-aws ec2 describe-regions
+# Check GitHub Secrets are set correctly
+# Verify AWS credentials have sufficient permissions
+# Check terraform.tfvars file exists and is properly configured
+# Ensure S3 bucket for Terraform state exists (created automatically)
 ```
+
+**Issue: CI/CD pipeline failures**
+- Check Python 3.13 compatibility
+- Verify all requirements.txt files are present
+- Ensure test dependencies are properly installed
+- Check PYTHONPATH configuration in workflows
 
 **Issue: GitHub webhook not triggering**
 - Verify webhook URL is correct
