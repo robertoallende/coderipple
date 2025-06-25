@@ -19,6 +19,30 @@ provider "aws" {
 }
 
 # ================================
+# KMS Key for CodeRipple Encryption
+# ================================
+
+# KMS key for encrypting CodeRipple resources
+resource "aws_kms_key" "coderipple_key" {
+  description             = "CodeRipple encryption key for S3, Lambda, and other resources"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+  
+  tags = {
+    Name        = "coderipple-encryption-key"
+    Environment = var.environment
+    Purpose     = "encryption"
+    Project     = var.project_name
+  }
+}
+
+# KMS key alias for easier reference
+resource "aws_kms_alias" "coderipple_key_alias" {
+  name          = "alias/coderipple-encryption-key"
+  target_key_id = aws_kms_key.coderipple_key.key_id
+}
+
+# ================================
 # S3 Bucket for Terraform State
 # ================================
 
@@ -46,14 +70,16 @@ resource "aws_s3_bucket_versioning" "terraform_state" {
   }
 }
 
-# Enable server-side encryption
+# Enable server-side encryption with KMS
 resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state" {
   bucket = aws_s3_bucket.terraform_state.id
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
+      kms_master_key_id = aws_kms_key.coderipple_key.arn
+      sse_algorithm     = "aws:kms"
     }
+    bucket_key_enabled = true
   }
 }
 
@@ -230,6 +256,127 @@ resource "aws_iam_role_policy_attachment" "lambda_parameter_store" {
 }
 
 # ================================
+# Security-Related IAM Policies
+# ================================
+
+# KMS access policy for Lambda encryption
+resource "aws_iam_policy" "lambda_kms_policy" {
+  name        = "${var.project_name}-lambda-kms-policy"
+  description = "Policy for Lambda to access KMS key for encryption"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt",
+          "kms:DescribeKey",
+          "kms:Encrypt",
+          "kms:GenerateDataKey",
+          "kms:ReEncrypt*"
+        ]
+        Resource = [
+          aws_kms_key.coderipple_key.arn
+        ]
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.project_name}-lambda-kms-policy"
+    Environment = var.environment
+  }
+}
+
+# X-Ray tracing policy for Lambda
+resource "aws_iam_policy" "lambda_xray_policy" {
+  name        = "${var.project_name}-lambda-xray-policy"
+  description = "Policy for Lambda X-Ray tracing"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "xray:PutTraceSegments",
+          "xray:PutTelemetryRecords"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.project_name}-lambda-xray-policy"
+    Environment = var.environment
+  }
+}
+
+# SQS Dead Letter Queue access policy
+resource "aws_iam_policy" "lambda_sqs_policy" {
+  name        = "${var.project_name}-lambda-sqs-policy"
+  description = "Policy for Lambda to access SQS Dead Letter Queue"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:SendMessage",
+          "sqs:GetQueueAttributes"
+        ]
+        Resource = [
+          aws_sqs_queue.lambda_dlq.arn
+        ]
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.project_name}-lambda-sqs-policy"
+    Environment = var.environment
+  }
+}
+
+# Attach security policies to Lambda execution role
+resource "aws_iam_role_policy_attachment" "lambda_kms_access" {
+  role       = aws_iam_role.lambda_execution_role.name
+  policy_arn = aws_iam_policy.lambda_kms_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_xray_access" {
+  role       = aws_iam_role.lambda_execution_role.name
+  policy_arn = aws_iam_policy.lambda_xray_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_sqs_access" {
+  role       = aws_iam_role.lambda_execution_role.name
+  policy_arn = aws_iam_policy.lambda_sqs_policy.arn
+}
+
+# ================================
+# SQS Dead Letter Queue for Lambda
+# ================================
+
+# Dead Letter Queue for failed Lambda executions
+resource "aws_sqs_queue" "lambda_dlq" {
+  name                      = "${var.project_name}-lambda-dlq"
+  message_retention_seconds = 1209600  # 14 days
+  
+  # Enable server-side encryption
+  kms_master_key_id = aws_kms_key.coderipple_key.arn
+  
+  tags = {
+    Name        = "${var.project_name}-lambda-dlq"
+    Environment = var.environment
+    Purpose     = "lambda-error-handling"
+  }
+}
+
+# ================================
 # Lambda Function
 # ================================
 
@@ -271,7 +418,7 @@ resource "aws_lambda_function" "coderipple_orchestrator" {
   memory_size = var.lambda_memory_size
   timeout     = var.lambda_timeout
   
-  # Environment variables
+  # Environment variables with KMS encryption
   environment {
     variables = {
       AWS_DEFAULT_REGION = var.aws_region
@@ -290,6 +437,22 @@ resource "aws_lambda_function" "coderipple_orchestrator" {
     }
   }
   
+  # Security configurations
+  kms_key_arn = aws_kms_key.coderipple_key.arn
+  
+  # X-Ray tracing for observability
+  tracing_config {
+    mode = "Active"
+  }
+  
+  # Dead Letter Queue for error handling
+  dead_letter_config {
+    target_arn = aws_sqs_queue.lambda_dlq.arn
+  }
+  
+  # Concurrency limits for cost control
+  reserved_concurrent_executions = 10
+  
   # Deployment configuration
   publish = true
   
@@ -299,7 +462,11 @@ resource "aws_lambda_function" "coderipple_orchestrator" {
     aws_iam_role_policy_attachment.lambda_bedrock_access,
     aws_iam_role_policy_attachment.lambda_cloudwatch_enhanced,
     aws_iam_role_policy_attachment.lambda_parameter_store,
-    aws_cloudwatch_log_group.lambda_logs
+    aws_iam_role_policy_attachment.lambda_kms_access,
+    aws_iam_role_policy_attachment.lambda_xray_access,
+    aws_iam_role_policy_attachment.lambda_sqs_access,
+    aws_cloudwatch_log_group.lambda_logs,
+    aws_sqs_queue.lambda_dlq
   ]
 
   tags = {
@@ -326,6 +493,11 @@ resource "aws_api_gateway_rest_api" "coderipple_webhook_api" {
   
   endpoint_configuration {
     types = ["REGIONAL"]
+  }
+
+  # Security: Lifecycle management for zero-downtime updates
+  lifecycle {
+    create_before_destroy = true
   }
 
   tags = {
@@ -445,6 +617,56 @@ resource "aws_cloudwatch_log_group" "lambda_logs" {
     Name        = "${var.lambda_function_name}-logs"
     Environment = var.environment
     Service     = "lambda"
+  }
+}
+
+# ================================
+# CloudWatch Alarms for Security Monitoring
+# ================================
+
+# CloudWatch alarm for Lambda throttling (concurrency limit monitoring)
+resource "aws_cloudwatch_metric_alarm" "lambda_throttles" {
+  alarm_name          = "${var.project_name}-lambda-throttles"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "Throttles"
+  namespace           = "AWS/Lambda"
+  period              = "300"
+  statistic           = "Sum"
+  threshold           = "5"
+  alarm_description   = "This metric monitors lambda throttles due to concurrency limits"
+  alarm_actions       = []
+
+  dimensions = {
+    FunctionName = aws_lambda_function.coderipple_orchestrator.function_name
+  }
+
+  tags = {
+    Name        = "${var.project_name}-lambda-throttles"
+    Environment = var.environment
+  }
+}
+
+# CloudWatch alarm for Dead Letter Queue messages
+resource "aws_cloudwatch_metric_alarm" "dlq_messages" {
+  alarm_name          = "${var.project_name}-dlq-messages"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "1"
+  metric_name         = "ApproximateNumberOfVisibleMessages"
+  namespace           = "AWS/SQS"
+  period              = "300"
+  statistic           = "Average"
+  threshold           = "0"
+  alarm_description   = "This metric monitors messages in the Dead Letter Queue"
+  alarm_actions       = []
+
+  dimensions = {
+    QueueName = aws_sqs_queue.lambda_dlq.name
+  }
+
+  tags = {
+    Name        = "${var.project_name}-dlq-messages"
+    Environment = var.environment
   }
 }
 

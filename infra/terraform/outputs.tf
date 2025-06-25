@@ -195,3 +195,44 @@ output "monitoring_resources" {
   }
   sensitive = false
 }
+
+# ================================
+# Security Configuration Outputs
+# ================================
+
+output "kms_key_id" {
+  description = "KMS key ID for encryption operations"
+  value       = aws_kms_key.coderipple_key.key_id
+  sensitive   = false
+}
+
+output "kms_key_arn" {
+  description = "KMS key ARN for IAM policies and encryption"
+  value       = aws_kms_key.coderipple_key.arn
+  sensitive   = false
+}
+
+output "dead_letter_queue_url" {
+  description = "SQS Dead Letter Queue URL for error monitoring"
+  value       = aws_sqs_queue.lambda_dlq.url
+  sensitive   = false
+}
+
+output "dead_letter_queue_arn" {
+  description = "SQS Dead Letter Queue ARN for monitoring setup"
+  value       = aws_sqs_queue.lambda_dlq.arn
+  sensitive   = false
+}
+
+output "security_features_enabled" {
+  description = "Summary of security features implemented"
+  value = {
+    kms_encryption           = true
+    xray_tracing            = true
+    dead_letter_queue       = true
+    concurrency_limits      = true
+    api_gateway_lifecycle   = true
+    cloudwatch_monitoring   = true
+  }
+  sensitive = false
+}
