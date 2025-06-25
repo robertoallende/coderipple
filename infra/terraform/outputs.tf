@@ -228,11 +228,23 @@ output "security_features_enabled" {
   description = "Summary of security features implemented"
   value = {
     kms_encryption           = true
+    kms_key_policy          = true
     xray_tracing            = true
     dead_letter_queue       = true
     concurrency_limits      = true
     api_gateway_lifecycle   = true
+    api_gateway_caching     = true
+    api_gateway_validation  = true
+    cloudwatch_encryption   = true
+    s3_lifecycle           = true
+    s3_access_logging      = true
     cloudwatch_monitoring   = true
   }
   sensitive = false
+}
+
+output "access_logs_bucket" {
+  description = "S3 bucket for Terraform state access logs"
+  value       = aws_s3_bucket.terraform_state_access_logs.bucket
+  sensitive   = false
 }

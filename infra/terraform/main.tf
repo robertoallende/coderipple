@@ -2,6 +2,13 @@
 # Creates Lambda function, API Gateway, and supporting resources
 
 # ================================
+# Data Sources
+# ================================
+
+# Get current AWS account ID and region
+data "aws_caller_identity" "current" {}
+
+# ================================
 # Provider Configuration
 # ================================
 
@@ -27,6 +34,57 @@ resource "aws_kms_key" "coderipple_key" {
   description             = "CodeRipple encryption key for S3, Lambda, and other resources"
   deletion_window_in_days = 7
   enable_key_rotation     = true
+  
+  # KMS key policy for proper access control
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "Enable IAM User Permissions"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action   = "kms:*"
+        Resource = "*"
+      },
+      {
+        Sid    = "Allow CloudWatch Logs"
+        Effect = "Allow"
+        Principal = {
+          Service = "logs.${var.aws_region}.amazonaws.com"
+        }
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
+        Condition = {
+          ArnEquals = {
+            "kms:EncryptionContext:aws:logs:arn" = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
+          }
+        }
+      },
+      {
+        Sid    = "Allow S3 Service"
+        Effect = "Allow"
+        Principal = {
+          Service = "s3.amazonaws.com"
+        }
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
   
   tags = {
     Name        = "coderipple-encryption-key"
@@ -91,6 +149,62 @@ resource "aws_s3_bucket_public_access_block" "terraform_state" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+# S3 bucket lifecycle configuration for state management
+resource "aws_s3_bucket_lifecycle_configuration" "terraform_state" {
+  bucket = aws_s3_bucket.terraform_state.id
+
+  rule {
+    id     = "terraform_state_lifecycle"
+    status = "Enabled"
+    
+    # Apply to all objects in the bucket
+    filter {
+      prefix = ""
+    }
+
+    # Keep recent versions but clean up old ones
+    noncurrent_version_expiration {
+      noncurrent_days = 90
+    }
+
+    # Abort incomplete multipart uploads
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+
+  depends_on = [aws_s3_bucket_versioning.terraform_state]
+}
+
+# S3 bucket for access logs (separate bucket to avoid recursive logging)
+resource "aws_s3_bucket" "terraform_state_access_logs" {
+  bucket = "${var.project_name}-terraform-state-access-logs"
+  
+  tags = {
+    Name        = "CodeRipple Terraform State Access Logs"
+    Purpose     = "access-logging"
+    Environment = var.environment
+  }
+}
+
+# Block public access for access logs bucket
+resource "aws_s3_bucket_public_access_block" "terraform_state_access_logs" {
+  bucket = aws_s3_bucket.terraform_state_access_logs.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# Enable access logging for the main state bucket
+resource "aws_s3_bucket_logging" "terraform_state" {
+  bucket = aws_s3_bucket.terraform_state.id
+
+  target_bucket = aws_s3_bucket.terraform_state_access_logs.id
+  target_prefix = "access-logs/"
 }
 
 # ================================
@@ -512,12 +626,23 @@ resource "aws_api_gateway_resource" "webhook_resource" {
   path_part   = "webhook"
 }
 
+# API Gateway request validator for webhook endpoint
+resource "aws_api_gateway_request_validator" "webhook_validator" {
+  name                        = "${var.project_name}-webhook-validator"
+  rest_api_id                 = aws_api_gateway_rest_api.coderipple_webhook_api.id
+  validate_request_body       = true
+  validate_request_parameters = false  # GitHub webhooks have flexible headers
+}
+
 # API Gateway method for POST requests
 resource "aws_api_gateway_method" "webhook_post" {
   rest_api_id   = aws_api_gateway_rest_api.coderipple_webhook_api.id
   resource_id   = aws_api_gateway_resource.webhook_resource.id
   http_method   = "POST"
   authorization = "NONE"
+  
+  # Add request validation for security compliance
+  request_validator_id = aws_api_gateway_request_validator.webhook_validator.id
 
   # Enable CORS for browser-based testing (optional)
   request_parameters = {
@@ -612,6 +737,7 @@ resource "aws_api_gateway_deployment" "webhook_deployment" {
 resource "aws_cloudwatch_log_group" "lambda_logs" {
   name              = "/aws/lambda/${var.lambda_function_name}"
   retention_in_days = var.log_retention_days
+  kms_key_id        = aws_kms_key.coderipple_key.arn
 
   tags = {
     Name        = "${var.lambda_function_name}-logs"
@@ -674,6 +800,7 @@ resource "aws_cloudwatch_metric_alarm" "dlq_messages" {
 resource "aws_cloudwatch_log_group" "api_gateway_logs" {
   name              = "/aws/apigateway/${var.api_gateway_name}"
   retention_in_days = var.log_retention_days
+  kms_key_id        = aws_kms_key.coderipple_key.arn
 
   tags = {
     Name        = "${var.api_gateway_name}-logs"
@@ -721,8 +848,12 @@ resource "aws_api_gateway_stage" "webhook_stage" {
   rest_api_id   = aws_api_gateway_rest_api.coderipple_webhook_api.id
   stage_name    = var.api_gateway_stage
 
-  # Enable detailed CloudWatch metrics
-  xray_tracing_enabled = false
+  # Enable X-Ray tracing for security compliance
+  xray_tracing_enabled = true
+  
+  # Enable caching for performance (will be disabled for webhook endpoint specifically)
+  cache_cluster_enabled = true
+  cache_cluster_size    = "0.5"  # Smallest size for cost efficiency
 
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_gateway_logs.arn
@@ -764,9 +895,12 @@ resource "aws_api_gateway_method_settings" "webhook_method_settings" {
   settings {
     # Enable detailed CloudWatch metrics
     metrics_enabled    = true
-    data_trace_enabled = true
+    data_trace_enabled = false  # Security requirement: disable data tracing
     logging_level      = "INFO"
-
+    
+    # Caching settings - disabled for webhook endpoint (GitHub needs fresh responses)
+    caching_enabled = false
+    
     # Throttling settings
     throttling_rate_limit  = 100
     throttling_burst_limit = 50
