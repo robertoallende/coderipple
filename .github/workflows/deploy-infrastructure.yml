@@ -31,8 +31,8 @@ env:
   TF_VAR_project_name: coderipple
   
   # GitHub repository configuration
-  TF_VAR_github_repository_owner: ${{ secrets.TF_VAR_github_repository_owner }}
-  TF_VAR_github_repository_name: ${{ secrets.TF_VAR_github_repository_name }}
+  TF_VAR_github_repo_owner: ${{ secrets.TF_VAR_github_repo_owner }}
+  TF_VAR_github_repo_name: ${{ secrets.TF_VAR_github_repo_name }}
   TF_VAR_github_webhook_secret: ${{ secrets.TF_VAR_github_webhook_secret }}
   TF_VAR_coderipple_min_quality_score: ${{ secrets.TF_VAR_coderipple_min_quality_score }}
   
@@ -237,7 +237,7 @@ jobs:
           echo "- **Events:** \`push\`, \`pull_request\`" >> $GITHUB_STEP_SUMMARY
           echo "- **SSL Verification:** ✅ Enable" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Repository: \`${{ secrets.TF_VAR_github_repository_owner }}/${{ secrets.TF_VAR_github_repository_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Repository: \`${{ secrets.TF_VAR_github_repo_owner }}/${{ secrets.TF_VAR_github_repo_name }}\`" >> $GITHUB_STEP_SUMMARY
       
       - name: Save Terraform outputs
         if: github.event.inputs.action == 'apply' && steps.plan.outcome == 'success'

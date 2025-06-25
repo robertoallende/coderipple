@@ -173,6 +173,7 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **11.3**: [AWS Region Unification](011_deployment_003.md) - Standardize all AWS resources to us-west-2 region
   * **11.4**: [Security Hardening Implementation](011_deployment_004.md) - Address Checkov security vulnerabilities and implement AWS best practices
   * **11.6**: [Advanced Security Hardening](011_deployment_006.md) - Address remaining 17 security issues from Checkov scan
+  * **11.7**: [GitHub Actions Variable Name Alignment](011_deployment_007.md) - Fix variable mismatch causing bootstrap to hang
   * **11.5**: [Python 3.13 Version Enforcement](011_deployment_005.md) - Enforce Python 3.13 consistency across development, testing, and production environments
 
 ### Deployment Status
