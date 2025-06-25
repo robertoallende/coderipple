@@ -67,29 +67,31 @@ python run_coderipple.py
 ## Step 2: Configuration Setup
 
 ### Environment Variables
-Create a `.env` file in the project root:
+Set the required environment variables in your shell:
 ```bash
 # Repository Configuration
-CODERIPPLE_SOURCE_REPO=/path/to/your/target/repository
-GITHUB_TOKEN=your_github_personal_access_token
+export CODERIPPLE_SOURCE_REPO=/path/to/your/target/repository
+export CODERIPPLE_GITHUB_TOKEN=your_github_personal_access_token
 
-# Documentation Strategy
-CODERIPPLE_DOC_STRATEGY=github_direct  # or github_pr
+# Quality Settings (optional - has defaults)
+export CODERIPPLE_MIN_QUALITY_SCORE=70
 
-# Quality Settings
-CODERIPPLE_MIN_QUALITY_SCORE=70
-
-# Agent Configuration
-CODERIPPLE_ENABLED_AGENTS=orchestrator,tourist_guide,building_inspector,historian
+# Agent Configuration (optional - defaults to all agents)
+export CODERIPPLE_ENABLED_AGENTS=tourist_guide,building_inspector,historian
 ```
+
+**Note:** The system reads configuration directly from environment variables, not from a `.env` file.
 
 ### Test Local Configuration
 ```bash
 # Test webhook parsing
-python src/webhook_parser.py
+python coderipple/src/webhook_parser.py
 
 # Test git analysis
-python -c "from src.git_analysis_tool import GitAnalysisTool; print('Git analysis ready')"
+python -c "from coderipple.src.git_analysis_tool import GitAnalysisTool; print('Git analysis ready')"
+
+# Verify configuration
+python -c "from coderipple.src.config import get_config; print(get_config())"
 ```
 
 **✅ Success Indicator:** No import errors or configuration warnings
