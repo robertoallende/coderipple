@@ -12,20 +12,11 @@ on:
         required: true
         type: choice
         options:
+          - bootstrap
           - plan
           - apply
           - destroy
         default: 'plan'
-      
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        type: choice
-        options:
-          - dev
-          - staging
-          - prod
-        default: 'dev'
       
       confirm_apply:
         description: 'Type "yes" to confirm apply/destroy operations'
@@ -36,7 +27,7 @@ on:
 env:
   AWS_DEFAULT_REGION: ${{ secrets.TF_VAR_aws_region }}
   TF_VAR_aws_region: ${{ secrets.TF_VAR_aws_region }}
-  TF_VAR_environment: ${{ github.event.inputs.environment }}
+  TF_VAR_environment: dev
   TF_VAR_project_name: coderipple
   
   # GitHub repository configuration
@@ -46,14 +37,14 @@ env:
   TF_VAR_coderipple_min_quality_score: ${{ secrets.TF_VAR_coderipple_min_quality_score }}
   
   # Lambda configuration for multi-agent system
-  TF_VAR_lambda_function_name: coderipple-orchestrator-${{ github.event.inputs.environment }}
+  TF_VAR_lambda_function_name: coderipple-orchestrator
   TF_VAR_lambda_memory_size: 2048
   TF_VAR_lambda_timeout: 900
   TF_VAR_lambda_runtime: python3.13
   
   # API Gateway configuration
-  TF_VAR_api_gateway_name: coderipple-webhook-api-${{ github.event.inputs.environment }}
-  TF_VAR_api_gateway_stage: ${{ github.event.inputs.environment }}
+  TF_VAR_api_gateway_name: coderipple-webhook-api
+  TF_VAR_api_gateway_stage: dev
   
   # CloudWatch configuration
   TF_VAR_log_retention_days: 14
@@ -62,9 +53,6 @@ jobs:
   terraform:
     name: Terraform ${{ github.event.inputs.action }}
     runs-on: ubuntu-latest
-    
-    # Environment protection for production
-    environment: ${{ github.event.inputs.environment }}
     
     defaults:
       run:
@@ -87,7 +75,7 @@ jobs:
           aws-region: ${{ env.AWS_DEFAULT_REGION }}
       
       - name: Validate confirmation for destructive operations
-        if: github.event.inputs.action != 'plan'
+        if: github.event.inputs.action != 'plan' && github.event.inputs.action != 'bootstrap'
         run: |
           if [ "${{ github.event.inputs.confirm_apply }}" != "yes" ]; then
             echo "❌ Confirmation required for ${{ github.event.inputs.action }} operation"
@@ -96,29 +84,75 @@ jobs:
           fi
           echo "✅ Confirmation received for ${{ github.event.inputs.action }} operation"
       
+      - name: Bootstrap Terraform Backend
+        if: github.event.inputs.action == 'bootstrap'
+        run: |
+          echo "🚀 Bootstrapping Terraform backend..."
+          echo "Creating S3 bucket and initial resources with local state..."
+          
+          # Initialize with local state first
+          terraform init
+          
+          # Create the S3 bucket and related resources using targeted applies
+          echo "Creating S3 bucket for state storage..."
+          terraform apply -target=aws_s3_bucket.terraform_state -auto-approve
+          
+          echo "Configuring bucket versioning..."
+          terraform apply -target=aws_s3_bucket_versioning.terraform_state -auto-approve
+          
+          echo "Configuring bucket encryption..."
+          terraform apply -target=aws_s3_bucket_server_side_encryption_configuration.terraform_state -auto-approve
+          
+          echo "Configuring bucket public access block..."
+          terraform apply -target=aws_s3_bucket_public_access_block.terraform_state -auto-approve
+          
+          echo "✅ Backend resources created!"
+          echo "🔄 Migrating to remote state..."
+          
+          # Migrate to remote state
+          terraform init \
+            -backend-config="bucket=coderipple-terraform-state" \
+            -backend-config="key=coderipple/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_DEFAULT_REGION }}" \
+            -backend-config="encrypt=true" \
+            -migrate-state \
+            -input=false
+          
+          echo "✅ Bootstrap complete! Remote state configured."
+          
+          echo "## 🎉 Bootstrap Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **S3 bucket created:** \`coderipple-terraform-state\`" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Versioning enabled:** State file history preserved" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Encryption enabled:** AES256 server-side encryption" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Public access blocked:** Secure bucket configuration" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Remote state configured:** Ready for team collaboration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next steps:** You can now use \`plan\` and \`apply\` actions for infrastructure deployment." >> $GITHUB_STEP_SUMMARY
+      
       - name: Create S3 backend configuration
+        if: github.event.inputs.action != 'bootstrap'
         run: |
           cat > backend-config.tf << EOF
           terraform {
             backend "s3" {
-              bucket         = "coderipple-terraform-state-${{ github.event.inputs.environment }}"
+              bucket         = "coderipple-terraform-state"
               key            = "coderipple/terraform.tfstate"
               region         = "${{ env.AWS_DEFAULT_REGION }}"
               encrypt        = true
-              dynamodb_table = "coderipple-terraform-locks-${{ github.event.inputs.environment }}"
             }
           }
           EOF
-          echo "Created S3 backend configuration for ${{ github.event.inputs.environment }}"
+          echo "Created S3 backend configuration"
       
       - name: Initialize Terraform with S3 backend
+        if: github.event.inputs.action != 'bootstrap'
         run: |
           terraform init \
-            -backend-config="bucket=coderipple-terraform-state-${{ github.event.inputs.environment }}" \
+            -backend-config="bucket=coderipple-terraform-state" \
             -backend-config="key=coderipple/terraform.tfstate" \
             -backend-config="region=${{ env.AWS_DEFAULT_REGION }}" \
-            -backend-config="encrypt=true" \
-            -backend-config="dynamodb_table=coderipple-terraform-locks-${{ github.event.inputs.environment }}"
+            -backend-config="encrypt=true"
       
       - name: Validate Terraform configuration
         run: terraform validate
@@ -136,6 +170,7 @@ jobs:
           ls -la ../../aws/lambda_orchestrator/
       
       - name: Terraform Plan
+        if: github.event.inputs.action != 'bootstrap'
         id: plan
         run: |
           terraform plan \
@@ -144,11 +179,12 @@ jobs:
         continue-on-error: true
       
       - name: Terraform Plan Summary
+        if: github.event.inputs.action != 'bootstrap'
         run: |
           echo "## Terraform Plan Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Action:** ${{ github.event.inputs.action }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** dev" >> $GITHUB_STEP_SUMMARY
           echo "**Region:** ${{ env.AWS_DEFAULT_REGION }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
@@ -165,7 +201,7 @@ jobs:
       - name: Terraform Apply
         if: github.event.inputs.action == 'apply' && steps.plan.outcome == 'success'
         run: |
-          echo "🚀 Applying Terraform configuration for ${{ github.event.inputs.environment }}..."
+          echo "🚀 Applying Terraform configuration for dev environment..."
           terraform apply tfplan
           
           echo "## Deployment Results" >> $GITHUB_STEP_SUMMARY
@@ -180,7 +216,7 @@ jobs:
       - name: Terraform Destroy
         if: github.event.inputs.action == 'destroy'
         run: |
-          echo "🗑️ Destroying Terraform configuration for ${{ github.event.inputs.environment }}..."
+          echo "🗑️ Destroying Terraform configuration for dev environment..."
           terraform destroy \
             -auto-approve
           
@@ -213,7 +249,7 @@ jobs:
         if: github.event.inputs.action == 'apply' && steps.plan.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: terraform-outputs-${{ github.event.inputs.environment }}
+          name: terraform-outputs-dev
           path: infra/terraform/terraform-outputs.json
           retention-days: 30
 
