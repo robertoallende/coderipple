@@ -1,6 +1,6 @@
-# Note: Strands packages included directly in package (not on PyPI)
-# strands-agents==0.1.6 (bundled)
-# strands-agents-tools==0.1.4 (bundled)
+# AWS Strands SDK for multi-agent orchestration
+strands-agents==0.1.6
+strands-agents-tools==0.1.4
 
 # AWS SDK for Lambda runtime and services
 boto3==1.38.32
