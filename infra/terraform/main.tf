@@ -521,6 +521,17 @@ resource "null_resource" "prepare_lambda_package" {
       # Directory already exists from placeholder, safe to proceed
       
       # Copy Lambda handler to ROOT of build directory (not src/ subdirectory)
+      echo "🔍 Debugging GitHub Actions directory structure..."
+      echo "📂 Current working directory: $(pwd)"
+      echo "📂 Repository root contents:"
+      find ../../../ -maxdepth 2 -type d | head -20
+      echo "📂 Looking for aws directory:"
+      find ../../../ -name "aws" -type d
+      echo "📂 Looking for lambda_orchestrator:"
+      find ../../../ -name "lambda_orchestrator" -type d
+      echo "📂 Looking for lambda_handler.py:"
+      find ../../../ -name "lambda_handler.py" -type f
+      
       echo "🔍 Copying Lambda handler file..."
       if [ -f "../../../aws/lambda_orchestrator/src/lambda_handler.py" ]; then
         echo "✅ Lambda handler found at ../../../aws/lambda_orchestrator/src/lambda_handler.py"
@@ -528,9 +539,28 @@ resource "null_resource" "prepare_lambda_package" {
         echo "✅ Lambda handler copied to package root"
       else
         echo "❌ Lambda handler not found at ../../../aws/lambda_orchestrator/src/lambda_handler.py"
-        echo "📂 Available paths:"
-        ls -la ../../../aws/lambda_orchestrator/src/
-        exit 1
+        echo "📂 Trying alternative paths..."
+        
+        # Try different possible paths
+        for path in "../../../aws/lambda_orchestrator/src/lambda_handler.py" \
+                   "../../aws/lambda_orchestrator/src/lambda_handler.py" \
+                   "../../../../aws/lambda_orchestrator/src/lambda_handler.py"; do
+          if [ -f "$path" ]; then
+            echo "✅ Found Lambda handler at: $path"
+            cp "$path" .
+            echo "✅ Lambda handler copied successfully"
+            break
+          else
+            echo "❌ Not found at: $path"
+          fi
+        done
+        
+        # If still not found, show what we have
+        if [ ! -f "lambda_handler.py" ]; then
+          echo "❌ Lambda handler still not found. Available files:"
+          find ../../../ -name "*.py" | grep -i lambda | head -10
+          exit 1
+        fi
       fi
       
       # Copy package configuration files
@@ -678,8 +708,8 @@ except ImportError as e:
       for f in fileset("${path.root}/../../coderipple/src", "*.py") : 
       filemd5("${path.root}/../../coderipple/src/${f}")
     ]))
-    # Force rebuild after MDD 013_tuneup_012 fix
-    rebuild_timestamp = "2025-06-26-013-tuneup-012-handler-fix"
+    # Force rebuild after MDD 013_tuneup_012 debug
+    rebuild_timestamp = "2025-06-26-013-tuneup-012-debug-paths"
   }
 }
 
