@@ -169,6 +169,29 @@ jobs:
           echo "✅ Lambda orchestrator directory found"
           ls -la ../../aws/lambda_orchestrator/
       
+      - name: Import Existing AWS Resources
+        if: github.event.inputs.action != 'bootstrap'
+        run: |
+          echo "🔄 Attempting to import existing AWS resources..."
+          
+          # Import S3 bucket if it exists
+          echo "Importing S3 bucket..."
+          terraform import aws_s3_bucket.terraform_state coderipple-terraform-state || echo "S3 bucket import skipped (may not exist or already imported)"
+          
+          # Import API Gateway stage if it exists
+          echo "Checking for existing API Gateway..."
+          REST_API_ID=$(aws apigateway get-rest-apis --query 'items[?name==`coderipple-webhook-api`].id' --output text 2>/dev/null || echo "")
+          if [ ! -z "$REST_API_ID" ] && [ "$REST_API_ID" != "None" ]; then
+            echo "Found API Gateway with ID: $REST_API_ID"
+            terraform import aws_api_gateway_stage.webhook_stage $REST_API_ID/dev || echo "API Gateway stage import skipped (may not exist or already imported)"
+          else
+            echo "No existing API Gateway found"
+          fi
+          
+          echo "✅ Resource import attempt completed"
+        working-directory: infra/terraform
+        continue-on-error: true
+      
       - name: Terraform Plan
         if: github.event.inputs.action != 'bootstrap'
         id: plan

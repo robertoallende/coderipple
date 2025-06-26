@@ -705,7 +705,7 @@ resource "aws_lambda_permission" "api_gateway_invoke" {
 # API Gateway deployment
 resource "aws_api_gateway_deployment" "webhook_deployment" {
   rest_api_id = aws_api_gateway_rest_api.coderipple_webhook_api.id
-  stage_name  = var.api_gateway_stage
+  # stage_name removed - handled by separate aws_api_gateway_stage resource
 
   # Ensure all methods and integrations are created before deployment
   depends_on = [

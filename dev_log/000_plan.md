@@ -178,6 +178,7 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **11.9**: [GitHub Actions Variable Management via MCP Servers](011_deployment_009.md) - Resolve TF_VAR_log_retention_days validation error using GitHub and Terraform MCP servers for programmatic DevOps management
   * **11.10**: [S3 Bucket Conflict and SQS Permission Issues](011_deployment_010.md) - Resolve S3 bucket already exists error and add missing SQS permissions to deployment user
   * **11.11**: [Lambda Reserved Environment Variable and CloudWatch Permission Issues](011_deployment_011.md) - Fix AWS_DEFAULT_REGION reserved variable conflict in Lambda and add missing CloudWatch permissions
+  * **11.12**: [API Gateway Deprecation Warning and Resource Conflicts](011_deployment_012.md) - Fix deprecated stage_name parameter and resolve S3/API Gateway resource import conflicts
   * **11.5**: [Python 3.13 Version Enforcement](011_deployment_005.md) - Enforce Python 3.13 consistency across development, testing, and production environments
 
 ### Deployment Status
