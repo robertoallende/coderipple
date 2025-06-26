@@ -530,7 +530,7 @@ resource "null_resource" "prepare_lambda_package" {
       # Install all dependencies including CodeRipple package
       cd ${path.module}/lambda_build
       python3 -m pip install -r requirements.txt -t .
-      python3 -m pip install -e ${path.root}/../../coderipple -t .
+      python3 -m pip install ${path.root}/../../coderipple -t .
       
       # Verify package installation step-by-step
       echo "🔍 Verifying Lambda package installation..."
