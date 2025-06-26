@@ -145,7 +145,8 @@ environment {
                 "events:*",
                 "kms:*",
                 "sqs:*",
-                "cloudwatch:*"
+               
+               
             ],
             "Resource": "*"
         }
