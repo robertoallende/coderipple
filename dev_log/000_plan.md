@@ -181,6 +181,12 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **11.12**: [API Gateway Deprecation Warning and Resource Conflicts](011_deployment_012.md) - Fix deprecated stage_name parameter and resolve S3/API Gateway resource import conflicts
   * **11.5**: [Python 3.13 Version Enforcement](011_deployment_005.md) - Enforce Python 3.13 consistency across development, testing, and production environments
 
+* **12**: CodeRipple System Testing and Validation
+  * **12.1**: [GitHub Webhook Integration Test](012_testing_001.md) - End-to-end validation through real GitHub webhook events (deferred)
+  * **12.2**: [API Gateway Endpoint Test](012_testing_002.md) - Direct HTTP testing of deployed webhook endpoint (primary implementation)
+  * **12.3**: [Lambda Function Test](012_testing_003.md) - Component-level validation of Lambda functions and multi-agent coordination (deferred)
+  * **12.4**: [Local Testing](012_testing_004.md) - Development environment validation without AWS dependencies (deferred)
+
 ### Deployment Status
 
 **AWS Infrastructure:** ✅ Complete
