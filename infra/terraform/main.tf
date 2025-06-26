@@ -535,7 +535,7 @@ resource "aws_lambda_function" "coderipple_orchestrator" {
   # Environment variables with KMS encryption
   environment {
     variables = {
-      AWS_DEFAULT_REGION = var.aws_region
+      # AWS_DEFAULT_REGION is automatically set by Lambda runtime - removed reserved variable
       PYTHONPATH        = "/var/runtime:/var/task/src:/opt"
       
       # GitHub repository information
