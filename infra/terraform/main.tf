@@ -543,17 +543,24 @@ resource "null_resource" "prepare_lambda_package" {
       cd ${path.module}/lambda_build
       python3 -m pip install -r requirements.txt -t .
       
-      # Fix: Use correct CodeRipple package path (one level up from terraform)
+      # Fix: Use correct CodeRipple package path (three levels up to repository root)
       echo "🔍 Installing CodeRipple package with correct path..."
-      if [ -f "../coderipple/setup.py" ]; then
-        echo "✅ CodeRipple package found at ../coderipple"
-        python3 -m pip install ../coderipple -t .
+      echo "📂 Current execution context: $(pwd)"
+      echo "📂 Repository root (three levels up):"
+      ls -la ../../../ | head -10
+      
+      if [ -f "../../../coderipple/setup.py" ]; then
+        echo "✅ CodeRipple package found at ../../../coderipple"
+        echo "📂 CodeRipple package contents:"
+        ls -la ../../../coderipple/ | head -5
+        python3 -m pip install ../../../coderipple -t .
+        echo "✅ CodeRipple package installation completed"
       else
-        echo "❌ CodeRipple package not found at ../coderipple"
-        echo "📂 Available paths one level up:"
-        ls -la ../
-        echo "📂 Available paths two levels up:"
-        ls -la ../../ 2>/dev/null || echo "Cannot access ../../"
+        echo "❌ CodeRipple package not found at ../../../coderipple"
+        echo "📂 Looking for coderipple directory:"
+        find ../../../ -name "coderipple" -type d -maxdepth 2 2>/dev/null || echo "No coderipple directory found"
+        echo "📂 Available directories at repository root:"
+        ls -la ../../../ | grep "^d"
         exit 1
       fi
       
@@ -682,8 +689,8 @@ except ImportError as e:
       for f in fileset("${path.root}/../../coderipple/src", "*.py") : 
       filemd5("${path.root}/../../coderipple/src/${f}")
     ]))
-    # Force rebuild - fix CodeRipple path (one level up)
-    rebuild_timestamp = "2025-06-26-fix-coderipple-path-one-level-up"
+    # Force rebuild - MDD 013_tuneup_014 final implementation
+    rebuild_timestamp = "2025-06-26T15:15:00-mdd-013-tuneup-014-final"
   }
 }
 
