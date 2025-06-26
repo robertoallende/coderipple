@@ -187,6 +187,9 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **12.3**: [Lambda Function Test](012_testing_003.md) - Component-level validation of Lambda functions and multi-agent coordination (deferred)
   * **12.4**: [Local Testing](012_testing_004.md) - Development environment validation without AWS dependencies (deferred)
 
+* **13**: System Tuneup and Optimization
+  * **13.1**: [Lambda Package Missing CodeRipple Source Code](013_tuneup_001.md) - Fix Terraform deployment to include CodeRipple agent implementations in Lambda package
+
 ### Deployment Status
 
 **AWS Infrastructure:** ✅ Complete

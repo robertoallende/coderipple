@@ -25,6 +25,9 @@ provider "aws" {
   }
 }
 
+# Null provider for local-exec provisioners
+provider "null" {}
+
 # ================================
 # KMS Key for CodeRipple Encryption
 # ================================
@@ -495,24 +498,48 @@ resource "aws_sqs_queue" "lambda_dlq" {
 # ================================
 
 # Data source to create deployment package from lambda_orchestrator
-data "archive_file" "lambda_deployment_package" {
-  type        = "zip"
-  output_path = "${path.module}/lambda_deployment.zip"
-
-  # Include the lambda_orchestrator source code
-  source_dir = "${path.root}/../../aws/lambda_orchestrator"
+# Prepare Lambda package with CodeRipple source
+resource "null_resource" "prepare_lambda_package" {
+  provisioner "local-exec" {
+    command = <<EOF
+      # Create build directory
+      mkdir -p ${path.module}/lambda_build
+      
+      # Copy Lambda handler and requirements
+      cp -r ${path.root}/../../aws/lambda_orchestrator/* ${path.module}/lambda_build/
+      
+      # Copy CodeRipple source code to src/ directory in package
+      mkdir -p ${path.module}/lambda_build/src
+      cp -r ${path.root}/../../coderipple/src/* ${path.module}/lambda_build/src/
+      
+      # Clean up unnecessary files
+      find ${path.module}/lambda_build -name "*.pyc" -delete
+      find ${path.module}/lambda_build -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+      find ${path.module}/lambda_build -name "*.egg-info" -type d -exec rm -rf {} + 2>/dev/null || true
+      rm -rf ${path.module}/lambda_build/tests/ 2>/dev/null || true
+      rm -rf ${path.module}/lambda_build/venv/ 2>/dev/null || true
+      rm -rf ${path.module}/lambda_build/.pytest_cache/ 2>/dev/null || true
+      rm -f ${path.module}/lambda_build/coverage.xml 2>/dev/null || true
+      rm -f ${path.module}/lambda_build/README.md 2>/dev/null || true
+    EOF
+  }
   
-  # Exclude files we don't need in deployment
-  excludes = [
-    "tests/",
-    "venv/",
-    "coverage.xml",
-    "*.pyc",
-    "__pycache__/",
-    "*.egg-info/",
-    ".pytest_cache/",
-    "README.md"
-  ]
+  # Trigger rebuild when source files change
+  triggers = {
+    lambda_handler_hash = filemd5("${path.root}/../../aws/lambda_orchestrator/src/lambda_handler.py")
+    coderipple_agents_hash = sha1(join("", [
+      for f in fileset("${path.root}/../../coderipple/src", "*.py") : 
+      filemd5("${path.root}/../../coderipple/src/${f}")
+    ]))
+  }
+}
+
+data "archive_file" "lambda_deployment_package" {
+  depends_on = [null_resource.prepare_lambda_package]
+  
+  type        = "zip"
+  source_dir  = "${path.module}/lambda_build"
+  output_path = "${path.module}/lambda_deployment.zip"
 }
 
 # Lambda function for CodeRipple orchestration

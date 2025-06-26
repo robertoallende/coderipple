@@ -53,4 +53,6 @@ htmlcov/
 coverage.xml
 
 strands/
+
+infra/terraform/lambda_build/
 infra/terraform/lambda_deployment.zip
