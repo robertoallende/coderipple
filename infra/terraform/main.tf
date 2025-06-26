@@ -532,7 +532,23 @@ resource "null_resource" "prepare_lambda_package" {
       python3 -m pip install -r requirements.txt -t .
       python3 -m pip install -e ${path.root}/../../coderipple -t .
       
-      # Verify package installation
+      # Verify package installation step-by-step
+      echo "🔍 Verifying Lambda package installation..."
+      
+      # Step 1: Verify Strands SDK installation
+      python3 -c "
+import sys
+sys.path.insert(0, '.')
+try:
+    import strands.agent.agent
+    import strands.agent.conversation_manager.sliding_window_conversation_manager
+    print('✅ Strands SDK installation verified')
+except ImportError as e:
+    print(f'❌ Strands SDK import failed: {e}')
+    exit(1)
+"
+      
+      # Step 2: Verify CodeRipple package installation
       python3 -c "
 import sys
 sys.path.insert(0, '.')
@@ -541,11 +557,50 @@ try:
     import coderipple.building_inspector_agent  
     import coderipple.historian_agent
     import coderipple.config
+    import coderipple.git_analysis_tool
     print('✅ CodeRipple package imports successful')
 except ImportError as e:
-    print(f'❌ Package import failed: {e}')
+    print(f'❌ CodeRipple package import failed: {e}')
     exit(1)
 "
+      
+      # Step 3: Verify CodeRipple agent functions
+      python3 -c "
+import sys
+sys.path.insert(0, '.')
+try:
+    from coderipple.tourist_guide_agent import analyze_user_workflow_impact, generate_main_readme, bootstrap_user_documentation
+    from coderipple.building_inspector_agent import analyze_system_changes, write_system_documentation_file, read_existing_system_documentation  
+    from coderipple.historian_agent import analyze_decision_significance, write_decision_documentation_file, read_existing_decision_documentation
+    from coderipple.git_analysis_tool import analyze_git_diff
+    print('✅ CodeRipple agent functions verified')
+except ImportError as e:
+    print(f'❌ CodeRipple agent function import failed: {e}')
+    exit(1)
+"
+      
+      # Step 4: Test basic Strands Agent creation
+      python3 -c "
+import sys
+sys.path.insert(0, '.')
+try:
+    from strands.agent.agent import Agent
+    from strands.agent.conversation_manager.sliding_window_conversation_manager import SlidingWindowConversationManager
+    # Create minimal test agent
+    cm = SlidingWindowConversationManager(window_size=5)
+    agent = Agent(tools=[], system_prompt='test', conversation_manager=cm)
+    print('✅ Strands Agent creation test successful')
+except Exception as e:
+    print(f'❌ Strands Agent creation test failed: {e}')
+    exit(1)
+"
+      
+      # Step 5: Display package structure summary
+      echo "📦 Lambda package structure:"
+      ls -la . | head -20
+      echo "🔍 Total package size:"
+      du -sh .
+      echo "📊 Package verification complete"
       
       # PACKAGE SIZE OPTIMIZATION: Remove unnecessary dependencies
       # Remove image processing libraries (not needed for webhook processing)

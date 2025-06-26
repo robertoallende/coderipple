@@ -231,34 +231,54 @@ def initialize_strands_orchestrator():
     Creates a Strands Agent with specialist agents as tools for Lambda environment.
     """
     try:
-        # Import required modules
+        logger.info("🚀 Starting Strands orchestrator initialization")
+        
+        # Step 1: Test Strands SDK imports
+        logger.info("📦 Attempting Strands SDK imports...")
         from strands.agent.agent import Agent
         from strands.agent.conversation_manager.sliding_window_conversation_manager import SlidingWindowConversationManager
+        logger.info("✅ Strands SDK imports successful")
         
-        # Import CodeRipple agent tools (package-based imports from installed package)
+        # Step 2: Test CodeRipple agent imports
+        logger.info("🔧 Attempting CodeRipple agent imports...")
+        
+        logger.info("  - Importing Tourist Guide agent...")
         from coderipple.tourist_guide_agent import (
             analyze_user_workflow_impact,
             generate_main_readme,
             bootstrap_user_documentation
         )
+        logger.info("  ✅ Tourist Guide agent imports successful")
+        
+        logger.info("  - Importing Building Inspector agent...")
         from coderipple.building_inspector_agent import (
             analyze_system_changes,
             write_system_documentation_file,
             read_existing_system_documentation
         )
+        logger.info("  ✅ Building Inspector agent imports successful")
+        
+        logger.info("  - Importing Historian agent...")
         from coderipple.historian_agent import (
             analyze_decision_significance,
             write_decision_documentation_file,
             read_existing_decision_documentation
         )
-        from coderipple.git_analysis_tool import analyze_git_diff
+        logger.info("  ✅ Historian agent imports successful")
         
-        # Configure conversation manager for Lambda context
+        logger.info("  - Importing Git analysis tool...")
+        from coderipple.git_analysis_tool import analyze_git_diff
+        logger.info("  ✅ Git analysis tool import successful")
+        
+        # Step 3: Test conversation manager creation
+        logger.info("💬 Creating conversation manager...")
         conversation_manager = SlidingWindowConversationManager(
             window_size=10  # Keep recent context within Lambda memory limits
         )
+        logger.info("✅ Conversation manager created successfully")
         
-        # Create orchestrator agent with specialist agents as tools
+        # Step 4: Test agent creation
+        logger.info("🤖 Creating orchestrator agent with tools...")
         orchestrator = Agent(
             tools=[
                 analyze_user_workflow_impact,
@@ -292,16 +312,32 @@ You have access to these specialist agents:
 Process each webhook systematically and ensure all relevant agents contribute to the documentation update.""",
             conversation_manager=conversation_manager
         )
+        logger.info("✅ Orchestrator agent created successfully")
         
-        logger.info("Strands orchestrator initialized successfully")
+        logger.info("🎉 Strands orchestrator initialized successfully")
         return orchestrator
         
     except ImportError as e:
-        logger.error(f"Failed to import required modules: {e}")
-        # Return None to indicate orchestrator unavailable - will be handled in main handler
+        logger.error(f"❌ Import failure: {e}")
+        logger.error(f"Import error type: {type(e).__name__}")
+        logger.error(f"Import error args: {e.args}")
+        # Add sys.path debugging
+        import sys
+        logger.error(f"Python sys.path: {sys.path}")
+        # Try to list available packages
+        try:
+            import os
+            lambda_packages = os.listdir('/var/task')
+            logger.error(f"Available packages in /var/task: {lambda_packages}")
+        except Exception as list_error:
+            logger.error(f"Could not list /var/task contents: {list_error}")
         return None
     except Exception as e:
-        logger.error(f"Failed to initialize Strands orchestrator: {e}")
+        logger.error(f"❌ Orchestrator initialization failure: {e}")
+        logger.error(f"Error type: {type(e).__name__}")
+        logger.error(f"Error args: {e.args}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         return None
 
 
