@@ -520,10 +520,8 @@ resource "null_resource" "prepare_lambda_package" {
     command = <<EOF
       # Directory already exists from placeholder, safe to proceed
       
-      # Create proper src/ module for Lambda handler
-      mkdir -p ${path.module}/lambda_build/src
-      echo "# Lambda handler module" > ${path.module}/lambda_build/src/__init__.py
-      cp ${path.root}/../../aws/lambda_orchestrator/src/lambda_handler.py ${path.module}/lambda_build/src/
+      # Copy Lambda handler to ROOT of build directory (not src/ subdirectory)
+      cp ${path.root}/../../aws/lambda_orchestrator/src/lambda_handler.py ${path.module}/lambda_build/
       
       # Copy package configuration files
       cp ${path.root}/../../aws/lambda_orchestrator/requirements.txt ${path.module}/lambda_build/
@@ -533,6 +531,21 @@ resource "null_resource" "prepare_lambda_package" {
       cd ${path.module}/lambda_build
       python3 -m pip install -r requirements.txt -t .
       python3 -m pip install -e ${path.root}/../../coderipple -t .
+      
+      # Verify package installation
+      python3 -c "
+import sys
+sys.path.insert(0, '.')
+try:
+    import coderipple.tourist_guide_agent
+    import coderipple.building_inspector_agent  
+    import coderipple.historian_agent
+    import coderipple.config
+    print('✅ CodeRipple package imports successful')
+except ImportError as e:
+    print(f'❌ Package import failed: {e}')
+    exit(1)
+"
       
       # PACKAGE SIZE OPTIMIZATION: Remove unnecessary dependencies
       # Remove image processing libraries (not needed for webhook processing)
@@ -609,7 +622,7 @@ resource "aws_lambda_function" "coderipple_orchestrator" {
       # GitHub repository information
       CODERIPPLE_GITHUB_REPO_OWNER = var.github_repo_owner
       CODERIPPLE_GITHUB_REPO_NAME  = var.github_repo_name
-      
+
       # Environment and project info
       CODERIPPLE_ENVIRONMENT = var.environment
       CODERIPPLE_PROJECT     = var.project_name
