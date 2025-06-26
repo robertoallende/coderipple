@@ -235,7 +235,7 @@ def initialize_strands_orchestrator():
         from strands.agent.agent import Agent
         from strands.agent.conversation_manager.sliding_window_conversation_manager import SlidingWindowConversationManager
         
-        # Import CodeRipple agent tools
+        # Import CodeRipple agent tools (direct module imports from installed package)
         from tourist_guide_agent import (
             analyze_user_workflow_impact,
             generate_main_readme,

@@ -520,12 +520,19 @@ resource "null_resource" "prepare_lambda_package" {
     command = <<EOF
       # Directory already exists from placeholder, safe to proceed
       
-      # Copy Lambda handler and requirements
-      cp -r ${path.root}/../../aws/lambda_orchestrator/* ${path.module}/lambda_build/
-      
-      # Copy CodeRipple source code to src/ directory in package
+      # Create proper src/ module for Lambda handler
       mkdir -p ${path.module}/lambda_build/src
-      cp -r ${path.root}/../../coderipple/src/* ${path.module}/lambda_build/src/
+      echo "# Lambda handler module" > ${path.module}/lambda_build/src/__init__.py
+      cp ${path.root}/../../aws/lambda_orchestrator/src/lambda_handler.py ${path.module}/lambda_build/src/
+      
+      # Copy package configuration files
+      cp ${path.root}/../../aws/lambda_orchestrator/requirements.txt ${path.module}/lambda_build/
+      cp ${path.root}/../../aws/lambda_orchestrator/setup.py ${path.module}/lambda_build/ 2>/dev/null || true
+      
+      # Install all dependencies including CodeRipple package
+      cd ${path.module}/lambda_build
+      python3 -m pip install -r requirements.txt -t .
+      python3 -m pip install -e ${path.root}/../../coderipple -t .
       
       # Clean up unnecessary files
       find ${path.module}/lambda_build -name "*.pyc" -delete
