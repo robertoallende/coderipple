@@ -594,7 +594,7 @@ resource "aws_lambda_function" "coderipple_orchestrator" {
   
   # Runtime configuration
   runtime = var.lambda_runtime
-  handler = "src.lambda_handler.lambda_handler"
+  handler = "lambda_handler.lambda_handler"
   
   # Performance configuration for multi-agent processing
   memory_size = var.lambda_memory_size
