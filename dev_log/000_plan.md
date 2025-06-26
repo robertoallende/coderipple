@@ -195,6 +195,7 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **13.5**: [Lambda Handler Import Path Mismatch](013_tuneup_005.md) - Fix package structure to support src.lambda_handler import path with proper Python module organization
   * **13.6**: [Requirements.txt Path Resolution Issue in GitHub Actions](013_tuneup_006.md) - Fix CodeRipple package path resolution in CI environment using Terraform absolute paths
   * **13.7**: [Lambda Package Size and Path Resolution Issues](013_tuneup_007.md) - Fix Terraform path resolution and optimize package size to meet AWS Lambda limits
+  * **13.11**: [Fix CodeRipple Package Path in GitHub Actions](013_tuneup_011.md) - Fix relative path resolution for CodeRipple package installation in GitHub Actions workspace
 
 ### Deployment Status
 

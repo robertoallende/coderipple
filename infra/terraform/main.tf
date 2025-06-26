@@ -530,7 +530,18 @@ resource "null_resource" "prepare_lambda_package" {
       # Install all dependencies including CodeRipple package
       cd ${path.module}/lambda_build
       python3 -m pip install -r requirements.txt -t .
-      python3 -m pip install ${path.root}/../../coderipple -t .
+      
+      # Fix: Use correct relative path to CodeRipple package
+      echo "🔍 Checking CodeRipple package path..."
+      if [ -f "../../../coderipple/setup.py" ]; then
+        echo "✅ CodeRipple package found at ../../../coderipple"
+        python3 -m pip install ../../../coderipple -t .
+      else
+        echo "❌ CodeRipple package not found at ../../../coderipple"
+        echo "📂 Available paths:"
+        ls -la ../../../
+        exit 1
+      fi
       
       # Verify package installation step-by-step
       echo "🔍 Verifying Lambda package installation..."
@@ -553,11 +564,10 @@ except ImportError as e:
 import sys
 sys.path.insert(0, '.')
 try:
-    import coderipple.tourist_guide_agent
-    import coderipple.building_inspector_agent  
-    import coderipple.historian_agent
-    import coderipple.config
-    import coderipple.git_analysis_tool
+    import tourist_guide_agent
+    import building_inspector_agent  
+    import historian_agent
+    import git_analysis_tool
     print('✅ CodeRipple package imports successful')
 except ImportError as e:
     print(f'❌ CodeRipple package import failed: {e}')
@@ -569,9 +579,9 @@ except ImportError as e:
 import sys
 sys.path.insert(0, '.')
 try:
-    from coderipple.tourist_guide_agent import analyze_user_workflow_impact, generate_main_readme, bootstrap_user_documentation
-    from coderipple.building_inspector_agent import analyze_system_changes, write_system_documentation_file, read_existing_system_documentation  
-    from coderipple.historian_agent import analyze_decision_significance, write_decision_documentation_file, read_existing_decision_documentation
+    from tourist_guide_agent import analyze_user_workflow_impact, generate_main_readme, bootstrap_user_documentation
+    from building_inspector_agent import analyze_system_changes, write_system_documentation_file, read_existing_system_documentation  
+    from historian_agent import analyze_decision_significance, write_decision_documentation_file, read_existing_decision_documentation
     from coderipple.git_analysis_tool import analyze_git_diff
     print('✅ CodeRipple agent functions verified')
 except ImportError as e:
