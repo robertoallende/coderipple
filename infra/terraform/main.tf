@@ -585,13 +585,19 @@ except ImportError as e:
 import sys
 sys.path.insert(0, '.')
 try:
-    import tourist_guide_agent
-    import building_inspector_agent  
-    import historian_agent
-    import git_analysis_tool
+    from coderipple import tourist_guide_agent
+    from coderipple import building_inspector_agent  
+    from coderipple import historian_agent
+    from coderipple import git_analysis_tool
     print('✅ CodeRipple package imports successful')
 except ImportError as e:
     print(f'❌ CodeRipple package import failed: {e}')
+    # Debug: Show what's actually installed
+    import os
+    print('📦 Available packages in current directory:')
+    for item in os.listdir('.'):
+        if os.path.isdir(item) and not item.startswith('.'):
+            print(f'  - {item}')
     exit(1)
 "
       
@@ -600,9 +606,9 @@ except ImportError as e:
 import sys
 sys.path.insert(0, '.')
 try:
-    from tourist_guide_agent import analyze_user_workflow_impact, generate_main_readme, bootstrap_user_documentation
-    from building_inspector_agent import analyze_system_changes, write_system_documentation_file, read_existing_system_documentation  
-    from historian_agent import analyze_decision_significance, write_decision_documentation_file, read_existing_decision_documentation
+    from coderipple.tourist_guide_agent import analyze_user_workflow_impact, generate_main_readme, bootstrap_user_documentation
+    from coderipple.building_inspector_agent import analyze_system_changes, write_system_documentation_file, read_existing_system_documentation  
+    from coderipple.historian_agent import analyze_decision_significance, write_decision_documentation_file, read_existing_decision_documentation
     from coderipple.git_analysis_tool import analyze_git_diff
     print('✅ CodeRipple agent functions verified')
 except ImportError as e:
