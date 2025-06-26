@@ -197,6 +197,7 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **13.7**: [Lambda Package Size and Path Resolution Issues](013_tuneup_007.md) - Fix Terraform path resolution and optimize package size to meet AWS Lambda limits
   * **13.11**: [Fix CodeRipple Package Path in GitHub Actions](013_tuneup_011.md) - Fix relative path resolution for CodeRipple package installation in GitHub Actions workspace
   * **13.12**: [Fix Lambda Handler Package-Based Configuration](013_tuneup_012.md) - Fix Lambda handler to properly import from installed CodeRipple and Strands packages
+  * **13.14**: [Fix CodeRipple Package Path Resolution in GitHub Actions](013_tuneup_014.md) - Fix relative path from three levels up to reach repository root where CodeRipple package is located
 
 ### Deployment Status
 
