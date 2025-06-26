@@ -59,6 +59,13 @@ class CodeRippleConfig:
         # Content presentation configuration
         self.show_quality_scores = os.getenv('CODERIPPLE_SHOW_QUALITY_SCORES', 'false').lower() == 'true'
     
+    def _is_lambda_environment(self) -> bool:
+        """Detect if running in AWS Lambda environment"""
+        return (
+            os.environ.get('AWS_LAMBDA_FUNCTION_NAME') is not None or
+            os.environ.get('AWS_EXECUTION_ENV', '').startswith('AWS_Lambda')
+        )
+    
     def _validate_configuration(self):
         """Validate configuration values and raise errors for invalid settings"""
         
@@ -71,12 +78,19 @@ class CodeRippleConfig:
         elif not os.path.isdir(self.source_repo):
             errors.append(f"Source repository path is not a directory: {self.source_repo}")
         
-        # Validate output directory (create if doesn't exist)
-        try:
-            output_path = Path(self.output_dir)
-            output_path.mkdir(parents=True, exist_ok=True)
-        except Exception as e:
-            errors.append(f"Cannot create output directory {self.output_dir}: {str(e)}")
+        # Handle output directory validation based on environment
+        if self._is_lambda_environment():
+            # In Lambda, use /tmp and skip validation
+            self.output_dir = "/tmp/coderipple"
+            # Don't validate directory creation - Lambda will handle it when needed
+            warnings.append("Running in Lambda: using /tmp for output directory")
+        else:
+            # Local development - validate and create directory as normal
+            try:
+                output_path = Path(self.output_dir)
+                output_path.mkdir(parents=True, exist_ok=True)
+            except Exception as e:
+                errors.append(f"Cannot create output directory {self.output_dir}: {str(e)}")
         
         # Validate agents
         valid_agents = {'tourist_guide', 'building_inspector', 'historian'}
