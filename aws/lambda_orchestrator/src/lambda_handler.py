@@ -18,7 +18,7 @@ logger.setLevel(logging.INFO)
 
 # Initialize configuration from environment variables
 try:
-    from config import CodeRippleConfig
+    from coderipple.config import CodeRippleConfig
     config = CodeRippleConfig()
     logger.info("CodeRipple configuration loaded successfully")
 except ImportError as e:
@@ -235,23 +235,23 @@ def initialize_strands_orchestrator():
         from strands.agent.agent import Agent
         from strands.agent.conversation_manager.sliding_window_conversation_manager import SlidingWindowConversationManager
         
-        # Import CodeRipple agent tools (direct module imports from installed package)
-        from tourist_guide_agent import (
+        # Import CodeRipple agent tools (package-based imports from installed package)
+        from coderipple.tourist_guide_agent import (
             analyze_user_workflow_impact,
             generate_main_readme,
             bootstrap_user_documentation
         )
-        from building_inspector_agent import (
+        from coderipple.building_inspector_agent import (
             analyze_system_changes,
             write_system_documentation_file,
             read_existing_system_documentation
         )
-        from historian_agent import (
+        from coderipple.historian_agent import (
             analyze_decision_significance,
             write_decision_documentation_file,
             read_existing_decision_documentation
         )
-        from git_analysis_tool import analyze_git_diff
+        from coderipple.git_analysis_tool import analyze_git_diff
         
         # Configure conversation manager for Lambda context
         conversation_manager = SlidingWindowConversationManager(
