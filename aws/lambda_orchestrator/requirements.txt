@@ -3,7 +3,7 @@ strands-agents==0.1.6
 strands-agents-tools==0.1.4
 
 # CodeRipple multi-agent documentation system
--e ../../coderipple
+-e ../../coderipple/coderipple
 
 # AWS SDK for Lambda runtime and services
 boto3==1.38.32
