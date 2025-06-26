@@ -47,7 +47,7 @@ env:
   TF_VAR_api_gateway_stage: dev
   
   # CloudWatch configuration
-  TF_VAR_log_retention_days: 14
+  # TF_VAR_log_retention_days now managed via GitHub repository secret
 
 jobs:
   terraform:

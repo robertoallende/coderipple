@@ -174,6 +174,8 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **11.4**: [Security Hardening Implementation](011_deployment_004.md) - Address Checkov security vulnerabilities and implement AWS best practices
   * **11.6**: [Advanced Security Hardening](011_deployment_006.md) - Address remaining 17 security issues from Checkov scan
   * **11.7**: [GitHub Actions Variable Name Alignment](011_deployment_007.md) - Fix variable mismatch causing bootstrap to hang
+  * **11.8**: [KMS TagResource Permission Fix](011_deployment_008.md) - Resolve KMS permission error for deployment user during Terraform KMS key creation
+  * **11.9**: [GitHub Actions Variable Management via MCP Servers](011_deployment_009.md) - Resolve TF_VAR_log_retention_days validation error using GitHub and Terraform MCP servers for programmatic DevOps management
   * **11.5**: [Python 3.13 Version Enforcement](011_deployment_005.md) - Enforce Python 3.13 consistency across development, testing, and production environments
 
 ### Deployment Status
