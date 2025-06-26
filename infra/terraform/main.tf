@@ -534,11 +534,27 @@ resource "null_resource" "prepare_lambda_package" {
       python3 -m pip install -r requirements.txt -t .
       python3 -m pip install -e ${path.root}/../../coderipple -t .
       
-      # Clean up unnecessary files
+      # PACKAGE SIZE OPTIMIZATION: Remove unnecessary dependencies
+      # Remove image processing libraries (not needed for webhook processing)
+      rm -rf pillow* PIL* || true
+      
+      # Remove Slack integration libraries (not used in Lambda)
+      rm -rf slack_* || true
+      
+      # Remove symbolic math library (not needed for documentation generation)
+      rm -rf sympy* || true
+      
+      # Remove web server dependencies (not needed in Lambda environment)
+      rm -rf uvicorn* starlette* sse_starlette* || true
+      
+      # Remove additional heavy dependencies not needed for core functionality
+      rm -rf multipart* rich* pygments* || true
+      
+      # Clean up build artifacts and cache files
       find ${path.module}/lambda_build -name "*.pyc" -delete
       find ${path.module}/lambda_build -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
       find ${path.module}/lambda_build -name "*.egg-info" -type d -exec rm -rf {} + 2>/dev/null || true
-      rm -rf ${path.module}/lambda_build/tests/ 2>/dev/null || true
+      find ${path.module}/lambda_build -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true
       rm -rf ${path.module}/lambda_build/venv/ 2>/dev/null || true
       rm -rf ${path.module}/lambda_build/.pytest_cache/ 2>/dev/null || true
       rm -f ${path.module}/lambda_build/coverage.xml 2>/dev/null || true
