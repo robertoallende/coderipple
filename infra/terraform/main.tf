@@ -520,47 +520,19 @@ resource "null_resource" "prepare_lambda_package" {
     command = <<EOF
       # Directory already exists from placeholder, safe to proceed
       
-      # Copy Lambda handler to ROOT of build directory (not src/ subdirectory)
-      echo "🔍 Debugging GitHub Actions directory structure..."
-      echo "📂 Current working directory: $(pwd)"
-      echo "📂 Repository root contents:"
-      find ../../../ -maxdepth 2 -type d | head -20
-      echo "📂 Looking for aws directory:"
-      find ../../../ -name "aws" -type d
-      echo "📂 Looking for lambda_orchestrator:"
-      find ../../../ -name "lambda_orchestrator" -type d
-      echo "📂 Looking for lambda_handler.py:"
-      find ../../../ -name "lambda_handler.py" -type f
-      
-      echo "🔍 Copying Lambda handler file..."
-      if [ -f "../../../aws/lambda_orchestrator/src/lambda_handler.py" ]; then
-        echo "✅ Lambda handler found at ../../../aws/lambda_orchestrator/src/lambda_handler.py"
-        cp ../../../aws/lambda_orchestrator/src/lambda_handler.py .
-        echo "✅ Lambda handler copied to package root"
+      # Copy Lambda handler to ROOT of build directory (using original working path)
+      echo "🔍 Copying Lambda handler with original working path..."
+      if [ -f "${path.root}/../../aws/lambda_orchestrator/src/lambda_handler.py" ]; then
+        echo "✅ Lambda handler found at original path"
+        cp ${path.root}/../../aws/lambda_orchestrator/src/lambda_handler.py ${path.module}/lambda_build/
+        echo "✅ Lambda handler copied successfully"
       else
-        echo "❌ Lambda handler not found at ../../../aws/lambda_orchestrator/src/lambda_handler.py"
-        echo "📂 Trying alternative paths..."
-        
-        # Try different possible paths
-        for path in "../../../aws/lambda_orchestrator/src/lambda_handler.py" \
-                   "../../aws/lambda_orchestrator/src/lambda_handler.py" \
-                   "../../../../aws/lambda_orchestrator/src/lambda_handler.py"; do
-          if [ -f "$path" ]; then
-            echo "✅ Found Lambda handler at: $path"
-            cp "$path" .
-            echo "✅ Lambda handler copied successfully"
-            break
-          else
-            echo "❌ Not found at: $path"
-          fi
-        done
-        
-        # If still not found, show what we have
-        if [ ! -f "lambda_handler.py" ]; then
-          echo "❌ Lambda handler still not found. Available files:"
-          find ../../../ -name "*.py" | grep -i lambda | head -10
-          exit 1
-        fi
+        echo "❌ Lambda handler not found at original path"
+        echo "📂 Debugging paths:"
+        echo "path.root = ${path.root}"
+        echo "path.module = ${path.module}"
+        ls -la ${path.root}/../../ 2>/dev/null || echo "Cannot access path.root/../.."
+        exit 1
       fi
       
       # Copy package configuration files
@@ -571,15 +543,15 @@ resource "null_resource" "prepare_lambda_package" {
       cd ${path.module}/lambda_build
       python3 -m pip install -r requirements.txt -t .
       
-      # Fix: Use correct relative path to CodeRipple package
-      echo "🔍 Checking CodeRipple package path..."
-      if [ -f "../../../coderipple/setup.py" ]; then
-        echo "✅ CodeRipple package found at ../../../coderipple"
-        python3 -m pip install ../../../coderipple -t .
+      # Fix: Use Terraform path variables for CodeRipple package (revert to working approach)
+      echo "🔍 Installing CodeRipple package with Terraform path variables..."
+      if [ -f "${path.root}/../../coderipple/setup.py" ]; then
+        echo "✅ CodeRipple package found at ${path.root}/../../coderipple"
+        python3 -m pip install ${path.root}/../../coderipple -t .
       else
-        echo "❌ CodeRipple package not found at ../../../coderipple"
+        echo "❌ CodeRipple package not found at ${path.root}/../../coderipple"
         echo "📂 Available paths:"
-        ls -la ../../../
+        ls -la ${path.root}/../../
         exit 1
       fi
       
@@ -708,8 +680,8 @@ except ImportError as e:
       for f in fileset("${path.root}/../../coderipple/src", "*.py") : 
       filemd5("${path.root}/../../coderipple/src/${f}")
     ]))
-    # Force rebuild after MDD 013_tuneup_012 debug
-    rebuild_timestamp = "2025-06-26-013-tuneup-012-debug-paths"
+    # Force rebuild - revert to original working paths
+    rebuild_timestamp = "2025-06-26-revert-to-working-paths"
   }
 }
 
