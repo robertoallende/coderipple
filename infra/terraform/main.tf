@@ -28,6 +28,9 @@ provider "aws" {
 # Null provider for local-exec provisioners
 provider "null" {}
 
+# Local provider for file operations
+provider "local" {}
+
 # ================================
 # KMS Key for CodeRipple Encryption
 # ================================
@@ -498,12 +501,24 @@ resource "aws_sqs_queue" "lambda_dlq" {
 # ================================
 
 # Data source to create deployment package from lambda_orchestrator
+# Create build directory structure before package assembly
+resource "local_file" "lambda_build_placeholder" {
+  content  = "# Lambda build directory placeholder - ensures directory exists for Terraform archive operation"
+  filename = "${path.module}/lambda_build/.terraform_placeholder"
+  
+  # Ensure directory exists before creating placeholder file
+  provisioner "local-exec" {
+    command = "mkdir -p ${path.module}/lambda_build"
+  }
+}
+
 # Prepare Lambda package with CodeRipple source
 resource "null_resource" "prepare_lambda_package" {
+  depends_on = [local_file.lambda_build_placeholder]
+  
   provisioner "local-exec" {
     command = <<EOF
-      # Create build directory
-      mkdir -p ${path.module}/lambda_build
+      # Directory already exists from placeholder, safe to proceed
       
       # Copy Lambda handler and requirements
       cp -r ${path.root}/../../aws/lambda_orchestrator/* ${path.module}/lambda_build/
@@ -535,7 +550,10 @@ resource "null_resource" "prepare_lambda_package" {
 }
 
 data "archive_file" "lambda_deployment_package" {
-  depends_on = [null_resource.prepare_lambda_package]
+  depends_on = [
+    local_file.lambda_build_placeholder,
+    null_resource.prepare_lambda_package
+  ]
   
   type        = "zip"
   source_dir  = "${path.module}/lambda_build"

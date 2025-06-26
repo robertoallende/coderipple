@@ -191,6 +191,7 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **13.1**: [Lambda Package Missing CodeRipple Source Code](013_tuneup_001.md) - Fix Terraform deployment to include CodeRipple agent implementations in Lambda package
   * **13.2**: [Lambda Read-Only Filesystem Configuration Issue](013_tuneup_002.md) - Fix CodeRippleConfig directory creation failing on Lambda's read-only filesystem
   * **13.3**: [Missing Strands SDK in Lambda Package](013_tuneup_003.md) - Bundle AWS Strands SDK to enable multi-agent orchestration in Lambda environment
+  * **13.4**: [Terraform Archive Creation Dependency Issue](013_tuneup_004.md) - Fix Terraform dependency timing where archive_file tries to read non-existent lambda_build directory
 
 ### Deployment Status
 
