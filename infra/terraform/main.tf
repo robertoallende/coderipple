@@ -521,7 +521,17 @@ resource "null_resource" "prepare_lambda_package" {
       # Directory already exists from placeholder, safe to proceed
       
       # Copy Lambda handler to ROOT of build directory (not src/ subdirectory)
-      cp ${path.root}/../../aws/lambda_orchestrator/src/lambda_handler.py ${path.module}/lambda_build/
+      echo "🔍 Copying Lambda handler file..."
+      if [ -f "../../../aws/lambda_orchestrator/src/lambda_handler.py" ]; then
+        echo "✅ Lambda handler found at ../../../aws/lambda_orchestrator/src/lambda_handler.py"
+        cp ../../../aws/lambda_orchestrator/src/lambda_handler.py .
+        echo "✅ Lambda handler copied to package root"
+      else
+        echo "❌ Lambda handler not found at ../../../aws/lambda_orchestrator/src/lambda_handler.py"
+        echo "📂 Available paths:"
+        ls -la ../../../aws/lambda_orchestrator/src/
+        exit 1
+      fi
       
       # Copy package configuration files
       cp ${path.root}/../../aws/lambda_orchestrator/requirements.txt ${path.module}/lambda_build/
@@ -605,7 +615,28 @@ except Exception as e:
     exit(1)
 "
       
-      # Step 5: Display package structure summary
+      # Step 5: Verify Lambda handler can import from packages
+      echo "🔍 Testing Lambda handler package imports..."
+      python3 -c "
+import sys
+sys.path.insert(0, '.')
+try:
+    import lambda_handler
+    print('✅ lambda_handler module loads successfully')
+    
+    # Check if handler has the main function
+    if hasattr(lambda_handler, 'lambda_handler'):
+        print('✅ lambda_handler function found')
+    else:
+        print('❌ lambda_handler function not found in module')
+        exit(1)
+        
+except ImportError as e:
+    print(f'❌ lambda_handler import failed: {e}')
+    exit(1)
+"
+      
+      # Step 6: Display package structure summary
       echo "📦 Lambda package structure:"
       ls -la . | head -20
       echo "🔍 Total package size:"
