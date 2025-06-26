@@ -678,8 +678,8 @@ except ImportError as e:
       for f in fileset("${path.root}/../../coderipple/src", "*.py") : 
       filemd5("${path.root}/../../coderipple/src/${f}")
     ]))
-    # Force rebuild after MDD 013_tuneup_009 fix
-    rebuild_timestamp = "2025-06-26-013-tuneup-009-fix"
+    # Force rebuild after MDD 013_tuneup_012 fix
+    rebuild_timestamp = "2025-06-26-013-tuneup-012-handler-fix"
   }
 }
 
