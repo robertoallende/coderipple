@@ -543,15 +543,17 @@ resource "null_resource" "prepare_lambda_package" {
       cd ${path.module}/lambda_build
       python3 -m pip install -r requirements.txt -t .
       
-      # Fix: Use Terraform path variables for CodeRipple package (revert to working approach)
-      echo "🔍 Installing CodeRipple package with Terraform path variables..."
-      if [ -f "${path.root}/../../coderipple/setup.py" ]; then
-        echo "✅ CodeRipple package found at ${path.root}/../../coderipple"
-        python3 -m pip install ${path.root}/../../coderipple -t .
+      # Fix: Use correct CodeRipple package path (one level up from terraform)
+      echo "🔍 Installing CodeRipple package with correct path..."
+      if [ -f "../coderipple/setup.py" ]; then
+        echo "✅ CodeRipple package found at ../coderipple"
+        python3 -m pip install ../coderipple -t .
       else
-        echo "❌ CodeRipple package not found at ${path.root}/../../coderipple"
-        echo "📂 Available paths:"
-        ls -la ${path.root}/../../
+        echo "❌ CodeRipple package not found at ../coderipple"
+        echo "📂 Available paths one level up:"
+        ls -la ../
+        echo "📂 Available paths two levels up:"
+        ls -la ../../ 2>/dev/null || echo "Cannot access ../../"
         exit 1
       fi
       
@@ -680,8 +682,8 @@ except ImportError as e:
       for f in fileset("${path.root}/../../coderipple/src", "*.py") : 
       filemd5("${path.root}/../../coderipple/src/${f}")
     ]))
-    # Force rebuild - revert to original working paths
-    rebuild_timestamp = "2025-06-26-revert-to-working-paths"
+    # Force rebuild - fix CodeRipple path (one level up)
+    rebuild_timestamp = "2025-06-26-fix-coderipple-path-one-level-up"
   }
 }
 
