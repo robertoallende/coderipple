@@ -211,7 +211,7 @@ def test_enhance_decision_updates_with_bedrock():
         }
     
     # Patch the function temporarily
-    import historian_agent
+    from coderipple import historian_agent
     original_enhance = getattr(historian_agent, 'enhance_content_with_bedrock', None)
     historian_agent.enhance_content_with_bedrock = mock_enhance_content_with_bedrock
     

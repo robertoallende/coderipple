@@ -574,7 +574,7 @@ index 1234567..abcdefg 100644
         import sys
         
         # Load the module as a script to trigger __main__
-        spec = importlib.util.spec_from_file_location("__main__", "src/git_analysis_tool.py")
+        spec = importlib.util.spec_from_file_location("__main__", "src/coderipple/git_analysis_tool.py")
         module = importlib.util.module_from_spec(spec)
         
         # Set up the environment as if it's the main module

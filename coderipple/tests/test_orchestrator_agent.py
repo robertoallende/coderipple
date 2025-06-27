@@ -59,13 +59,13 @@ class TestOrchestrationDataClasses(unittest.TestCase):
 class TestOrchestratorAgent(unittest.TestCase):
     """Test main orchestrator agent function."""
     
-    @patch('orchestrator_agent.GitHubWebhookParser')
-    @patch('orchestrator_agent.analyze_git_diff')
-    @patch('orchestrator_agent.initialize_shared_context')
-    @patch('orchestrator_agent._check_and_bootstrap_user_documentation')
-    @patch('orchestrator_agent._apply_decision_tree')
-    @patch('orchestrator_agent._execute_selected_agents')
-    @patch('orchestrator_agent.get_documentation_status')
+    @patch('coderipple.orchestrator_agent.GitHubWebhookParser')
+    @patch('coderipple.orchestrator_agent.analyze_git_diff')
+    @patch('coderipple.orchestrator_agent.initialize_shared_context')
+    @patch('coderipple.orchestrator_agent._check_and_bootstrap_user_documentation')
+    @patch('coderipple.orchestrator_agent._apply_decision_tree')
+    @patch('coderipple.orchestrator_agent._execute_selected_agents')
+    @patch('coderipple.orchestrator_agent.get_documentation_status')
     def test_orchestrator_agent_success(self, mock_doc_status, mock_execute, mock_decision_tree,
                                        mock_bootstrap, mock_init_context, mock_git_analysis,
                                        mock_parser_class):
@@ -118,7 +118,7 @@ class TestOrchestratorAgent(unittest.TestCase):
         mock_parser.enrich_commits_with_diff_data.assert_called_once()
         mock_git_analysis.assert_called_once_with('sample diff')
     
-    @patch('orchestrator_agent.GitHubWebhookParser')
+    @patch('coderipple.orchestrator_agent.GitHubWebhookParser')
     def test_orchestrator_agent_webhook_parse_failure(self, mock_parser_class):
         """Test orchestrator agent with webhook parsing failure."""
         mock_parser = MagicMock()
@@ -133,13 +133,13 @@ class TestOrchestratorAgent(unittest.TestCase):
         self.assertEqual(result.agent_decisions, [])
         self.assertIn('Failed to parse', result.summary)
     
-    @patch('orchestrator_agent.GitHubWebhookParser')
-    @patch('orchestrator_agent.analyze_git_diff')
-    @patch('orchestrator_agent.initialize_shared_context')
-    @patch('orchestrator_agent._check_and_bootstrap_user_documentation')
-    @patch('orchestrator_agent._apply_decision_tree')
-    @patch('orchestrator_agent._execute_selected_agents')
-    @patch('orchestrator_agent.get_documentation_status')
+    @patch('coderipple.orchestrator_agent.GitHubWebhookParser')
+    @patch('coderipple.orchestrator_agent.analyze_git_diff')
+    @patch('coderipple.orchestrator_agent.initialize_shared_context')
+    @patch('coderipple.orchestrator_agent._check_and_bootstrap_user_documentation')
+    @patch('coderipple.orchestrator_agent._apply_decision_tree')
+    @patch('coderipple.orchestrator_agent._execute_selected_agents')
+    @patch('coderipple.orchestrator_agent.get_documentation_status')
     def test_orchestrator_agent_no_diff_data(self, mock_doc_status, mock_execute, mock_decision_tree,
                                             mock_bootstrap, mock_init_context, mock_git_analysis,
                                             mock_parser_class):
@@ -369,9 +369,9 @@ class TestAgentInvocationLogic(unittest.TestCase):
 class TestAgentExecution(unittest.TestCase):
     """Test agent execution logic."""
     
-    @patch('orchestrator_agent.tourist_guide_agent')
-    @patch('orchestrator_agent.building_inspector_agent')
-    @patch('orchestrator_agent.historian_agent')
+    @patch('coderipple.orchestrator_agent.tourist_guide_agent')
+    @patch('coderipple.orchestrator_agent.building_inspector_agent')
+    @patch('coderipple.orchestrator_agent.historian_agent')
     def test_execute_selected_agents_success(self, mock_historian, mock_inspector, mock_tourist):
         """Test successful execution of selected agents."""
         # Mock agent responses
@@ -404,7 +404,7 @@ class TestAgentExecution(unittest.TestCase):
         self.assertIn('building_inspector', results)
         self.assertIn('historian', results)
     
-    @patch('orchestrator_agent.tourist_guide_agent')
+    @patch('coderipple.orchestrator_agent.tourist_guide_agent')
     def test_execute_selected_agents_error_handling(self, mock_tourist):
         """Test error handling in agent execution."""
         # Mock agent to raise exception
@@ -528,7 +528,7 @@ class TestSummaryGeneration(unittest.TestCase):
 class TestBootstrapFunctionality(unittest.TestCase):
     """Test bootstrap functionality."""
     
-    @patch('orchestrator_agent.check_user_documentation_completeness')
+    @patch('coderipple.orchestrator_agent.check_user_documentation_completeness')
     def test_check_and_bootstrap_complete_documentation(self, mock_check):
         """Test bootstrap when documentation is already complete."""
         mock_check.return_value = {
@@ -546,8 +546,8 @@ class TestBootstrapFunctionality(unittest.TestCase):
         self.assertEqual(result['action_taken'], 'No action needed')
         self.assertIn('complete', result['message'])
     
-    @patch('orchestrator_agent.check_user_documentation_completeness')
-    @patch('orchestrator_agent.bootstrap_user_documentation')
+    @patch('coderipple.orchestrator_agent.check_user_documentation_completeness')
+    @patch('coderipple.orchestrator_agent.bootstrap_user_documentation')
     def test_check_and_bootstrap_incomplete_documentation(self, mock_bootstrap, mock_check):
         """Test bootstrap when documentation is incomplete."""
         mock_check.return_value = {
@@ -574,7 +574,7 @@ class TestBootstrapFunctionality(unittest.TestCase):
         # Verify bootstrap was called
         mock_bootstrap.assert_called_once()
     
-    @patch('orchestrator_agent.check_user_documentation_completeness')
+    @patch('coderipple.orchestrator_agent.check_user_documentation_completeness')
     def test_check_and_bootstrap_check_failure(self, mock_check):
         """Test bootstrap when completeness check fails."""
         mock_check.return_value = {
@@ -588,8 +588,8 @@ class TestBootstrapFunctionality(unittest.TestCase):
         self.assertFalse(result['bootstrap_triggered'])
         self.assertIn('Failed to check user documentation completeness', result['message'])
     
-    @patch('orchestrator_agent.check_user_documentation_completeness')
-    @patch('orchestrator_agent.bootstrap_user_documentation')
+    @patch('coderipple.orchestrator_agent.check_user_documentation_completeness')
+    @patch('coderipple.orchestrator_agent.bootstrap_user_documentation')
     def test_check_and_bootstrap_bootstrap_failure(self, mock_bootstrap, mock_check):
         """Test bootstrap when bootstrap process fails."""
         mock_check.return_value = {
@@ -613,7 +613,7 @@ class TestBootstrapFunctionality(unittest.TestCase):
         self.assertIn('Bootstrap failed', result['message'])
         self.assertIn('errors', result)
     
-    @patch('orchestrator_agent.check_user_documentation_completeness')
+    @patch('coderipple.orchestrator_agent.check_user_documentation_completeness')
     def test_check_and_bootstrap_exception_handling(self, mock_check):
         """Test bootstrap exception handling."""
         mock_check.side_effect = Exception('Unexpected error')

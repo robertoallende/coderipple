@@ -118,7 +118,7 @@ def test_readme_generation():
     }
     
     # Mock the _discover_all_documentation function
-    with patch('tourist_guide_agent._discover_all_documentation', return_value=mock_docs):
+    with patch('coderipple.tourist_guide_agent._discover_all_documentation', return_value=mock_docs):
         # Generate README
         readme_result = generate_main_readme("test-repo", "https://github.com/user/test-repo")
         

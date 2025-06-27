@@ -1,0 +1,1195 @@
+{
+  "timestamp": "2025-06-27T23:23:28.283367",
+  "environment": {
+    "python_version": "3.13.3 (main, Apr  8 2025, 13:54:08) [Clang 16.0.0 (clang-1600.0.26.6)]",
+    "python_executable": "/opt/homebrew/opt/python@3.13/bin/python3.13",
+    "current_working_directory": "/Users/robertoallende/code/coderipple/coderipple",
+    "python_path": [
+      "/Users/robertoallende/code/coderipple/coderipple/tests",
+      "/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python313.zip",
+      "/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13",
+      "/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13/lib-dynload",
+      "/opt/homebrew/lib/python3.13/site-packages",
+      "/Users/robertoallende/code/coderipple/coderipple/src"
+    ],
+    "environment_variables": {
+      "PATH": "/Users/robertoallende/.rbenv/shims:/Users/robertoallende/.rbenv/bin:/Users/robertoallende/flutter/bin/cache/dart-sdk/bin:/opt/homebrew/opt/node@20/bin:/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Users/robertoallende/.local/bin:/Users/robertoallende/Development/flutter/bin:/tools:/tools/bin:/platform-tools:/opt/bin:/Users/robertoallende/.pub-cache/bin"
+    }
+  },
+  "package_structure": {
+    "coderipple_installed": true,
+    "coderipple_location": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/__init__.py",
+    "coderipple_version": "1.0.0",
+    "available_modules": [
+      "coderipple.agent_context_flow",
+      "coderipple.bedrock_integration_tools",
+      "coderipple.building_inspector_agent",
+      "coderipple.config",
+      "coderipple.content_aware_update_logic",
+      "coderipple.content_deduplication_tools",
+      "coderipple.content_generation_tools",
+      "coderipple.content_validation_tools",
+      "coderipple.existing_content_discovery_tool",
+      "coderipple.git_analysis_tool",
+      "coderipple.historian_agent",
+      "coderipple.orchestrator_agent",
+      "coderipple.quality_alignment_tools",
+      "coderipple.real_diff_integration_tools",
+      "coderipple.source_code_analysis_tool",
+      "coderipple.tourist_guide_agent",
+      "coderipple.webhook_parser"
+    ],
+    "required_files": {
+      "src/coderipple/__init__.py": true,
+      "src/coderipple/orchestrator_agent.py": true,
+      "src/coderipple/tourist_guide_agent.py": true,
+      "src/coderipple/building_inspector_agent.py": true,
+      "src/coderipple/historian_agent.py": true,
+      "setup.py": true
+    },
+    "package_integrity": true
+  },
+  "imports": {
+    "successful_imports": [
+      "coderipple.orchestrator_agent",
+      "coderipple.tourist_guide_agent",
+      "coderipple.building_inspector_agent",
+      "coderipple.historian_agent",
+      "coderipple.webhook_parser",
+      "coderipple.git_analysis_tool",
+      "coderipple.config",
+      "coderipple.content_generation_tools",
+      "coderipple.content_validation_tools",
+      "coderipple.bedrock_integration_tools",
+      "coderipple.source_code_analysis_tool",
+      "coderipple.existing_content_discovery_tool",
+      "coderipple.agent_context_flow",
+      "coderipple.content_aware_update_logic",
+      "coderipple.real_diff_integration_tools",
+      "coderipple.content_deduplication_tools",
+      "coderipple.quality_alignment_tools"
+    ],
+    "failed_imports": [],
+    "import_details": {
+      "coderipple.orchestrator_agent": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/orchestrator_agent.py",
+        "functions": [
+          "Agent",
+          "AgentDecision",
+          "Any",
+          "Dict",
+          "GitHubWebhookParser",
+          "List",
+          "Optional",
+          "OrchestrationResult",
+          "WebhookEvent",
+          "analyze_git_diff",
+          "bootstrap_user_documentation",
+          "building_inspector_agent",
+          "check_user_documentation_completeness",
+          "dataclass",
+          "get_documentation_status",
+          "historian_agent",
+          "initialize_shared_context",
+          "orchestrator_agent",
+          "tourist_guide_agent"
+        ]
+      },
+      "coderipple.tourist_guide_agent": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/tourist_guide_agent.py",
+        "functions": [
+          "Any",
+          "CodeExample",
+          "Dict",
+          "DocumentationFocus",
+          "DocumentationUpdate",
+          "List",
+          "Optional",
+          "TouristGuideResult",
+          "USER_DOCUMENTATION_STRUCTURE",
+          "WebhookEvent",
+          "add_global_insight",
+          "align_and_validate_content_quality",
+          "analyze_change_patterns",
+          "analyze_content_gaps",
+          "analyze_project_context_for_content_generation",
+          "analyze_user_workflow_impact",
+          "bootstrap_user_documentation",
+          "check_documentation_consistency",
+          "check_user_documentation_completeness",
+          "dataclass",
+          "deduplicate_content",
+          "deduplication_available",
+          "enforce_quality_standards",
+          "enhance_content_with_bedrock",
+          "enhance_generic_content_with_context",
+          "extract_code_examples_from_diff",
+          "generate_context_aware_content",
+          "generate_context_rich_content",
+          "generate_dynamic_examples",
+          "generate_main_readme",
+          "get_agent_state",
+          "get_config",
+          "get_current_capabilities",
+          "get_documentation_path",
+          "os",
+          "read_existing_documentation",
+          "register_agent_state",
+          "remove_quality_annotations",
+          "suggest_cross_references",
+          "tool",
+          "tourist_guide_agent",
+          "update_readme_navigation",
+          "validate_and_improve_content",
+          "validate_documentation_quality",
+          "validate_documentation_quality_detailed",
+          "validate_with_partial_success",
+          "validate_with_progressive_quality",
+          "write_documentation_file"
+        ]
+      },
+      "coderipple.building_inspector_agent": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/building_inspector_agent.py",
+        "functions": [
+          "Any",
+          "BuildingInspectorResult",
+          "Dict",
+          "List",
+          "Optional",
+          "SystemDocumentationUpdate",
+          "WebhookEvent",
+          "analyze_content_gaps",
+          "analyze_system_changes",
+          "building_inspector_agent",
+          "check_documentation_consistency",
+          "dataclass",
+          "enforce_quality_standards",
+          "enhance_content_with_bedrock",
+          "generate_context_rich_content",
+          "generate_dynamic_examples",
+          "get_agent_state",
+          "get_config",
+          "get_documentation_path",
+          "os",
+          "read_existing_system_documentation",
+          "register_agent_state",
+          "suggest_cross_references",
+          "tool",
+          "validate_and_improve_content",
+          "validate_documentation_quality",
+          "write_system_documentation_file"
+        ]
+      },
+      "coderipple.historian_agent": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/historian_agent.py",
+        "functions": [
+          "Any",
+          "DecisionDocumentationUpdate",
+          "Dict",
+          "HistorianResult",
+          "List",
+          "Optional",
+          "WebhookEvent",
+          "analyze_content_gaps",
+          "analyze_decision_significance",
+          "check_documentation_consistency",
+          "dataclass",
+          "enforce_quality_standards",
+          "enhance_content_with_bedrock",
+          "generate_dynamic_examples",
+          "get_agent_state",
+          "get_config",
+          "get_documentation_path",
+          "historian_agent",
+          "os",
+          "read_existing_decision_documentation",
+          "register_agent_state",
+          "suggest_cross_references",
+          "tool",
+          "validate_and_improve_content",
+          "validate_documentation_quality",
+          "write_decision_documentation_file"
+        ]
+      },
+      "coderipple.webhook_parser": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/webhook_parser.py",
+        "functions": [
+          "CommitInfo",
+          "Dict",
+          "GitHubWebhookParser",
+          "List",
+          "Optional",
+          "WebhookEvent",
+          "dataclass",
+          "datetime",
+          "json",
+          "logger",
+          "logging",
+          "process_webhook",
+          "urllib"
+        ]
+      },
+      "coderipple.git_analysis_tool": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/git_analysis_tool.py",
+        "functions": [
+          "Any",
+          "Dict",
+          "List",
+          "analyze_git_diff",
+          "json",
+          "re",
+          "test_tool_directly",
+          "tool"
+        ]
+      },
+      "coderipple.config": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/config.py",
+        "functions": [
+          "Any",
+          "CodeRippleConfig",
+          "Dict",
+          "Optional",
+          "Path",
+          "configure_for_testing",
+          "get_config",
+          "get_documentation_path",
+          "get_output_dir",
+          "get_source_repo",
+          "os",
+          "reload_config"
+        ]
+      },
+      "coderipple.content_generation_tools": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/content_generation_tools.py",
+        "functions": [
+          "Any",
+          "CodeExample",
+          "Dict",
+          "DocumentationFocus",
+          "List",
+          "Optional",
+          "analyze_change_patterns",
+          "dataclass",
+          "enhance_generic_content_with_context",
+          "extract_code_examples_from_diff",
+          "generate_api_documentation_from_diff",
+          "generate_context_aware_content",
+          "generate_context_rich_content",
+          "generate_migration_guide_from_diff",
+          "generate_targeted_content_from_diff",
+          "re",
+          "tool"
+        ]
+      },
+      "coderipple.content_validation_tools": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/content_validation_tools.py",
+        "functions": [
+          "Any",
+          "CodeExample",
+          "ContentValidator",
+          "CrossReference",
+          "DetailedValidationResult",
+          "Dict",
+          "List",
+          "MarkdownIt",
+          "Optional",
+          "PartialSuccessResult",
+          "Path",
+          "ProgressiveValidationResult",
+          "SectionValidationResult",
+          "Tuple",
+          "ValidationResult",
+          "align_and_validate_content_quality",
+          "ast",
+          "dataclass",
+          "enforce_quality_standards",
+          "field",
+          "get_config",
+          "os",
+          "re",
+          "subprocess",
+          "tool",
+          "validate_and_improve_content",
+          "validate_documentation_quality",
+          "validate_documentation_quality_detailed",
+          "validate_with_partial_success",
+          "validate_with_progressive_quality"
+        ]
+      },
+      "coderipple.bedrock_integration_tools": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/bedrock_integration_tools.py",
+        "functions": [
+          "Any",
+          "ConsistencyCheck",
+          "ContentEnhancement",
+          "Dict",
+          "DynamicExample",
+          "List",
+          "Optional",
+          "analyze_content_gaps",
+          "boto3",
+          "check_documentation_consistency",
+          "dataclass",
+          "enhance_content_with_bedrock",
+          "generate_dynamic_examples",
+          "json",
+          "logger",
+          "logging",
+          "tool"
+        ]
+      },
+      "coderipple.source_code_analysis_tool": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/source_code_analysis_tool.py",
+        "functions": [
+          "Any",
+          "CodeEntity",
+          "Dict",
+          "List",
+          "Optional",
+          "Path",
+          "ProjectAnalysis",
+          "SourceCodeAnalyzer",
+          "analyze_source_code",
+          "ast",
+          "dataclass",
+          "os",
+          "re",
+          "tool"
+        ]
+      },
+      "coderipple.existing_content_discovery_tool": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/existing_content_discovery_tool.py",
+        "functions": [
+          "Any",
+          "Dict",
+          "DocumentationFile",
+          "DocumentationGap",
+          "DocumentationSection",
+          "DocumentationState",
+          "ExistingContentAnalyzer",
+          "List",
+          "Optional",
+          "Path",
+          "Set",
+          "analyze_existing_content",
+          "dataclass",
+          "get_config",
+          "get_output_dir",
+          "hashlib",
+          "os",
+          "re",
+          "tool"
+        ]
+      },
+      "coderipple.agent_context_flow": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/agent_context_flow.py",
+        "functions": [
+          "AgentState",
+          "Any",
+          "Dict",
+          "List",
+          "Optional",
+          "SharedContext",
+          "add_global_insight",
+          "asdict",
+          "dataclass",
+          "datetime",
+          "get_agent_state",
+          "get_cross_agent_references",
+          "get_current_capabilities",
+          "get_documentation_status",
+          "initialize_shared_context",
+          "json",
+          "os",
+          "register_agent_state",
+          "suggest_cross_references",
+          "tool"
+        ]
+      },
+      "coderipple.content_aware_update_logic": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/content_aware_update_logic.py",
+        "functions": [
+          "Any",
+          "ContentAwareUpdater",
+          "ContentUpdate",
+          "Dict",
+          "List",
+          "Optional",
+          "Path",
+          "Tuple",
+          "UpdateDecision",
+          "analyze_content_duplication",
+          "apply_content_aware_updates",
+          "dataclass",
+          "deduplicate_content",
+          "deduplication_available",
+          "os",
+          "re",
+          "remove_quality_annotations",
+          "tool"
+        ]
+      },
+      "coderipple.real_diff_integration_tools": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/real_diff_integration_tools.py",
+        "functions": [
+          "Any",
+          "ClassChange",
+          "CodeChange",
+          "Dict",
+          "DiffAnalysisResult",
+          "FunctionChange",
+          "GitDiffParser",
+          "ImportChange",
+          "List",
+          "Optional",
+          "Set",
+          "Tuple",
+          "ast",
+          "dataclass",
+          "extract_specific_changes",
+          "field",
+          "generate_code_examples_from_diff",
+          "generate_file_specific_documentation",
+          "re",
+          "tool"
+        ]
+      },
+      "coderipple.content_deduplication_tools": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/content_deduplication_tools.py",
+        "functions": [
+          "ContentSection",
+          "DeduplicationAnalysis",
+          "Dict",
+          "DuplicationResult",
+          "List",
+          "Optional",
+          "Set",
+          "Tuple",
+          "analyze_content_duplication",
+          "dataclass",
+          "deduplicate_content",
+          "difflib",
+          "re",
+          "remove_quality_annotations",
+          "tool"
+        ]
+      },
+      "coderipple.quality_alignment_tools": {
+        "status": "success",
+        "file_path": "/Users/robertoallende/code/coderipple/coderipple/src/coderipple/quality_alignment_tools.py",
+        "functions": [
+          "Any",
+          "Dict",
+          "List",
+          "Optional",
+          "QualityAlignment",
+          "Tuple",
+          "UnifiedQualityMetrics",
+          "align_quality_scores",
+          "boto3",
+          "calibrate_scoring_systems",
+          "dataclass",
+          "json",
+          "logger",
+          "logging",
+          "re",
+          "tool"
+        ]
+      }
+    }
+  },
+  "test_files": {
+    "total_files": 32,
+    "validated_files": 23,
+    "files_with_issues": [
+      "tests/test_orchestrator_agent.py",
+      "tests/test_git_analysis_tool.py",
+      "tests/test_historian_agent.py",
+      "tests/test_building_inspector_agent.py",
+      "tests/test_tourist_guide_agent.py",
+      "tests/test_config_integration.py",
+      "tests/test_fixed_readme.py",
+      "examples/test_tourist_guide_bedrock.py",
+      "examples/simple_bedrock_demo.py"
+    ],
+    "import_patterns": {
+      "correct_patterns": 45,
+      "incorrect_patterns": 5,
+      "legacy_patterns": [
+        "tourist_guide_agent",
+        "building_inspector_agent",
+        "historian_agent",
+        "tourist_guide_agent",
+        "tourist_guide_agent"
+      ]
+    },
+    "file_details": {
+      "tests/test_real_diff_integration_tools.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 1,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "tests/test_orchestrator_agent.py": {
+        "syntax_valid": true,
+        "has_issues": true,
+        "correct_imports": 1,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [
+          "coderipple.orchestrator_agent.GitHubWebhookParser",
+          "coderipple.orchestrator_agent.analyze_git_diff",
+          "coderipple.orchestrator_agent.initialize_shared_context",
+          "coderipple.orchestrator_agent._check_and_bootstrap_user_documentation",
+          "coderipple.orchestrator_agent._apply_decision_tree",
+          "coderipple.orchestrator_agent._execute_selected_agents",
+          "coderipple.orchestrator_agent.get_documentation_status",
+          "coderipple.orchestrator_agent.GitHubWebhookParser",
+          "coderipple.orchestrator_agent.GitHubWebhookParser",
+          "coderipple.orchestrator_agent.analyze_git_diff",
+          "coderipple.orchestrator_agent.initialize_shared_context",
+          "coderipple.orchestrator_agent._check_and_bootstrap_user_documentation",
+          "coderipple.orchestrator_agent._apply_decision_tree",
+          "coderipple.orchestrator_agent._execute_selected_agents",
+          "coderipple.orchestrator_agent.get_documentation_status",
+          "coderipple.orchestrator_agent.tourist_guide_agent",
+          "coderipple.orchestrator_agent.building_inspector_agent",
+          "coderipple.orchestrator_agent.historian_agent",
+          "coderipple.orchestrator_agent.tourist_guide_agent",
+          "coderipple.orchestrator_agent.check_user_documentation_completeness",
+          "coderipple.orchestrator_agent.check_user_documentation_completeness",
+          "coderipple.orchestrator_agent.bootstrap_user_documentation",
+          "coderipple.orchestrator_agent.check_user_documentation_completeness",
+          "coderipple.orchestrator_agent.check_user_documentation_completeness",
+          "coderipple.orchestrator_agent.bootstrap_user_documentation",
+          "coderipple.orchestrator_agent.check_user_documentation_completeness"
+        ],
+        "file_references": [
+          "src/cli.py",
+          "src/main.py"
+        ],
+        "issues": [
+          "Incorrect file reference: src/cli.py",
+          "Incorrect file reference: src/main.py"
+        ]
+      },
+      "tests/test_content_aware_update_logic.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 1,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "tests/test_source_code_analysis_tool.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 1,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "tests/test_pre_validation.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 0,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [
+          "{patch}"
+        ],
+        "file_references": [],
+        "issues": []
+      },
+      "tests/test_bedrock_integration_tools.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 1,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [
+          "boto3.client",
+          "boto3.client",
+          "boto3.client",
+          "boto3.client",
+          "boto3.client",
+          "boto3.client"
+        ],
+        "file_references": [],
+        "issues": []
+      },
+      "tests/test_git_analysis_tool.py": {
+        "syntax_valid": true,
+        "has_issues": true,
+        "correct_imports": 1,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [
+          "builtins.print",
+          "builtins.print"
+        ],
+        "file_references": [
+          "src/api.py",
+          "src/api.py",
+          "src/api.py",
+          "src/models.py",
+          "src/utils.py",
+          "src/api.py",
+          "file1.py",
+          "file2.py",
+          "file3.py",
+          "file4.py",
+          "file5.py",
+          "src/test.py",
+          "src/coderipple/git_analysis_tool.py",
+          ".py"
+        ],
+        "issues": [
+          "Incorrect file reference: src/api.py",
+          "Incorrect file reference: src/api.py",
+          "Incorrect file reference: src/api.py",
+          "Incorrect file reference: src/models.py",
+          "Incorrect file reference: src/utils.py",
+          "Incorrect file reference: src/api.py",
+          "Incorrect file reference: src/test.py"
+        ]
+      },
+      "tests/test_historian_agent.py": {
+        "syntax_valid": true,
+        "has_issues": true,
+        "correct_imports": 6,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [
+          "src/auth/new_auth.py",
+          "src/main.py",
+          "src/auth/auth.py",
+          "src/auth/old_auth.py",
+          "src/auth.py",
+          "src/main.py",
+          "src/auth.py",
+          "src/main.py",
+          "src/auth.py, src/main.py",
+          "src/auth.py, src/main.py",
+          "Test utility functions in historian_agent.py"
+        ],
+        "issues": [
+          "Incorrect file reference: src/auth/new_auth.py",
+          "Incorrect file reference: src/main.py",
+          "Incorrect file reference: src/auth/auth.py",
+          "Incorrect file reference: src/auth/old_auth.py",
+          "Incorrect file reference: src/auth.py",
+          "Incorrect file reference: src/main.py",
+          "Incorrect file reference: src/auth.py",
+          "Incorrect file reference: src/main.py",
+          "Incorrect file reference: src/auth.py, src/main.py",
+          "Incorrect file reference: src/auth.py, src/main.py"
+        ]
+      },
+      "tests/test_agent_context_flow.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 1,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "tests/test_content_deduplication_integration.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 0,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "tests/test_building_inspector_agent.py": {
+        "syntax_valid": true,
+        "has_issues": true,
+        "correct_imports": 5,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [
+          "src/cli.py",
+          "src/auth.py",
+          "src/main.py",
+          "src/main.py",
+          "src/auth.py",
+          "test/test_auth.py"
+        ],
+        "issues": [
+          "Incorrect file reference: src/cli.py",
+          "Incorrect file reference: src/auth.py",
+          "Incorrect file reference: src/main.py",
+          "Incorrect file reference: src/main.py",
+          "Incorrect file reference: src/auth.py"
+        ]
+      },
+      "tests/test_tourist_guide_agent_fixed.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 2,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "tests/test_tourist_guide_agent.py": {
+        "syntax_valid": true,
+        "has_issues": true,
+        "correct_imports": 3,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [
+          "src/cli.py",
+          "src/main.py"
+        ],
+        "issues": [
+          "Incorrect file reference: src/cli.py",
+          "Incorrect file reference: src/main.py"
+        ]
+      },
+      "tests/test_quality_alignment_tools.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 1,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "tests/test_webhook_parser.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 1,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [
+          "file1.py",
+          "file2.py",
+          "file3.py",
+          "file1.py",
+          "file2.py",
+          "file3.py",
+          "new.py",
+          "existing.py",
+          "old.py",
+          "new.py",
+          "existing.py",
+          "old.py",
+          "file1.py",
+          "file2.py",
+          "file3.py",
+          "file2.py",
+          "file4.py",
+          "file1.py",
+          "file2.py",
+          "file3.py",
+          "file4.py"
+        ],
+        "issues": []
+      },
+      "tests/test_existing_content_discovery_tool.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 1,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "tests/test_config.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 0,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "tests/test_config_integration.py": {
+        "syntax_valid": true,
+        "has_issues": true,
+        "correct_imports": 0,
+        "incorrect_imports": 4,
+        "legacy_patterns": [
+          "tourist_guide_agent",
+          "building_inspector_agent",
+          "historian_agent",
+          "tourist_guide_agent"
+        ],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": [
+          "Legacy import pattern: from tourist_guide_agent import",
+          "Legacy import pattern: from building_inspector_agent import",
+          "Legacy import pattern: from historian_agent import",
+          "Legacy import pattern: from tourist_guide_agent import"
+        ]
+      },
+      "tests/test_config_compatibility.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 0,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "tests/test_readme_generation_simple.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 0,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "tests/test_fixed_readme.py": {
+        "syntax_valid": true,
+        "has_issues": true,
+        "correct_imports": 0,
+        "incorrect_imports": 1,
+        "legacy_patterns": [
+          "tourist_guide_agent"
+        ],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": [
+          "Legacy import pattern: from tourist_guide_agent import"
+        ]
+      },
+      "tests/test_import_diagnostics_standalone.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 2,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "tests/test_content_generation_tools.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 1,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "tests/test_content_validation_tools.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 5,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [
+          "python src/webhook_parser.py\\npython run_coderipple.py"
+        ],
+        "issues": []
+      },
+      "tests/test_import_diagnostics.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 2,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "examples/test_webhook.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 1,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "examples/test_bedrock_demo.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 1,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "examples/test_tourist_guide_bedrock.py": {
+        "syntax_valid": true,
+        "has_issues": true,
+        "correct_imports": 2,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [
+          "src/bedrock_integration_tools.py",
+          "src/tourist_guide_agent.py"
+        ],
+        "issues": [
+          "Incorrect file reference: src/bedrock_integration_tools.py",
+          "Incorrect file reference: src/tourist_guide_agent.py"
+        ]
+      },
+      "examples/test_git_agent.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 2,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": []
+      },
+      "examples/simple_bedrock_demo.py": {
+        "syntax_valid": false,
+        "has_issues": true,
+        "correct_imports": 0,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [],
+        "issues": [
+          "Syntax error: unmatched ')' (<unknown>, line 13)"
+        ]
+      },
+      "examples/test_edge_cases.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 1,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [],
+        "file_references": [
+          "diff --git a/src/large_file.py b/src/large_file.py",
+          "--- a/src/large_file.py",
+          "+++ b/src/large_file.py"
+        ],
+        "issues": []
+      },
+      "examples/test_bedrock_mock_demo.py": {
+        "syntax_valid": true,
+        "has_issues": false,
+        "correct_imports": 2,
+        "incorrect_imports": 0,
+        "legacy_patterns": [],
+        "mock_patches": [
+          "boto3.client",
+          "boto3.client"
+        ],
+        "file_references": [],
+        "issues": []
+      }
+    }
+  },
+  "mock_targets": {
+    "total_patches": 35,
+    "valid_patches": 34,
+    "invalid_patches": [
+      "{patch}"
+    ],
+    "patch_details": {
+      "coderipple.orchestrator_agent.GitHubWebhookParser": {
+        "file": "tests/test_orchestrator_agent.py",
+        "valid": true
+      },
+      "coderipple.orchestrator_agent.analyze_git_diff": {
+        "file": "tests/test_orchestrator_agent.py",
+        "valid": true
+      },
+      "coderipple.orchestrator_agent.initialize_shared_context": {
+        "file": "tests/test_orchestrator_agent.py",
+        "valid": true
+      },
+      "coderipple.orchestrator_agent._check_and_bootstrap_user_documentation": {
+        "file": "tests/test_orchestrator_agent.py",
+        "valid": true
+      },
+      "coderipple.orchestrator_agent._apply_decision_tree": {
+        "file": "tests/test_orchestrator_agent.py",
+        "valid": true
+      },
+      "coderipple.orchestrator_agent._execute_selected_agents": {
+        "file": "tests/test_orchestrator_agent.py",
+        "valid": true
+      },
+      "coderipple.orchestrator_agent.get_documentation_status": {
+        "file": "tests/test_orchestrator_agent.py",
+        "valid": true
+      },
+      "coderipple.orchestrator_agent.tourist_guide_agent": {
+        "file": "tests/test_orchestrator_agent.py",
+        "valid": true
+      },
+      "coderipple.orchestrator_agent.building_inspector_agent": {
+        "file": "tests/test_orchestrator_agent.py",
+        "valid": true
+      },
+      "coderipple.orchestrator_agent.historian_agent": {
+        "file": "tests/test_orchestrator_agent.py",
+        "valid": true
+      },
+      "coderipple.orchestrator_agent.check_user_documentation_completeness": {
+        "file": "tests/test_orchestrator_agent.py",
+        "valid": true
+      },
+      "coderipple.orchestrator_agent.bootstrap_user_documentation": {
+        "file": "tests/test_orchestrator_agent.py",
+        "valid": true
+      },
+      "{patch}": {
+        "file": "tests/test_pre_validation.py",
+        "valid": false
+      },
+      "boto3.client": {
+        "file": "tests/test_bedrock_integration_tools.py",
+        "valid": true
+      },
+      "builtins.print": {
+        "file": "tests/test_git_analysis_tool.py",
+        "valid": true
+      }
+    }
+  },
+  "file_paths": {
+    "total_references": 29,
+    "valid_references": 1,
+    "invalid_references": [
+      "src/cli.py",
+      "src/main.py",
+      "src/api.py",
+      "src/api.py",
+      "src/api.py",
+      "src/models.py",
+      "src/utils.py",
+      "src/api.py",
+      "src/test.py",
+      "src/auth/new_auth.py",
+      "src/main.py",
+      "src/auth/auth.py",
+      "src/auth/old_auth.py",
+      "src/auth.py",
+      "src/main.py",
+      "src/auth.py",
+      "src/main.py",
+      "src/auth.py, src/main.py",
+      "src/auth.py, src/main.py",
+      "src/cli.py",
+      "src/auth.py",
+      "src/main.py",
+      "src/main.py",
+      "src/auth.py",
+      "test/test_auth.py",
+      "src/cli.py",
+      "src/main.py",
+      "python src/webhook_parser.py\\npython run_coderipple.py"
+    ],
+    "reference_details": {
+      "src/cli.py": {
+        "file": "tests/test_tourist_guide_agent.py",
+        "exists": false
+      },
+      "src/main.py": {
+        "file": "tests/test_tourist_guide_agent.py",
+        "exists": false
+      },
+      "src/api.py": {
+        "file": "tests/test_git_analysis_tool.py",
+        "exists": false
+      },
+      "src/models.py": {
+        "file": "tests/test_git_analysis_tool.py",
+        "exists": false
+      },
+      "src/utils.py": {
+        "file": "tests/test_git_analysis_tool.py",
+        "exists": false
+      },
+      "src/test.py": {
+        "file": "tests/test_git_analysis_tool.py",
+        "exists": false
+      },
+      "src/coderipple/git_analysis_tool.py": {
+        "file": "tests/test_git_analysis_tool.py",
+        "exists": true
+      },
+      "src/auth/new_auth.py": {
+        "file": "tests/test_historian_agent.py",
+        "exists": false
+      },
+      "src/auth/auth.py": {
+        "file": "tests/test_historian_agent.py",
+        "exists": false
+      },
+      "src/auth/old_auth.py": {
+        "file": "tests/test_historian_agent.py",
+        "exists": false
+      },
+      "src/auth.py": {
+        "file": "tests/test_building_inspector_agent.py",
+        "exists": false
+      },
+      "src/auth.py, src/main.py": {
+        "file": "tests/test_historian_agent.py",
+        "exists": false
+      },
+      "test/test_auth.py": {
+        "file": "tests/test_building_inspector_agent.py",
+        "exists": false
+      },
+      "python src/webhook_parser.py\\npython run_coderipple.py": {
+        "file": "tests/test_content_validation_tools.py",
+        "exists": false
+      }
+    }
+  },
+  "summary": {
+    "total_errors": 0,
+    "total_warnings": 0,
+    "validation_passed": true,
+    "timestamp": "2025-06-27T23:23:28.611027"
+  }
+}

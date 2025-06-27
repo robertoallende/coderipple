@@ -162,7 +162,7 @@ def test_enhance_system_updates_with_bedrock():
         }
     
     # Patch the function temporarily
-    import building_inspector_agent
+    from coderipple import building_inspector_agent
     original_enhance = getattr(building_inspector_agent, 'enhance_content_with_bedrock', None)
     building_inspector_agent.enhance_content_with_bedrock = mock_enhance_content_with_bedrock
     
