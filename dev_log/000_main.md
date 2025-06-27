@@ -200,13 +200,14 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **13.14**: [Fix CodeRipple Package Path Resolution in GitHub Actions](013_tuneup_014.md) - Fix relative path from three levels up to reach repository root where CodeRipple package is located
 
 * **14**: Lambda Layers Architecture and Enhanced CI/CD Implementation
-  * **14.1**: [Layer Architecture Design and Planning](014_layers_002.md) - Layer structure design for CodeRipple ecosystem with dependency analysis and Terraform configuration planning
-  * **14.2**: [Enhanced CI/CD Testing Framework](014_layers_003.md) - Comprehensive validation pipeline with Python environment testing, dependency resolution, and detailed debugging framework
-  * **14.3**: [CodeRipple Dependencies Layer Implementation](014_layers_004.md) - External dependencies layer creation with build scripts, automation, and comprehensive validation
-  * **14.4**: [CodeRipple Package Layer Implementation](014_layers_005.md) - Custom CodeRipple package layer with agent modules packaging and CI/CD integration
-  * **14.5**: [Lambda Function Refactoring for Layers](014_layers_006.md) - Single Lambda function refactored to use layers, eliminating package bundling complexity while maintaining proven architecture
-  * **14.6**: [Production Testing and Optimization](014_layers_007.md) - Performance testing, resource optimization, and monitoring setup for single Lambda with layers
-  * **14.7**: [Production Deployment and Validation](014_layers_008.md) - Layer deployment to production with end-to-end testing, performance assessment, and rollback procedures
+  * **14.1**: [Layer Architecture Design and Planning](014_layers_003.md) - Layer structure design for CodeRipple ecosystem with dependency analysis and Terraform configuration planning
+  * **14.2**: [Import Path Resolution and Diagnostic Testing Framework](014_layers_002.md) - Fix GitHub Actions CI/CD import errors with comprehensive diagnostic testing and standardized import patterns
+  * **14.3**: [Enhanced CI/CD Testing Framework](014_layers_004.md) - Comprehensive validation pipeline with Python environment testing, dependency resolution, and detailed debugging framework
+  * **14.4**: [CodeRipple Dependencies Layer Implementation](014_layers_005.md) - External dependencies layer creation with build scripts, automation, and comprehensive validation
+  * **14.5**: [CodeRipple Package Layer Implementation](014_layers_006.md) - Custom CodeRipple package layer with agent modules packaging and CI/CD integration
+  * **14.6**: [Lambda Function Refactoring for Layers](014_layers_007.md) - Single Lambda function refactored to use layers, eliminating package bundling complexity while maintaining proven architecture
+  * **14.7**: [Production Testing and Optimization](014_layers_008.md) - Performance testing, resource optimization, and monitoring setup for single Lambda with layers
+  * **14.8**: [Production Deployment and Validation](014_layers_009.md) - Layer deployment to production with end-to-end testing, performance assessment, and rollback procedures
 
 ### Deployment Status
 
