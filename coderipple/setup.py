@@ -20,7 +20,8 @@ setup(
         "python-dateutil>=2.9.0",
         "httpx>=0.28.1",
         "tenacity>=9.1.2",
-        "markdown-it-py>=3.0.0"
+        "markdown-it-py>=3.0.0",
+        "strands-agents>=0.1.6"
     ],
     extras_require={
         "dev": [
