@@ -11,9 +11,6 @@ import sys
 import os
 from dataclasses import dataclass
 from typing import Dict, Any, List, Optional
-
-, '..', 'src'))
-
 from coderipple.orchestrator_agent import (
     orchestrator_agent,
     AgentDecision,

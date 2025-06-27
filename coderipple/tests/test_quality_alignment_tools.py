@@ -9,9 +9,6 @@ import unittest
 from unittest.mock import patch, MagicMock
 import sys
 import os
-
-, '..', 'src'))
-
 from coderipple.quality_alignment_tools import (
     align_quality_scores,
     calibrate_scoring_systems,

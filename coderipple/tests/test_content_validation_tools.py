@@ -11,11 +11,8 @@ import tempfile
 import shutil
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-
 # Import the modules to test
 import sys
-, '..', 'src'))
-
 from coderipple.content_validation_tools import (
     ContentValidator,
     ValidationResult,
@@ -90,7 +87,6 @@ Here's a Python example:
 ```python
 import os
 from coderipple.webhook_parser import WebhookEvent
-
 def process_webhook(payload):
     return WebhookEvent.parse(payload)
 ```
@@ -436,7 +432,6 @@ class WebhookEvent:
         
         (self.project_dir / 'src' / 'content_validation_tools.py').write_text('''
 from strands import tool
-
 @tool
 def validate_documentation_quality(content):
     """Validate documentation quality."""
@@ -540,7 +535,6 @@ class TestIntegration(unittest.TestCase):
         (self.project_dir / 'src' / 'main.py').write_text('''
 from strands import Agent
 from coderipple.webhook_parser import parse_webhook
-
 def main():
     """Main application entry point."""
     agent = Agent()
@@ -579,7 +573,6 @@ CodeRipple is a multi-agent documentation system that automatically maintains so
 ```python
 from coderipple.webhook_parser import parse_webhook
 from strands import Agent
-
 # Main processing flow
 def process_changes(webhook_payload):
     event = parse_webhook(webhook_payload)

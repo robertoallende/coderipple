@@ -10,11 +10,8 @@ import unittest
 import tempfile
 import shutil
 from pathlib import Path
-
 # Import the modules to test
 import sys
-, '..', 'src'))
-
 from coderipple.real_diff_integration_tools import (
     GitDiffParser,
     CodeChange,

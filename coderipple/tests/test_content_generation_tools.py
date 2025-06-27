@@ -9,9 +9,6 @@ import unittest
 from unittest.mock import patch, MagicMock
 import sys
 import os
-
-, '..', 'src'))
-
 from coderipple.content_generation_tools import (
     analyze_change_patterns,
     extract_code_examples_from_diff,

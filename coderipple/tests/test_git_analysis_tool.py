@@ -9,9 +9,6 @@ import unittest
 from unittest.mock import patch, MagicMock
 import sys
 import os
-
-, '..', 'src'))
-
 from coderipple.git_analysis_tool import (
     analyze_git_diff,
     _extract_affected_files,

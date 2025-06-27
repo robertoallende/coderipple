@@ -9,9 +9,6 @@ import unittest
 from unittest.mock import patch, MagicMock
 import sys
 import os
-
-, '..', 'src'))
-
 from coderipple.bedrock_integration_tools import (
     enhance_content_with_bedrock,
     check_documentation_consistency,
