@@ -10,12 +10,8 @@ import sys
 import os
 from datetime import datetime
 
-# Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-from tourist_guide_agent import _enhance_updates_with_bedrock, DocumentationUpdate
-from webhook_parser import WebhookEvent, CommitInfo
-
+from coderipple.tourist_guide_agent import _enhance_updates_with_bedrock, DocumentationUpdate
+from coderipple.webhook_parser import WebhookEvent, CommitInfo
 
 def create_sample_webhook_event():
     """Create a sample webhook event for testing"""
@@ -36,7 +32,6 @@ def create_sample_webhook_event():
         branch="main",
         commits=[commit]
     )
-
 
 def test_tourist_guide_bedrock_enhancement():
     """Test the Tourist Guide agent with Bedrock enhancement"""
@@ -163,7 +158,6 @@ The system has agents that do different things.""",
     print("  • User engagement")
     print("  • Code examples and structure")
 
-
 def test_bedrock_tool_directly():
     """Test the Bedrock tools directly"""
     print("\n🔧 Direct Bedrock Tool Test")
@@ -192,7 +186,6 @@ def test_bedrock_tool_directly():
             
     except Exception as e:
         print(f"❌ Direct tool test error: {str(e)}")
-
 
 if __name__ == "__main__":
     test_tourist_guide_bedrock_enhancement()

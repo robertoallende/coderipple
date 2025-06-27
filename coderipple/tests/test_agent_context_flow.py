@@ -9,7 +9,7 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from agent_context_flow import (
+from coderipple.agent_context_flow import (
     initialize_shared_context,
     register_agent_state,
     get_agent_state,
@@ -20,7 +20,6 @@ from agent_context_flow import (
     get_documentation_status,
     _reset_shared_context
 )
-
 
 def test_context_initialization():
     """Test shared context initialization"""
@@ -43,7 +42,6 @@ def test_context_initialization():
     assert result['agents_ready'] == 0, f"Expected 0 agents initially, got {result['agents_ready']}"
     
     print("   ✓ Context initialization working")
-
 
 def test_agent_state_registration():
     """Test agent state registration and retrieval"""
@@ -80,7 +78,6 @@ def test_agent_state_registration():
     assert len(agent_state['generated_files']) == 1, f"Expected 1 generated file"
     
     print("   ✓ Agent state registration and retrieval working")
-
 
 def test_capability_consolidation():
     """Test consolidation of capabilities across agents"""
@@ -130,7 +127,6 @@ def test_capability_consolidation():
     
     print("   ✓ Capability consolidation working")
 
-
 def test_cross_references():
     """Test cross-reference functionality"""
     
@@ -178,7 +174,6 @@ def test_cross_references():
     
     print("   ✓ Cross-references working")
 
-
 def test_suggestion_system():
     """Test cross-reference suggestion system"""
     
@@ -220,7 +215,6 @@ def test_suggestion_system():
     
     print("   ✓ Suggestion system working")
 
-
 def test_global_insights():
     """Test global insight sharing"""
     
@@ -258,7 +252,6 @@ def test_global_insights():
         assert 'building_inspector' in insight or 'tourist_guide' in insight, f"Insight missing source: {insight}"
     
     print("   ✓ Global insights working")
-
 
 def test_documentation_status():
     """Test comprehensive documentation status"""
@@ -310,7 +303,6 @@ def test_documentation_status():
     
     print("   ✓ Documentation status working")
 
-
 def run_all_tests():
     """Run all context flow tests"""
     
@@ -335,7 +327,6 @@ def run_all_tests():
         import traceback
         traceback.print_exc()
         return False
-
 
 if __name__ == "__main__":
     success = run_all_tests()

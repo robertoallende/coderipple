@@ -17,8 +17,7 @@ mock_strands = MagicMock()
 mock_strands.tool = lambda func: func
 sys.modules['strands'] = mock_strands
 
-from source_code_analysis_tool import analyze_source_code, SourceCodeAnalyzer
-
+from coderipple.source_code_analysis_tool import analyze_source_code, SourceCodeAnalyzer
 
 class TestSourceCodeAnalysisTool(unittest.TestCase):
     """Test the source code analysis tool functionality"""
@@ -127,7 +126,6 @@ class TestSourceCodeAnalysisTool(unittest.TestCase):
         self.assertEqual(result['project_name'], 'unknown')
         self.assertIn('Unable to analyze', result['main_purpose'])
 
-
 class TestSourceCodeAnalyzer(unittest.TestCase):
     """Test the SourceCodeAnalyzer class directly"""
     
@@ -173,7 +171,6 @@ class TestSourceCodeAnalyzer(unittest.TestCase):
         agent_modules = [m for m in modules if 'agent' in m]
         self.assertGreater(len(agent_modules), 0)
 
-
 class TestSourceCodeAnalysisSuccessCriteria(unittest.TestCase):
     """Validate that source code analysis functionality meets requirements"""
     
@@ -211,7 +208,6 @@ class TestSourceCodeAnalysisSuccessCriteria(unittest.TestCase):
         
         # This level of understanding should enable agents to generate
         # meaningful documentation instead of generic content
-
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -9,10 +9,9 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from historian_agent import historian_agent
-from webhook_parser import CommitInfo, WebhookEvent
+from coderipple.historian_agent import historian_agent
+from coderipple.webhook_parser import CommitInfo, WebhookEvent
 from datetime import datetime
-
 
 def test_historian():
     """Test the Historian agent with sample data"""
@@ -68,14 +67,13 @@ def test_historian():
         print(f"   Reason: {update.reason}")
         print(f"   Content Preview: {update.content[:100]}...")
 
-
 def test_generate_decision_content_for_section():
     """Test the _generate_decision_content_for_section function covering lines 473-619"""
     import sys
     import os
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-    from historian_agent import _generate_decision_content_for_section
-    from webhook_parser import CommitInfo, WebhookEvent
+    from coderipple.historian_agent import _generate_decision_content_for_section
+    from coderipple.webhook_parser import CommitInfo, WebhookEvent
     from datetime import datetime
     
     print("\nTesting _generate_decision_content_for_section...")
@@ -168,13 +166,12 @@ def test_generate_decision_content_for_section():
     assert "Decision context preserved for refactor changes" in default_content
     print("✓ Default section test passed")
 
-
 def test_enhance_decision_updates_with_bedrock():
     """Test the _enhance_decision_updates_with_bedrock function covering lines 689-750"""
     import sys
     import os
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-    from historian_agent import _enhance_decision_updates_with_bedrock, DecisionDocumentationUpdate
+    from coderipple.historian_agent import _enhance_decision_updates_with_bedrock, DecisionDocumentationUpdate
     
     print("\nTesting _enhance_decision_updates_with_bedrock...")
     
@@ -251,13 +248,12 @@ def test_enhance_decision_updates_with_bedrock():
         if original_enhance:
             historian_agent.enhance_content_with_bedrock = original_enhance
 
-
 def test_helper_functions():
     """Test utility functions in historian_agent.py"""
     import sys
     import os
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-    from historian_agent import _get_current_timestamp, _calculate_decision_priority
+    from coderipple.historian_agent import _get_current_timestamp, _calculate_decision_priority
     
     print("\nTesting helper functions...")
     
@@ -272,7 +268,6 @@ def test_helper_functions():
     assert isinstance(priority, int)
     assert 1 <= priority <= 3  # Should return valid priority
     print("✓ Priority calculation test passed")
-
 
 if __name__ == "__main__":
     test_historian()

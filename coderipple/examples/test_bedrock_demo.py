@@ -18,16 +18,12 @@ import os
 import json
 from datetime import datetime
 
-# Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-from bedrock_integration_tools import (
+from coderipple.bedrock_integration_tools import (
     enhance_content_with_bedrock,
     check_documentation_consistency,
     generate_dynamic_examples,
     analyze_content_gaps
 )
-
 
 def test_content_enhancement():
     """Test content enhancement with real Bedrock API call"""
@@ -76,7 +72,6 @@ You can use it to do various tasks.
         print(f"❌ Error during enhancement: {str(e)}")
     
     print("\n" + "=" * 70 + "\n")
-
 
 def test_consistency_checking():
     """Test documentation consistency checking"""
@@ -138,7 +133,6 @@ The React frontend was selected for component reusability."""
     
     print("\n" + "=" * 70 + "\n")
 
-
 def test_dynamic_examples():
     """Test dynamic code example generation"""
     print("💡 Testing Dynamic Example Generation...")
@@ -193,7 +187,6 @@ def test_dynamic_examples():
         print(f"❌ Error during example generation: {str(e)}")
     
     print("\n" + "=" * 70 + "\n")
-
 
 def test_content_gaps():
     """Test content gap analysis"""
@@ -263,7 +256,6 @@ Run the system with Python.
     
     print("\n" + "=" * 70 + "\n")
 
-
 def main():
     """Run all Bedrock integration tests"""
     print("🤖 CodeRipple Bedrock Integration Demo")
@@ -296,7 +288,6 @@ def main():
     print("2. Check consistency recommendations") 
     print("3. Use generated examples in your documentation")
     print("4. Address identified content gaps")
-
 
 if __name__ == "__main__":
     main()

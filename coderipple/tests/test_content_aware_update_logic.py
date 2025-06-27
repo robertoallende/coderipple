@@ -19,8 +19,7 @@ mock_strands = MagicMock()
 mock_strands.tool = lambda func: func
 sys.modules['strands'] = mock_strands
 
-from content_aware_update_logic import apply_content_aware_updates, ContentAwareUpdater
-
+from coderipple.content_aware_update_logic import apply_content_aware_updates, ContentAwareUpdater
 
 class TestContentAwareUpdateLogic(unittest.TestCase):
     """Test the content-aware update logic functionality"""
@@ -282,7 +281,6 @@ class TestContentAwareUpdateLogic(unittest.TestCase):
             content = result['content_updates'][0]['new_content']
             self.assertIn('new_feature', content.lower())
 
-
 class TestContentAwareUpdater(unittest.TestCase):
     """Test the ContentAwareUpdater class directly"""
     
@@ -333,7 +331,6 @@ class TestContentAwareUpdater(unittest.TestCase):
         
         filename = self.updater._determine_target_filename('refactor', ['src/arch.py'], 'system')
         self.assertTrue(filename.endswith('.md'))
-
 
 class TestContentAwareUpdateCriteria(unittest.TestCase):
     """Validate that content-aware update functionality meets requirements"""
@@ -445,7 +442,6 @@ class TestContentAwareUpdateCriteria(unittest.TestCase):
         print(f"   ✓ WHEN no existing content: source analysis foundation used")
         
         # This level of intelligence enables agents to enhance rather than replace
-
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

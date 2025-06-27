@@ -2,10 +2,7 @@
 import sys
 import os
 
-# Add the src directory to Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-from webhook_parser import process_webhook
+from coderipple.webhook_parser import process_webhook
 
 def main():
     if len(sys.argv) < 3 or len(sys.argv) > 4:

@@ -10,10 +10,9 @@ from unittest.mock import patch, MagicMock
 import sys
 import os
 
-# Add src directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+, '..', 'src'))
 
-from git_analysis_tool import (
+from coderipple.git_analysis_tool import (
     analyze_git_diff,
     _extract_affected_files,
     _determine_change_type,
@@ -21,7 +20,6 @@ from git_analysis_tool import (
     _generate_summary,
     test_tool_directly
 )
-
 
 class TestGitAnalysisTool(unittest.TestCase):
     """Test the main git analysis tool function."""
@@ -213,7 +211,6 @@ index 2345678..bcdefgh 100644
         self.assertIn('src/models.py', result['affected_components'])
         self.assertGreater(len(result['affected_components']), 1)
 
-
 class TestExtractAffectedFiles(unittest.TestCase):
     """Test file extraction from git diffs."""
 
@@ -316,7 +313,6 @@ index 1234567..abcdefg 100644
         
         # Should only appear once despite multiple references
         self.assertEqual(files.count('src/file.py'), 1)
-
 
 class TestDetermineChangeType(unittest.TestCase):
     """Test change type determination logic."""
@@ -433,7 +429,6 @@ index 1234567..abcdefg 100644
         
         self.assertEqual(change_type, 'refactor')
 
-
 class TestCalculateConfidence(unittest.TestCase):
     """Test confidence score calculation."""
 
@@ -492,7 +487,6 @@ class TestCalculateConfidence(unittest.TestCase):
         self.assertGreaterEqual(confidence_low, 0.0)
         self.assertLessEqual(confidence_low, 1.0)
 
-
 class TestGenerateSummary(unittest.TestCase):
     """Test summary generation."""
 
@@ -535,7 +529,6 @@ class TestGenerateSummary(unittest.TestCase):
         for change_type in ['feature', 'bugfix', 'refactor', 'test', 'docs']:
             summary = _generate_summary("diff", change_type, files)
             self.assertIn(change_type, summary)
-
 
 class TestDirectTesting(unittest.TestCase):
     """Test the direct testing functionality."""
@@ -602,7 +595,6 @@ index 1234567..abcdefg 100644
         # The print mock should have been called (indicating test_tool_directly ran)
         self.assertTrue(mock_print.called)
 
-
 class TestEdgeCases(unittest.TestCase):
     """Test edge cases and error conditions."""
 
@@ -666,7 +658,6 @@ Binary files a/image.png and b/image.png differ
         # Should handle binary files
         self.assertIsInstance(result, dict)
         self.assertIn('image.png', result['affected_components'])
-
 
 if __name__ == '__main__':
     unittest.main()

@@ -10,10 +10,9 @@ from unittest.mock import patch, MagicMock
 import sys
 import os
 
-# Add src directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+, '..', 'src'))
 
-from quality_alignment_tools import (
+from coderipple.quality_alignment_tools import (
     align_quality_scores,
     calibrate_scoring_systems,
     QualityAlignment,
@@ -27,7 +26,6 @@ from quality_alignment_tools import (
     _calculate_correlation,
     _generate_calibration_recommendations
 )
-
 
 class TestQualityAlignmentTools(unittest.TestCase):
     """Test quality alignment tools functionality."""
@@ -121,7 +119,6 @@ class TestQualityAlignmentTools(unittest.TestCase):
         self.assertIsInstance(confidence, float)
         self.assertGreater(confidence, 0.0)
 
-
 class TestContentAnalysis(unittest.TestCase):
     """Test content quality analysis functions."""
 
@@ -183,7 +180,6 @@ Another paragraph for structure."""
         metrics = UnifiedQualityMetrics(40.0, 0.4, 40.0, {}, 1.0, "low")
         rec = _generate_score_recommendation(metrics)
         self.assertIn("needs improvement", rec.lower())
-
 
 class TestCalibrationTools(unittest.TestCase):
     """Test scoring system calibration functionality."""
@@ -261,7 +257,6 @@ class TestCalibrationTools(unittest.TestCase):
         recommendations = _generate_calibration_recommendations(patterns)
         self.assertTrue(any('difference' in rec.lower() for rec in recommendations))
 
-
 class TestDataClasses(unittest.TestCase):
     """Test data class functionality."""
 
@@ -291,7 +286,6 @@ class TestDataClasses(unittest.TestCase):
         
         self.assertEqual(metrics.overall_score, 80.0)
         self.assertEqual(metrics.confidence_level, "high")
-
 
 if __name__ == '__main__':
     unittest.main()

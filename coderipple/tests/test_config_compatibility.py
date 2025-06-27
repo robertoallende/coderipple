@@ -4,7 +4,6 @@ import os
 import sys
 import shutil
 
-# Add src to path for imports
 sys.path.append('src')
 
 def test_backward_compatibility():
@@ -215,7 +214,6 @@ def test_backward_compatibility():
     
     print("\n✅ All backward compatibility tests passed!")
     return True
-
 
 if __name__ == "__main__":
     try:

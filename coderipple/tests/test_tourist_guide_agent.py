@@ -10,10 +10,9 @@ import os
 from unittest.mock import patch, MagicMock
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from tourist_guide_agent import tourist_guide_agent
-from webhook_parser import CommitInfo, WebhookEvent
+from coderipple.tourist_guide_agent import tourist_guide_agent
+from coderipple.webhook_parser import CommitInfo, WebhookEvent
 from datetime import datetime
-
 
 def test_tourist_guide():
     """Test the Tourist Guide agent with sample data"""
@@ -74,12 +73,11 @@ def test_tourist_guide():
     
     print("All Tourist Guide Agent tests passed!")
 
-
 def test_readme_generation():
     """Test README.md generation functionality"""
     print("Testing README generation...")
     
-    from tourist_guide_agent import generate_main_readme
+    from coderipple.tourist_guide_agent import generate_main_readme
     
     # Mock the documentation discovery to return expected files
     mock_docs = {
@@ -132,9 +130,6 @@ def test_readme_generation():
         assert 'architecture.md' in readme_result['content'], "README should list decision docs"
         
     print("✓ README generation test passed")
-
-
-
 
 if __name__ == "__main__":
     test_tourist_guide()

@@ -4,7 +4,6 @@ import os
 import sys
 import tempfile
 
-# Add src to path for imports
 sys.path.append('src')
 
 def test_core_configuration():
@@ -247,7 +246,6 @@ def test_core_configuration():
     
     print("\n✅ All Step 7 core configuration tests passed!")
     return True
-
 
 if __name__ == "__main__":
     success = test_core_configuration()

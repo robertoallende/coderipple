@@ -10,11 +10,9 @@ import os
 import json
 from unittest.mock import patch, MagicMock
 
-# Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+, '..', 'src'))
 
-from bedrock_integration_tools import enhance_content_with_bedrock
-
+from coderipple.bedrock_integration_tools import enhance_content_with_bedrock
 
 def show_before_after_demo():
     """Show before and after content to demonstrate enhancement value"""
@@ -131,7 +129,6 @@ The system leverages **GitHub webhooks** for real-time change detection and **Am
     for suggestion in suggestions:
         print(f"  💭 {suggestion}")
 
-
 @patch('boto3.client')
 def test_real_integration_flow(mock_boto3):
     """Test the actual integration flow with mocked responses"""
@@ -190,7 +187,6 @@ def test_real_integration_flow(mock_boto3):
     print("✅ Error handling and fallbacks implemented")
     print("✅ Test suite passing")
 
-
 def main():
     """Run the demonstration"""
     show_before_after_demo()
@@ -214,7 +210,6 @@ def main():
     print("  3. Run: python test_bedrock_demo.py")
     print()
     print("⚡ THE SYSTEM IS READY FOR PRODUCTION!")
-
 
 if __name__ == "__main__":
     main()

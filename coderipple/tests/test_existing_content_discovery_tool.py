@@ -19,8 +19,7 @@ mock_strands = MagicMock()
 mock_strands.tool = lambda func: func
 sys.modules['strands'] = mock_strands
 
-from existing_content_discovery_tool import analyze_existing_content, ExistingContentAnalyzer
-
+from coderipple.existing_content_discovery_tool import analyze_existing_content, ExistingContentAnalyzer
 
 class TestExistingContentDiscoveryTool(unittest.TestCase):
     """Test the existing content discovery tool functionality"""
@@ -254,7 +253,6 @@ This [broken link](nonexistent.md) should be detected.
         documented_topics = set(topics['documented'])
         self.assertTrue(any('python' in topic.lower() for topic in documented_topics))
 
-
 class TestContentDiscoverySuccessCriteria(unittest.TestCase):
     """Validate that content discovery functionality meets requirements"""
     
@@ -371,7 +369,6 @@ Basic information only.
         
         # This level of content understanding enables intelligent updates
         # rather than wholesale replacement
-
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

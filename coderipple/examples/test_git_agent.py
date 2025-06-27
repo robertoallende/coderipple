@@ -9,12 +9,8 @@ with a Strands Agent for analyzing git diffs.
 import sys
 import os
 
-# Add the src directory to Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
 from strands import Agent
-from git_analysis_tool import analyze_git_diff
-
+from coderipple.git_analysis_tool import analyze_git_diff
 
 def test_with_agent():
     """Test the git analysis tool with a Strands Agent"""
@@ -55,7 +51,7 @@ index 0000000..abcdef9
 +++ b/tests/test_new_feature.py
 @@ -0,0 +1,10 @@
 +import unittest
-+from src.new_feature import calculate_metrics
++from coderipple.new_feature import calculate_metrics
 +
 +class TestMetrics(unittest.TestCase):
 +    def test_calculate_metrics(self):
@@ -93,7 +89,6 @@ index 0000000..abcdef9
         print(f"Affected Components: {result['affected_components']}")
         print(f"Confidence: {result['confidence']}")
         print(f"Summary: {result['summary']}")
-
 
 def test_multiple_scenarios():
     """Test various git diff scenarios"""
@@ -153,7 +148,6 @@ index 1234567..abcdefg 100644
         print(f"Type: {result['change_type']}, Confidence: {result['confidence']:.1f}")
         print(f"Summary: {result['summary']}")
 
-
 def main():
     """Main test function"""
     if len(sys.argv) > 1 and sys.argv[1] == '--agent':
@@ -164,7 +158,6 @@ def main():
         print("\\n" + "="*50)
         print("To test with Strands Agent (requires AWS setup):")
         print("python test_git_agent.py --agent")
-
 
 if __name__ == "__main__":
     main()

@@ -14,9 +14,9 @@ from unittest.mock import patch, MagicMock
 
 # Import the modules to test
 import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+, '..', 'src'))
 
-from content_validation_tools import (
+from coderipple.content_validation_tools import (
     ContentValidator,
     ValidationResult,
     CodeExample,
@@ -25,7 +25,6 @@ from content_validation_tools import (
     enforce_quality_standards,
     validate_and_improve_content
 )
-
 
 class TestContentValidator(unittest.TestCase):
     """Test the core ContentValidator class."""
@@ -90,7 +89,7 @@ Here's a Python example:
 
 ```python
 import os
-from webhook_parser import WebhookEvent
+from coderipple.webhook_parser import WebhookEvent
 
 def process_webhook(payload):
     return WebhookEvent.parse(payload)
@@ -120,7 +119,7 @@ pip install requirements.txt
         """Test validation of code examples against system capabilities."""
         examples = [
             CodeExample(
-                content="from webhook_parser import WebhookEvent\nfrom strands import tool",
+                content="from coderipple.webhook_parser import WebhookEvent\nfrom strands import tool",
                 language="python",
                 line_number=5,
                 context="Python imports"
@@ -260,7 +259,6 @@ The system follows these principles:
         
         poor_score = self.validator.calculate_quality_score(poor_content, poor_results)
         self.assertLess(poor_score, 30.0)  # With more errors/warnings, score should be very low
-
 
 class TestValidationTools(unittest.TestCase):
     """Test the validation tool functions."""
@@ -416,7 +414,6 @@ def func():
         self.assertIn('priority_level', result)
         self.assertIn('quality_score', result)
 
-
 class TestSystemCapabilities(unittest.TestCase):
     """Test system capability detection."""
     
@@ -476,7 +473,6 @@ markdown-it-py==3.0.0
         self.assertIn('WebhookEvent', capabilities['classes'])
         self.assertIn('ContentValidator', capabilities['classes'])
 
-
 class TestEdgeCases(unittest.TestCase):
     """Test edge cases and error conditions."""
     
@@ -527,7 +523,6 @@ Unclosed code block - missing closing backticks
         self.assertIsInstance(result, dict)
         self.assertIn('quality_score', result)
 
-
 class TestIntegration(unittest.TestCase):
     """Integration tests for the complete validation pipeline."""
     
@@ -544,7 +539,7 @@ class TestIntegration(unittest.TestCase):
         # Create source files
         (self.project_dir / 'src' / 'main.py').write_text('''
 from strands import Agent
-from webhook_parser import parse_webhook
+from coderipple.webhook_parser import parse_webhook
 
 def main():
     """Main application entry point."""
@@ -582,7 +577,7 @@ CodeRipple is a multi-agent documentation system that automatically maintains so
 ## Architecture
 
 ```python
-from webhook_parser import parse_webhook
+from coderipple.webhook_parser import parse_webhook
 from strands import Agent
 
 # Main processing flow
@@ -649,7 +644,6 @@ See [configuration guide](docs/configuration.md) for details.
         
         self.assertIn('write_approved', enforcement_result)
         self.assertIn('meets_standards', enforcement_result)
-
 
 if __name__ == '__main__':
     unittest.main()

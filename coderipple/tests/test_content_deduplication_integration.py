@@ -10,7 +10,6 @@ import os
 import sys
 import re
 
-# Add src to path
 sys.path.append('src')
 
 def test_deduplication_fallback():

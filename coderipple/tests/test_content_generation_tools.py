@@ -10,10 +10,9 @@ from unittest.mock import patch, MagicMock
 import sys
 import os
 
-# Add src directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+, '..', 'src'))
 
-from content_generation_tools import (
+from coderipple.content_generation_tools import (
     analyze_change_patterns,
     extract_code_examples_from_diff,
     generate_context_aware_content,
@@ -25,7 +24,6 @@ from content_generation_tools import (
     DocumentationFocus,
     CodeExample
 )
-
 
 class TestDocumentationFocus(unittest.TestCase):
     """Test documentation focus analysis."""
@@ -91,7 +89,6 @@ class TestDocumentationFocus(unittest.TestCase):
         self.assertIsInstance(focus.primary_focus, str)
         self.assertIsInstance(focus.affected_areas, list)
         self.assertIsInstance(focus.suggested_sections, list)
-
 
 class TestCodeExamples(unittest.TestCase):
     """Test code example extraction."""
@@ -163,7 +160,6 @@ class TestCodeExamples(unittest.TestCase):
         
         if examples:
             self.assertEqual(examples[0].language, 'text')
-
 
 class TestContentGeneration(unittest.TestCase):
     """Test content generation functions."""
@@ -261,7 +257,6 @@ class TestContentGeneration(unittest.TestCase):
         self.assertIn('Important', content)
         self.assertIn('breaking changes', content)
 
-
 class TestStrandsTools(unittest.TestCase):
     """Test Strands @tool decorated functions."""
 
@@ -308,7 +303,6 @@ class TestStrandsTools(unittest.TestCase):
         self.assertIsInstance(result, str)
         # Should return enhanced content
 
-
 class TestDataClasses(unittest.TestCase):
     """Test data class functionality."""
 
@@ -337,7 +331,6 @@ class TestDataClasses(unittest.TestCase):
         self.assertEqual(focus.primary_focus, 'api')
         self.assertEqual(focus.user_impact_level, 'high')
         self.assertEqual(len(focus.affected_areas), 2)
-
 
 class TestUtilityFunctions(unittest.TestCase):
     """Test utility and helper functions."""
@@ -374,7 +367,6 @@ class TestUtilityFunctions(unittest.TestCase):
         # Should return string even for unknown sections
         self.assertIsInstance(content, str)
 
-
 # Keep the original test functions for backwards compatibility
 def test_change_pattern_analysis():
     """Test analysis of change patterns to determine documentation focus"""
@@ -403,7 +395,6 @@ def test_change_pattern_analysis():
     assert 'CLI' in cli_focus.affected_areas, f"Expected 'CLI' in affected areas: {cli_focus.affected_areas}"
     
     print("   ✓ CLI change pattern detection working")
-
 
 def test_code_example_extraction():
     """Test extraction of code examples from git diff"""
@@ -446,7 +437,6 @@ index 1234567..abcdefg 100644
     
     print("   ✓ Code example extraction working")
     print(f"   📝 Extracted: {example.description}")
-
 
 def test_context_aware_content_generation():
     """Test intelligent content generation based on context"""
@@ -510,7 +500,6 @@ def test_context_aware_content_generation():
     
     print("   ✓ Getting started content generation working")
     print(f"   📄 Sample content: {discovery_content[:100]}...")
-
 
 def test_intelligent_vs_generic_content():
     """Test that intelligent content is more specific than generic content"""
@@ -579,7 +568,6 @@ def test_intelligent_vs_generic_content():
     print(f"   📊 Intelligent: {len(intelligent_content)} chars ({intelligent_specific_count} specific terms)")
     print(f"   📊 Generic: {len(generic_content)} chars ({generic_specific_count} specific terms)")
 
-
 def run_all_tests():
     """Run all content generation tools tests"""
     
@@ -601,7 +589,6 @@ def run_all_tests():
         import traceback
         traceback.print_exc()
         return False
-
 
 if __name__ == "__main__":
     success = run_all_tests()

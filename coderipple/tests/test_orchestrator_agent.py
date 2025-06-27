@@ -12,10 +12,9 @@ import os
 from dataclasses import dataclass
 from typing import Dict, Any, List, Optional
 
-# Add src directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+, '..', 'src'))
 
-from orchestrator_agent import (
+from coderipple.orchestrator_agent import (
     orchestrator_agent,
     AgentDecision,
     OrchestrationResult,
@@ -27,7 +26,6 @@ from orchestrator_agent import (
     _generate_orchestration_summary,
     _check_and_bootstrap_user_documentation
 )
-
 
 class TestOrchestrationDataClasses(unittest.TestCase):
     """Test data classes used in orchestration."""
@@ -60,7 +58,6 @@ class TestOrchestrationDataClasses(unittest.TestCase):
         self.assertEqual(result.webhook_event, mock_webhook)
         self.assertEqual(result.git_analysis['change_type'], 'feature')
         self.assertEqual(result.summary, 'Test summary')
-
 
 class TestOrchestratorAgent(unittest.TestCase):
     """Test main orchestrator agent function."""
@@ -187,7 +184,6 @@ class TestOrchestratorAgent(unittest.TestCase):
         # Git analysis tool should not be called
         mock_git_analysis.assert_not_called()
 
-
 class TestDecisionTree(unittest.TestCase):
     """Test the Layer Selection Decision Tree logic."""
     
@@ -255,7 +251,6 @@ class TestDecisionTree(unittest.TestCase):
         # Decisions should be sorted by priority
         priorities = [d.priority for d in decisions]
         self.assertEqual(priorities, sorted(priorities))
-
 
 class TestAgentInvocationLogic(unittest.TestCase):
     """Test individual agent invocation decision logic."""
@@ -374,7 +369,6 @@ class TestAgentInvocationLogic(unittest.TestCase):
         self.assertFalse(_should_invoke_historian('docs', ['README.md'], mock_webhook))
         self.assertFalse(_should_invoke_historian('test', ['tests/test_api.py'], mock_webhook))
 
-
 class TestAgentExecution(unittest.TestCase):
     """Test agent execution logic."""
     
@@ -444,7 +438,6 @@ class TestAgentExecution(unittest.TestCase):
         
         # Should not crash, but also not add anything to results
         self.assertEqual(results, {})
-
 
 class TestSummaryGeneration(unittest.TestCase):
     """Test orchestration summary generation."""
@@ -534,7 +527,6 @@ class TestSummaryGeneration(unittest.TestCase):
         self.assertIn('Context shared', summary)
         self.assertIn('5 files generated', summary)
         self.assertIn('2 agents', summary)
-
 
 class TestBootstrapFunctionality(unittest.TestCase):
     """Test bootstrap functionality."""
@@ -636,7 +628,6 @@ class TestBootstrapFunctionality(unittest.TestCase):
         self.assertIn('Bootstrap check failed', result['message'])
         self.assertIn('Unexpected error', result['message'])
 
-
 class TestEdgeCases(unittest.TestCase):
     """Test edge cases and error conditions."""
     
@@ -681,7 +672,6 @@ class TestEdgeCases(unittest.TestCase):
         summary = _generate_orchestration_summary(mock_webhook, git_analysis, [], None)
         self.assertIn('0 files', summary)
 
-
 # Legacy test function for backward compatibility
 def test_orchestrator():
     """Test the orchestrator with sample webhook data"""
@@ -718,7 +708,6 @@ def test_orchestrator():
         print(f"  {i}. {decision.agent_type} (Priority {decision.priority})")
         print(f"     Reason: {decision.reason}")
         print(f"     Context: {decision.context}")
-
 
 if __name__ == "__main__":
     unittest.main()

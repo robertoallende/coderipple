@@ -9,10 +9,9 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from building_inspector_agent import building_inspector_agent
-from webhook_parser import CommitInfo, WebhookEvent
+from coderipple.building_inspector_agent import building_inspector_agent
+from coderipple.webhook_parser import CommitInfo, WebhookEvent
 from datetime import datetime
-
 
 def test_building_inspector():
     """Test the Building Inspector agent with sample data"""
@@ -66,13 +65,12 @@ def test_building_inspector():
         print(f"   Reason: {update.reason}")
         print(f"   Content Preview: {update.content[:100]}...")
 
-
 def test_generate_system_content_for_section():
     """Test the _generate_system_content_for_section function covering lines 532-656"""
     import sys
     import os
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-    from building_inspector_agent import _generate_system_content_for_section
+    from coderipple.building_inspector_agent import _generate_system_content_for_section
     
     print("\nTesting _generate_system_content_for_section...")
     
@@ -120,13 +118,12 @@ def test_generate_system_content_for_section():
     assert "Current system documentation" in default_content
     print("✓ Default section test passed")
 
-
 def test_enhance_system_updates_with_bedrock():
     """Test the _enhance_system_updates_with_bedrock function covering lines 836-895"""
     import sys
     import os
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-    from building_inspector_agent import _enhance_system_updates_with_bedrock, SystemDocumentationUpdate
+    from coderipple.building_inspector_agent import _enhance_system_updates_with_bedrock, SystemDocumentationUpdate
     
     print("\nTesting _enhance_system_updates_with_bedrock...")
     
@@ -185,13 +182,12 @@ def test_enhance_system_updates_with_bedrock():
         if original_enhance:
             building_inspector_agent.enhance_content_with_bedrock = original_enhance
 
-
 def test_generate_system_content_with_context_analysis():
     """Test the _generate_system_content_with_context_analysis function covering lines 905-957"""
     import sys
     import os
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-    from building_inspector_agent import _generate_system_content_with_context_analysis
+    from coderipple.building_inspector_agent import _generate_system_content_with_context_analysis
     
     print("\nTesting _generate_system_content_with_context_analysis...")
     
@@ -222,7 +218,6 @@ def test_generate_system_content_with_context_analysis():
         )
         assert content is not None
         print("✓ Error handling fallback test passed")
-
 
 if __name__ == "__main__":
     test_building_inspector()

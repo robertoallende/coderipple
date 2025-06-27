@@ -4,7 +4,6 @@ import os
 import sys
 import shutil
 
-# Add src to path for imports
 sys.path.append('src')
 
 def test_readme_generation_fixed():

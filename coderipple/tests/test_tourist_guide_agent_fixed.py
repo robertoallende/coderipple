@@ -41,9 +41,8 @@ sys.modules['bedrock_integration_tools'] = mock_bedrock_integration_tools
 sys.modules['content_validation_tools'] = mock_content_validation_tools
 
 # Now import the actual modules
-from webhook_parser import CommitInfo, WebhookEvent
-from tourist_guide_agent import generate_main_readme, write_documentation_file
-
+from coderipple.webhook_parser import CommitInfo, WebhookEvent
+from coderipple.tourist_guide_agent import generate_main_readme, write_documentation_file
 
 class TestTouristGuideAgentFixed(unittest.TestCase):
     
@@ -262,7 +261,6 @@ For questions about these decisions, please review the rationale or open a discu
         self.assertIn('architecture.md', readme_content, "README should list architecture.md")
         
         print("✓ Simple README generation test passed")
-
 
 if __name__ == "__main__":
     unittest.main()

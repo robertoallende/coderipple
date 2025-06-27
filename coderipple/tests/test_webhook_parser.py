@@ -1,8 +1,7 @@
 import unittest
 import json
 from datetime import datetime
-from src.webhook_parser import GitHubWebhookParser, WebhookEvent, CommitInfo
-
+from coderipple.webhook_parser import GitHubWebhookParser, WebhookEvent, CommitInfo
 
 class TestGitHubWebhookParser(unittest.TestCase):
     
@@ -283,7 +282,6 @@ class TestGitHubWebhookParser(unittest.TestCase):
         self.assertEqual(commit.timestamp.year, 2023)
         self.assertEqual(commit.timestamp.month, 1)
         self.assertEqual(commit.timestamp.day, 1)
-
 
 if __name__ == '__main__':
     unittest.main()

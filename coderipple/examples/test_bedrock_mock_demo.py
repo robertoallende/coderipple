@@ -10,12 +10,8 @@ import sys
 import os
 from unittest.mock import patch, MagicMock
 
-# Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-from bedrock_integration_tools import enhance_content_with_bedrock
-from tourist_guide_agent import _enhance_updates_with_bedrock, DocumentationUpdate
-
+from coderipple.bedrock_integration_tools import enhance_content_with_bedrock
+from coderipple.tourist_guide_agent import _enhance_updates_with_bedrock, DocumentationUpdate
 
 def create_mock_bedrock_response(original_content, improvements):
     """Create a realistic mock Bedrock response"""
@@ -47,7 +43,6 @@ Before getting started, ensure you have:
         'quality_score': 0.87,
         'suggestions': ['Consider adding troubleshooting section', 'Include more code examples']
     }
-
 
 @patch('boto3.client')
 def test_enhanced_content_demo(mock_boto3):
@@ -139,7 +134,6 @@ It works with webhooks and uses AI."""
     
     print("\n" + "=" * 60)
 
-
 @patch('boto3.client')
 def test_tourist_guide_integration(mock_boto3):
     """Test the full Tourist Guide integration"""
@@ -222,7 +216,6 @@ def test_tourist_guide_integration(mock_boto3):
     print("   • Professional quality output")
     print("   • Consistent tone and structure")
 
-
 def main():
     """Run the mock demo"""
     print("🤖 CodeRipple Bedrock Integration - Live Demo")
@@ -238,7 +231,6 @@ def main():
     print("1. Request Bedrock model access in AWS Console")
     print("2. Run: python test_bedrock_demo.py (for real API calls)")
     print("3. Deploy to production with AWS Lambda")
-
 
 if __name__ == "__main__":
     main()

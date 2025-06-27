@@ -5,7 +5,6 @@ import sys
 import shutil
 import tempfile
 
-# Add src to path for imports
 sys.path.append('src')
 
 def test_step7_configuration_integration():
@@ -183,7 +182,6 @@ def test_step7_configuration_integration():
     print("\n✅ All Step 7 configuration integration tests passed!")
     return True
 
-
 def test_backward_compatibility():
     """Test that system works with default 'coderipple' directory"""
     
@@ -225,7 +223,6 @@ def test_backward_compatibility():
         # Clean up test files
         if os.path.exists("coderipple"):
             shutil.rmtree("coderipple")
-
 
 if __name__ == "__main__":
     success = test_step7_configuration_integration()

@@ -13,9 +13,9 @@ from pathlib import Path
 
 # Import the modules to test
 import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+, '..', 'src'))
 
-from real_diff_integration_tools import (
+from coderipple.real_diff_integration_tools import (
     GitDiffParser,
     CodeChange,
     FunctionChange,
@@ -26,7 +26,6 @@ from real_diff_integration_tools import (
     generate_code_examples_from_diff,
     generate_file_specific_documentation
 )
-
 
 class TestGitDiffParser(unittest.TestCase):
     """Test the core GitDiffParser functionality."""
@@ -108,7 +107,6 @@ index 1234567..abcdefg 100644
         dataclass_imports = [i for i in import_changes if 'dataclass' in i.imported_items]
         self.assertGreater(len(dataclass_imports), 0)
 
-
 class TestCodeChangeExtraction(unittest.TestCase):
     """Test specific code change extraction functionality."""
     
@@ -173,7 +171,6 @@ index abc123..def456 100644
         self.assertIn('modified', result['summary'].lower())
         # Bugfix may or may not detect function changes depending on diff pattern
         self.assertIsInstance(result['function_changes'], list)
-
 
 class TestCodeExampleGeneration(unittest.TestCase):
     """Test code example generation from diffs."""
@@ -242,7 +239,6 @@ index aaaa111..bbbb222 100644
         # Should have usage examples for the new methods
         usage_examples = [ex for ex in examples if 'usage_example' in ex]
         self.assertGreater(len(usage_examples), 0)
-
 
 class TestFileSpecificDocumentation(unittest.TestCase):
     """Test file-specific documentation generation."""
@@ -360,7 +356,6 @@ index 0000000..abcdefg
         self.assertIn('main', docs.lower())
         self.assertIn('entry point', docs.lower())
 
-
 class TestIntegrationScenarios(unittest.TestCase):
     """Test real-world integration scenarios."""
     
@@ -467,7 +462,6 @@ index 1111111..2222222 100644
         self.assertEqual(docs_result['status'], 'success')
         self.assertIn('Parser Documentation', docs_result['documentation'])
 
-
 class TestErrorHandling(unittest.TestCase):
     """Test error handling and edge cases."""
     
@@ -509,7 +503,6 @@ index 0000000..1234567
         # Should handle gracefully
         self.assertEqual(result['status'], 'success')
         # May have limited examples for non-code files
-
 
 if __name__ == '__main__':
     unittest.main()

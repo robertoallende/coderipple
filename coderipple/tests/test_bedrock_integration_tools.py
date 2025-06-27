@@ -10,16 +10,14 @@ from unittest.mock import patch, MagicMock
 import sys
 import os
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+, '..', 'src'))
 
-from bedrock_integration_tools import (
+from coderipple.bedrock_integration_tools import (
     enhance_content_with_bedrock,
     check_documentation_consistency,
     generate_dynamic_examples,
     analyze_content_gaps
 )
-
 
 class TestBedrockIntegrationTools(unittest.TestCase):
     """Test Bedrock integration tools functionality"""
@@ -268,7 +266,6 @@ It contains basic information about the system.
         # Should handle invalid JSON gracefully
         self.assertEqual(result['status'], 'success')
         self.assertIn('content', result)
-
 
 if __name__ == '__main__':
     unittest.main()

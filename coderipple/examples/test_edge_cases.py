@@ -8,11 +8,7 @@ This script tests various edge cases to ensure robust handling.
 import sys
 import os
 
-# Add the src directory to Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-from git_analysis_tool import analyze_git_diff
-
+from coderipple.git_analysis_tool import analyze_git_diff
 
 def test_empty_diff():
     """Test with empty diff"""
@@ -26,7 +22,6 @@ def test_empty_diff():
     
     result = analyze_git_diff(None)
     print(f"None input - Type: {result['change_type']}, Confidence: {result['confidence']}")
-
 
 def test_large_diff():
     """Test with very large diff"""
@@ -53,7 +48,6 @@ def test_large_diff():
     result = analyze_git_diff(large_diff)
     print(f"Large diff ({len(large_diff)} chars) - Type: {result['change_type']}, Confidence: {result['confidence']}")
     print(f"Summary: {result['summary']}")
-
 
 def test_mixed_changes():
     """Test with mixed change types in one diff"""
@@ -107,7 +101,6 @@ index abc1234..def5678 100644
     print(f"Affected: {result['affected_components']}")
     print(f"Summary: {result['summary']}")
 
-
 def test_binary_files():
     """Test with binary file changes"""
     print("\n=== Testing Binary Files ===")
@@ -124,7 +117,6 @@ Binary files a/docs/diagram.pdf and b/docs/diagram.pdf differ
     result = analyze_git_diff(binary_diff)
     print(f"Binary files - Type: {result['change_type']}, Confidence: {result['confidence']}")
     print(f"Affected: {result['affected_components']}")
-
 
 def test_file_operations():
     """Test file additions, deletions, and renames"""
@@ -180,7 +172,6 @@ index 1234567..abcdefg 100644
     result = analyze_git_diff(rename_diff)
     print(f"Renamed file - Type: {result['change_type']}, Confidence: {result['confidence']}")
 
-
 def test_malformed_diffs():
     """Test with malformed or unusual diff formats"""
     print("\n=== Testing Malformed Diffs ===")
@@ -206,7 +197,6 @@ index 1234567..abcdefg 100644
     result = analyze_git_diff(malformed2)
     print(f"Headers only - Type: {result['change_type']}, Confidence: {result['confidence']}")
 
-
 def main():
     """Run all edge case tests"""
     try:
@@ -224,7 +214,6 @@ def main():
         print(f"Error during testing: {e}")
         import traceback
         traceback.print_exc()
-
 
 if __name__ == "__main__":
     main()
