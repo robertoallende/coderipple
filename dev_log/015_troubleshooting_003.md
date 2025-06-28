@@ -52,31 +52,56 @@ This is a **critical configuration error** that prevents:
 
 ### Variable Configuration Fixes
 
-#### 1. Fix log_retention_days Variable
-**Problem**: Current value not a valid CloudWatch retention period
-**Valid CloudWatch retention periods**: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653
-
-**Current workflow sets**: `TF_VAR_log_retention_days: 14`
-**Status**: Should be valid - need to check variable definition
-
-#### 2. Fix environment Variable  
+#### 1. Fix environment Variable ✅ COMPLETED
 **Problem**: Current value not in allowed list
-**Allowed values**: dev, staging, prod
-**Current workflow sets**: `TF_VAR_environment: production`
-**Issue**: Workflow uses "production" but validation expects "prod"
+**Solution**: Changed from "production" to "prod"
+**Status**: ✅ Fixed and deployed
+
+#### 2. Fix log_retention_days Variable ❌ STILL FAILING
+**Problem**: GitHub Actions passes string value, Terraform expects number
+**Current**: `TF_VAR_log_retention_days: 14` (passed as string "14")
+**Required**: Terraform validation expects numeric value 14
+
+**Root Cause**: Environment variables from GitHub Actions are always strings, but Terraform variable validation expects a number type for comparison with the contains() function.
 
 ### Solution Implementation
 
-#### 1. Update GitHub Actions Workflow Variables
+#### 1. Update GitHub Actions Workflow Variables ✅ COMPLETED
 **File**: `.github/workflows/deploy-layer-based-infrastructure.yml`
 
 ```yaml
 env:
-  # Fix environment variable - change from 'production' to 'prod'
+  # ✅ Fixed environment variable
   TF_VAR_environment: prod  # Changed from 'production'
   
-  # Ensure log retention is valid CloudWatch period
-  TF_VAR_log_retention_days: 14  # Should be valid, check variable definition
+  # ❌ Still failing - string vs number issue
+  TF_VAR_log_retention_days: 14  # Passed as string "14", needs to be number
+```
+
+#### 2. Fix log_retention_days Type Conversion ❌ NEEDS IMPLEMENTATION
+**Problem**: GitHub Actions environment variables are always strings
+**Solution**: Update Terraform variable to handle string input or convert in workflow
+
+**Option A - Fix in Terraform (Recommended)**:
+```hcl
+variable "log_retention_days" {
+  description = "CloudWatch log retention period in days"
+  type        = number
+  default     = 14
+  
+  validation {
+    condition = contains([
+      1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653
+    ], tonumber(var.log_retention_days))  # Convert string to number
+    error_message = "Log retention days must be a valid CloudWatch retention period."
+  }
+}
+```
+
+**Option B - Fix in GitHub Actions**:
+```yaml
+# Use terraform plan with explicit type conversion
+terraform plan -var="log_retention_days=14" -out=tfplan
 ```
 
 #### 2. Verify Terraform Variable Definitions
