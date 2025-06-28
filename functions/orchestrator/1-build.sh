@@ -77,19 +77,12 @@ detect_python() {
 
 # Install function-specific dependencies (if any)
 install_function_dependencies() {
-    log_step "Installing function-specific dependencies"
+    log_step "Installing function-specific dependencies (Simplified Strands Pattern)"
     
     if [ -f "requirements.txt" ]; then
-        # Create minimal virtual environment for function-specific deps
-        $PYTHON_CMD -m venv temp_venv
-        source temp_venv/bin/activate
-        
-        pip install -r requirements.txt -t "$BUILD_DIR/"
-        
-        deactivate
-        rm -rf temp_venv
-        
-        log_success "Function dependencies installed"
+        log_debug "Found requirements.txt, but using simplified pattern - dependencies will be provided via Lambda layers or runtime"
+        log_debug "Skipping dependency installation to keep package minimal"
+        log_success "Function dependencies skipped (simplified pattern)"
     else
         log_debug "No function-specific requirements.txt found"
     fi
@@ -157,17 +150,14 @@ generate_function_metadata() {
     cat > function-metadata.json << EOF
 {
   "function_name": "$FUNCTION_NAME",
-  "description": "CodeRipple Orchestrator Lambda Function (Layer-based)",
+  "description": "CodeRipple Orchestrator Lambda Function (Simplified Strands Pattern)",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
   "created_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "build_info": {
     "package_size_kb": $PACKAGE_SIZE_KB,
-    "uses_layers": true,
-    "layer_dependencies": [
-      "coderipple-dependencies",
-      "coderipple-package"
-    ]
+    "pattern": "simplified-strands",
+    "dependencies": "provided-via-layers-or-runtime"
   }
 }
 EOF

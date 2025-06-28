@@ -83,3 +83,5 @@ deployment-orchestration-report.json
 e2e-validation-report.json
 github-webhook-instructions.md
 .github-webhook-id
+
+functions/orchestrator/function.zip
