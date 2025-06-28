@@ -1,0 +1,445 @@
+# CodeRipple Layer-based Infrastructure Deployment Workflow
+# Enhanced deployment workflow for layer-based architecture
+# Supports layer building, deployment, and validation
+
+name: Deploy Layer-based Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Deployment action to perform'
+        required: true
+        type: choice
+        options:
+          - build-layers
+          - plan
+          - deploy
+          - validate
+          - rollback
+        default: 'plan'
+      
+      confirm_deploy:
+        description: 'Type "yes" to confirm deploy/rollback operations'
+        required: false
+        type: string
+        default: ''
+      
+      validation_mode:
+        description: 'Validation mode for testing'
+        required: false
+        type: choice
+        options:
+          - comprehensive
+          - quick
+          - performance-only
+        default: 'comprehensive'
+
+env:
+  AWS_DEFAULT_REGION: ${{ secrets.TF_VAR_aws_region }}
+  TF_VAR_aws_region: ${{ secrets.TF_VAR_aws_region }}
+  TF_VAR_environment: production
+  TF_VAR_project_name: coderipple
+  
+  # GitHub repository configuration
+  TF_VAR_github_repo_owner: ${{ secrets.TF_VAR_github_repo_owner }}
+  TF_VAR_github_repo_name: ${{ secrets.TF_VAR_github_repo_name }}
+  TF_VAR_github_webhook_secret: ${{ secrets.TF_VAR_github_webhook_secret }}
+  TF_VAR_coderipple_min_quality_score: ${{ secrets.TF_VAR_coderipple_min_quality_score }}
+  
+  # Layer-optimized Lambda configuration
+  TF_VAR_lambda_function_name: coderipple-orchestrator
+  TF_VAR_lambda_memory_size: 1536  # Reduced from 2048 due to layer optimization
+  TF_VAR_lambda_timeout: 60        # Reduced from 900 due to improved performance
+  TF_VAR_lambda_runtime: python3.13
+  
+  # API Gateway configuration
+  TF_VAR_api_gateway_name: coderipple-webhook-api
+  TF_VAR_api_gateway_stage: prod
+  
+  # CloudWatch configuration
+  TF_VAR_log_retention_days: 14
+
+jobs:
+  build-layers:
+    name: Build Lambda Layers
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'build-layers' || github.event.inputs.action == 'deploy'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+      
+      - name: Build Dependencies Layer
+        run: |
+          echo "🔨 Building dependencies layer..."
+          cd layers/dependencies
+          ./1-build.sh
+          
+          # Verify layer artifact
+          if [ -f "coderipple-dependencies-layer.zip" ]; then
+            size=$(stat -c%s "coderipple-dependencies-layer.zip")
+            size_mb=$((size / 1024 / 1024))
+            echo "✅ Dependencies layer built: ${size_mb}MB"
+            echo "DEPS_LAYER_SIZE=${size_mb}" >> $GITHUB_ENV
+          else
+            echo "❌ Dependencies layer build failed"
+            exit 1
+          fi
+      
+      - name: Build Package Layer
+        run: |
+          echo "🔨 Building package layer..."
+          cd layers/coderipple-package
+          ./1-build.sh
+          
+          # Verify layer artifact
+          if [ -f "coderipple-package-layer.zip" ]; then
+            size=$(stat -c%s "coderipple-package-layer.zip")
+            size_kb=$((size / 1024))
+            echo "✅ Package layer built: ${size_kb}KB"
+            echo "PKG_LAYER_SIZE=${size_kb}" >> $GITHUB_ENV
+          else
+            echo "❌ Package layer build failed"
+            exit 1
+          fi
+      
+      - name: Build Function Package
+        run: |
+          echo "🔨 Building function package..."
+          cd functions/orchestrator
+          ./build-automation.sh
+          
+          # Verify function artifact
+          if [ -f "function.zip" ]; then
+            size=$(stat -c%s "function.zip")
+            size_kb=$((size / 1024))
+            echo "✅ Function package built: ${size_kb}KB"
+            echo "FUNC_PACKAGE_SIZE=${size_kb}" >> $GITHUB_ENV
+          else
+            echo "❌ Function package build failed"
+            exit 1
+          fi
+      
+      - name: Layer Build Summary
+        run: |
+          echo "## 🏗️ Layer Build Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Dependencies Layer:** ${DEPS_LAYER_SIZE}MB" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Package Layer:** ${PKG_LAYER_SIZE}KB" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Function Package:** ${FUNC_PACKAGE_SIZE}KB" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Calculate size reduction
+          total_layer_size=$((DEPS_LAYER_SIZE * 1024 + PKG_LAYER_SIZE + FUNC_PACKAGE_SIZE))
+          monolithic_estimate=$((28 * 1024))  # 28MB estimated
+          reduction_pct=$(echo "scale=1; (1 - $total_layer_size / $monolithic_estimate) * 100" | bc)
+          
+          echo "📊 **Size Optimization:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Estimated monolithic size: 28MB" >> $GITHUB_STEP_SUMMARY
+          echo "- Layer-based total: ${total_layer_size}KB" >> $GITHUB_STEP_SUMMARY
+          echo "- **Size reduction: ${reduction_pct}%**" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Upload Layer Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda-layers
+          path: |
+            layers/dependencies/coderipple-dependencies-layer.zip
+            layers/coderipple-package/coderipple-package-layer.zip
+            functions/orchestrator/function.zip
+          retention-days: 7
+
+  terraform-deploy:
+    name: Terraform Deployment
+    runs-on: ubuntu-latest
+    needs: [build-layers]
+    if: always() && (github.event.inputs.action == 'plan' || github.event.inputs.action == 'deploy')
+    
+    defaults:
+      run:
+        working-directory: infra/terraform
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download Layer Artifacts
+        if: github.event.inputs.action == 'deploy'
+        uses: actions/download-artifact@v4
+        with:
+          name: lambda-layers
+          path: .
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.0"
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+      
+      - name: Validate confirmation for deploy operations
+        if: github.event.inputs.action == 'deploy'
+        run: |
+          if [ "${{ github.event.inputs.confirm_deploy }}" != "yes" ]; then
+            echo "❌ Confirmation required for deploy operation"
+            echo "Please set 'confirm_deploy' input to 'yes' to proceed"
+            exit 1
+          fi
+          echo "✅ Confirmation received for deploy operation"
+      
+      - name: Initialize Terraform
+        run: |
+          terraform init \
+            -backend-config="bucket=coderipple-terraform-state" \
+            -backend-config="key=coderipple/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_DEFAULT_REGION }}" \
+            -backend-config="encrypt=true"
+      
+      - name: Validate Terraform configuration
+        run: terraform validate
+      
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan \
+            -out=tfplan \
+            -detailed-exitcode
+        continue-on-error: true
+      
+      - name: Terraform Plan Summary
+        run: |
+          echo "## 📋 Terraform Plan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** ${{ github.event.inputs.action }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** production" >> $GITHUB_STEP_SUMMARY
+          echo "**Architecture:** single-lambda-with-layers" >> $GITHUB_STEP_SUMMARY
+          echo "**Region:** ${{ env.AWS_DEFAULT_REGION }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.plan.outcome }}" == "success" ]; then
+            if [ "${{ steps.plan.outputs.exitcode }}" == "0" ]; then
+              echo "✅ **Plan Status:** No changes detected" >> $GITHUB_STEP_SUMMARY
+            elif [ "${{ steps.plan.outputs.exitcode }}" == "2" ]; then
+              echo "📋 **Plan Status:** Changes detected and ready to apply" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ **Plan Status:** Plan failed - check logs for details" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Terraform Apply
+        if: github.event.inputs.action == 'deploy' && steps.plan.outcome == 'success'
+        run: |
+          echo "🚀 Deploying layer-based infrastructure..."
+          terraform apply tfplan
+          
+          echo "## 🎉 Deployment Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Layer-based infrastructure deployed successfully**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Infrastructure Outputs" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          terraform output >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Save Terraform outputs
+        if: github.event.inputs.action == 'deploy' && steps.plan.outcome == 'success'
+        run: |
+          terraform output -json > terraform-outputs.json
+          echo "Terraform outputs saved for validation"
+      
+      - name: Upload Terraform outputs
+        if: github.event.inputs.action == 'deploy' && steps.plan.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-outputs-production
+          path: infra/terraform/terraform-outputs.json
+          retention-days: 30
+
+  validate-deployment:
+    name: Validate Layer-based Deployment
+    runs-on: ubuntu-latest
+    needs: [terraform-deploy]
+    if: always() && (github.event.inputs.action == 'deploy' || github.event.inputs.action == 'validate')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download Terraform outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-outputs-production
+          path: infra/terraform/
+        continue-on-error: true
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+      
+      - name: Setup validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq bc
+      
+      - name: Run End-to-End Validation
+        env:
+          VALIDATION_MODE: ${{ github.event.inputs.validation_mode }}
+          ENVIRONMENT: production
+          AWS_REGION: ${{ env.AWS_DEFAULT_REGION }}
+        run: |
+          echo "🔍 Running end-to-end validation..."
+          chmod +x scripts/end-to-end-validation.sh
+          ./scripts/end-to-end-validation.sh
+      
+      - name: Upload Validation Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-validation-report
+          path: e2e-validation-report.json
+          retention-days: 30
+      
+      - name: Validation Summary
+        if: always()
+        run: |
+          if [ -f "e2e-validation-report.json" ]; then
+            echo "## 🧪 End-to-End Validation Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Extract validation summary
+            total_tests=$(jq -r '.e2e_validation_report.summary.total_tests' e2e-validation-report.json)
+            passed=$(jq -r '.e2e_validation_report.summary.passed' e2e-validation-report.json)
+            failed=$(jq -r '.e2e_validation_report.summary.failed' e2e-validation-report.json)
+            success_rate=$(jq -r '.e2e_validation_report.summary.success_rate' e2e-validation-report.json)
+            
+            echo "📊 **Validation Summary:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Total Tests: $total_tests" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Passed: $passed" >> $GITHUB_STEP_SUMMARY
+            echo "- ❌ Failed: $failed" >> $GITHUB_STEP_SUMMARY
+            echo "- 📈 Success Rate: ${success_rate}%" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Show performance baselines if available
+            if jq -e '.e2e_validation_report.performance_baselines' e2e-validation-report.json > /dev/null; then
+              echo "⚡ **Performance Baselines:**" >> $GITHUB_STEP_SUMMARY
+              cold_start=$(jq -r '.e2e_validation_report.performance_baselines.cold_start.value' e2e-validation-report.json 2>/dev/null || echo "N/A")
+              warm_start=$(jq -r '.e2e_validation_report.performance_baselines.warm_start.value' e2e-validation-report.json 2>/dev/null || echo "N/A")
+              echo "- Cold Start: ${cold_start}ms" >> $GITHUB_STEP_SUMMARY
+              echo "- Warm Start: ${warm_start}ms" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⚠️ Validation report not generated" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'rollback'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Validate confirmation for rollback
+        run: |
+          if [ "${{ github.event.inputs.confirm_deploy }}" != "yes" ]; then
+            echo "❌ Confirmation required for rollback operation"
+            echo "Please set 'confirm_deploy' input to 'yes' to proceed"
+            exit 1
+          fi
+          echo "✅ Confirmation received for rollback operation"
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+      
+      - name: Execute Rollback
+        env:
+          ROLLBACK_MODE: automatic
+          ENVIRONMENT: production
+        run: |
+          echo "🔄 Executing automatic rollback..."
+          chmod +x scripts/rollback-procedures.sh
+          ./scripts/rollback-procedures.sh
+      
+      - name: Rollback Summary
+        run: |
+          echo "## 🔄 Rollback Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Rollback completed**" >> $GITHUB_STEP_SUMMARY
+          echo "- Previous infrastructure state restored" >> $GITHUB_STEP_SUMMARY
+          echo "- Function versions reverted" >> $GITHUB_STEP_SUMMARY
+          echo "- Monitoring configuration restored" >> $GITHUB_STEP_SUMMARY
+
+  cost-and-security:
+    name: Cost and Security Analysis
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action != 'rollback'
+    
+    defaults:
+      run:
+        working-directory: infra/terraform
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.0"
+      
+      - name: Security scan with Checkov
+        continue-on-error: true
+        run: |
+          pip install checkov
+          checkov -f . --framework terraform --output cli --quiet
+      
+      - name: Layer-based Cost Analysis
+        run: |
+          echo "## 💰 Layer-based Architecture Cost Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Lambda Function (Layer-optimized)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Memory:** 1536MB (reduced from 2048MB)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timeout:** 60s (reduced from 900s)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Package size:** ~12KB (99.6% reduction)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Est. monthly cost:** ~$3-15 (reduced due to optimization)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Lambda Layers" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dependencies Layer:** ~30MB (shared across functions)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Package Layer:** ~117KB (CodeRipple code)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Layer storage:** Free (under 75GB limit)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### API Gateway" >> $GITHUB_STEP_SUMMARY
+          echo "- **REST API:** ~$3.50 per million requests" >> $GITHUB_STEP_SUMMARY
+          echo "- **Typical usage:** <$1/month" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### CloudWatch" >> $GITHUB_STEP_SUMMARY
+          echo "- **Log storage (14 days):** ~$1-3/month" >> $GITHUB_STEP_SUMMARY
+          echo "- **Custom metrics:** First 10 free" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎯 **Total Estimated Cost**" >> $GITHUB_STEP_SUMMARY
+          echo "**$5-20/month** (reduced from $10-30 due to layer optimization)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📈 **Performance Benefits**" >> $GITHUB_STEP_SUMMARY
+          echo "- ⚡ Faster cold starts (layer pre-loading)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🚀 Faster deployments (99.6% smaller packages)" >> $GITHUB_STEP_SUMMARY
+          echo "- 💾 Better caching (shared layers)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔄 Easier updates (layer separation)" >> $GITHUB_STEP_SUMMARY

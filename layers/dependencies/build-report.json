@@ -1,25 +1,20 @@
 {
-  "layer_name": "coderipple-package",
+  "layer_name": "coderipple-dependencies",
   "build_timestamp": "2025-06-28T02:53:14Z",
   "build_mode": "quick",
   "build_host": "donnager.local",
   "python_version": "Python 3.13.3",
   "layer_metrics": {
-    "compressed_size": "120K",
+    "compressed_size": " 30M",
     "compressed_bytes": ,
-    "uncompressed_size": "532K",
-    "module_count":       18,
+    "uncompressed_size": " 89M",
+    "package_count":       59,
     "compression_ratio": ""
   },
-  "source_info": {
-    "coderipple_version": "unknown",
-    "source_path": "../../coderipple",
-    "source_modified": "2025-06-27T23:25:21Z"
-  },
   "build_configuration": {
+    "parallel_jobs": 4,
     "optimization_enabled": false,
     "validation_enabled": false,
-    "source_analysis_enabled": false,
     "force_rebuild": "false"
   },
   "aws_compatibility": {

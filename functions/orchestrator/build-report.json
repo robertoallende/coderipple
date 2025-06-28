@@ -1,7 +1,7 @@
 {
   "function_name": "orchestrator",
-  "build_timestamp": "2025-06-28T01:11:44Z",
-  "build_mode": "quick",
+  "build_timestamp": "2025-06-28T02:53:15Z",
+  "build_mode": "full",
   "build_host": "donnager.local",
   "python_version": "Python 3.13.3",
   "function_metrics": {
@@ -17,9 +17,9 @@
     "function_only_size": " 12K"
   },
   "build_configuration": {
-    "optimization_enabled": false,
-    "validation_enabled": false,
-    "testing_enabled": false,
+    "optimization_enabled": true,
+    "validation_enabled": true,
+    "testing_enabled": true,
     "force_rebuild": "false"
   },
   "aws_compatibility": {
