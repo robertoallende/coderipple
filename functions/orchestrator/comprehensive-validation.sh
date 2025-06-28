@@ -145,7 +145,7 @@ try:
     import lambda_function
     
     # Check required functions
-    required_functions = ['lambda_handler', 'health_check_handler', 'layer_info_handler']
+    required_functions = ['lambda_handler', 'health_check_handler']
     missing_functions = []
     
     for func in required_functions:
@@ -343,14 +343,8 @@ try:
         print(f'HEALTH_CHECK_FAILED:{result}')
         exit(1)
     
-    # Test layer info handler
-    result = lambda_function.layer_info_handler({}, context)
-    
-    if result.get('statusCode') == 200:
-        print('LAYER_INFO_OK')
-    else:
-        print(f'LAYER_INFO_FAILED:{result}')
-        exit(1)
+    # Layer info handler removed in simplified Strands pattern (Unit 15.13)
+    # No longer needed - functionality integrated into main lambda_handler
     
     print('SIMULATION_SUCCESS')
     

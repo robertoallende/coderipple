@@ -213,7 +213,7 @@ os.environ['CODERIPPLE_LAYER_BASED'] = 'true'
 os.environ['CODERIPPLE_ARCHITECTURE'] = 'single-lambda-with-layers'
 
 try:
-    from lambda_function import lambda_handler, health_check_handler, layer_info_handler
+    from lambda_function import lambda_handler, health_check_handler
     print('✅ Function imports successful')
     
     # Test basic handler structure
