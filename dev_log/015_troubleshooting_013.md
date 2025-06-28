@@ -1,3 +1,55 @@
+# Unit 15: Infrastructure Troubleshooting and Resolution - Subunit: Lambda Refactor Using Official Strands Pattern
+
+## Objective
+
+Refactor the CodeRipple Lambda function to follow the official AWS Strands deployment pattern, eliminating OpenTelemetry compatibility issues by simplifying the architecture and removing complex layer validation and initialization procedures that cause runtime failures.
+
+## Implementation
+
+### Problem Analysis
+
+**Current Architecture Issues:**
+- Complex layer validation causing OpenTelemetry `StopIteration` exceptions
+- Over-engineered initialization with conversation managers and multi-step validation
+- Divergence from official Strands Lambda deployment patterns
+- Unnecessary complexity for Lambda environment constraints
+
+**Official Strands Pattern Analysis:**
+Based on `strands/deploy_to_lambda/lambda/agent_handler.py`, the official approach is:
+```python
+from strands import Agent
+from strands_tools import http_request
+
+def handler(event: Dict[str, Any], _context) -> str:
+    weather_agent = Agent(
+        system_prompt=WEATHER_SYSTEM_PROMPT,
+        tools=[http_request],
+    )
+    response = weather_agent(event.get('prompt'))
+    return str(response)
+```
+
+**Key Characteristics:**
+- **Minimal imports**: Only `strands.Agent` and tools
+- **Direct instantiation**: No complex initialization or validation
+- **Simple dependencies**: `strands-agents` and `strands-agents-tools` only
+- **Streamlined execution**: Direct agent call with response return
+
+### Technical Approach
+
+Refactor the Lambda function to match the official Strands pattern:
+
+1. **Eliminate layer validation** - Remove `validate_layer_imports()` entirely
+2. **Simplify agent creation** - Direct `Agent()` instantiation like official example
+3. **Streamline imports** - Minimal imports following Strands pattern
+4. **Reduce complexity** - Remove conversation managers and multi-step initialization
+5. **Focus on core functionality** - Process webhook through simplified agent pattern
+
+### Code Changes
+
+**New Simplified Lambda Function:**
+
+```python
 #!/usr/bin/env python3
 """
 CodeRipple Lambda Handler (Simplified Strands Pattern)
@@ -182,3 +234,82 @@ if __name__ == "__main__":
     
     result = lambda_handler(test_event, MockContext())
     print(json.dumps(result, indent=2))
+```
+
+**Simplified Requirements (matching Strands pattern):**
+```
+strands-agents
+strands-agents-tools
+```
+
+### Key Simplifications
+
+#### **Removed Complex Components:**
+1. **Layer validation** - Eliminated `validate_layer_imports()` completely
+2. **Conversation managers** - No `SlidingWindowConversationManager`
+3. **Complex initialization** - No multi-step agent setup
+4. **Specialist agent imports** - Simplified to core tools only
+5. **Environment variable complexity** - Minimal configuration
+
+#### **Adopted Strands Patterns:**
+1. **Direct Agent instantiation** - `Agent(system_prompt, tools)`
+2. **Simple tool imports** - Only essential CodeRipple tools
+3. **Minimal dependencies** - Follow official Strands requirements
+4. **Streamlined execution** - Direct agent call with response
+5. **Standard error handling** - Simple try/catch pattern
+
+#### **Preserved Core Functionality:**
+1. **GitHub webhook processing** - Parse and process webhook data
+2. **Documentation coordination** - Multi-agent logic via system prompt
+3. **API Gateway compatibility** - Standard HTTP response format
+4. **Logging and monitoring** - Essential logging for debugging
+5. **Error handling** - Robust error responses
+
+## AI Interactions
+
+**Context:** Analysis of official Strands Lambda deployment example revealed significant architectural differences from our complex implementation.
+
+**Key Discovery:** Official Strands pattern uses direct `Agent()` instantiation with minimal dependencies, avoiding complex initialization that triggers OpenTelemetry issues.
+
+**Strategic Decision:** Refactor to match proven Strands pattern rather than working around complex initialization issues with exception handling.
+
+**Benefits of Simplified Approach:**
+- Eliminates OpenTelemetry compatibility issues at source
+- Follows officially supported deployment pattern
+- Reduces Lambda cold start time and memory usage
+- Simplifies debugging and maintenance
+- Aligns with Strands best practices
+
+## Files Modified
+
+- `functions/orchestrator/lambda_function.py` - Complete refactor to simplified pattern
+- `functions/orchestrator/requirements.txt` - Simplified dependencies
+
+## Status: Ready for Implementation
+
+**Implementation Steps:**
+1. **Backup current complex implementation**
+2. **Replace with simplified Strands pattern code**
+3. **Update requirements.txt to match Strands example**
+4. **Test locally with simplified pattern**
+5. **Deploy and validate webhook functionality**
+6. **Monitor for OpenTelemetry issues (should be eliminated)**
+
+**Success Criteria:**
+- Lambda function initializes without OpenTelemetry errors
+- Webhook processing completes successfully
+- Agent responses provide documentation coordination
+- No layer validation or complex initialization errors
+- Performance improved with simplified architecture
+
+**Migration Strategy:**
+- **Phase 1**: Deploy simplified version alongside current version
+- **Phase 2**: A/B test both implementations
+- **Phase 3**: Switch traffic to simplified version if successful
+- **Phase 4**: Remove complex implementation after validation
+
+**Long-term Benefits:**
+- **Maintainability**: Simpler codebase following official patterns
+- **Reliability**: Fewer failure points and dependencies
+- **Performance**: Faster cold starts and reduced memory usage
+- **Supportability**: Alignment with official Strands examples
