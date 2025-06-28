@@ -1,0 +1,15 @@
+{
+  "function_name": "orchestrator",
+  "description": "CodeRipple Orchestrator Lambda Function (Layer-based)",
+  "runtime": "python3.13",
+  "handler": "lambda_function.lambda_handler",
+  "created_date": "2025-06-28T01:11:44Z",
+  "build_info": {
+    "package_size_kb": 12,
+    "uses_layers": true,
+    "layer_dependencies": [
+      "coderipple-dependencies",
+      "coderipple-package"
+    ]
+  }
+}
