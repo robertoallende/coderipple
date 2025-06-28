@@ -215,6 +215,7 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
 
 * **15**: Infrastructure Troubleshooting and Resolution
   * **15.1**: [Terraform Duplicate Resource Configuration](015_troubleshooting_001.md) - Resolve duplicate Lambda function resources between main.tf and functions.tf preventing deployment initialization
+  * **15.2**: [GitHub Actions Build Script Resolution](015_troubleshooting_002.md) - Fix missing 1-build.sh orchestrator scripts for automated layer building in CI/CD pipeline
 
 ### Deployment Status
 
