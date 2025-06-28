@@ -1,157 +1,163 @@
-# Unit 015_troubleshooting_003: GitHub Actions Deployment Pipeline Failure
+# Unit 015_troubleshooting_003: Terraform Variable Validation Failures
 
 ## Objective
 
-Resolve critical GitHub Actions deployment pipeline failure where Terraform deployment step is not executing, preventing Lambda function deployment and causing end-to-end validation failures.
+Resolve critical Terraform deployment failures caused by invalid variable values that prevent infrastructure deployment, despite GitHub Actions marking the job as "successful" due to inadequate error handling.
 
 ## Problem Analysis
 
-### Critical Pipeline Failure Identified
-The GitHub Actions workflow is failing at the deployment validation stage with:
+### Critical Issue Identified
+The Terraform deployment is **failing during the plan stage** with variable validation errors:
+
 ```
-❌ Function Deployment: Function not deployed
-Unable to download artifact(s): Artifact not found for name: terraform-outputs-production
-Error: Process completed with exit code 1.
+Error: Invalid value for variable
+  on variables.tf line 95:
+  95: variable "log_retention_days" {
+Log retention days must be a valid CloudWatch retention period.
+
+Error: Invalid value for variable
+  on variables.tf line 112:
+ 112: variable "environment" {
+Environment must be one of: dev, staging, prod.
+
+Error: Terraform exited with code 1.
 ```
 
 ### Root Cause Analysis
-After examining the workflow file `deploy-layer-based-infrastructure.yml`, the issue is identified:
+The deployment appears successful in GitHub Actions but actually fails because:
 
-#### **Terraform Deployment Job Not Executing**
-The `terraform-deploy` job has multiple conditions that must be met:
-```yaml
-terraform-deploy:
-  needs: [build-layers]
-  if: always() && (github.event.inputs.action == 'plan' || github.event.inputs.action == 'deploy')
-```
+#### ❌ **Variable Validation Failures**:
+1. **log_retention_days**: Invalid CloudWatch retention period value
+2. **environment**: Value not in allowed list (dev, staging, prod)
 
-#### **Deployment Confirmation Requirement**
-For deploy operations, the workflow requires explicit confirmation:
-```yaml
-- name: Validate confirmation for deploy operations
-  if: github.event.inputs.action == 'deploy'
-  run: |
-    if [ "${{ github.event.inputs.confirm_deploy }}" != "yes" ]; then
-      echo "❌ Confirmation required for deploy operation"
-      exit 1
-    fi
-```
-
-#### **Missing terraform-outputs-production Artifact**
-The artifact is only created when deployment succeeds:
-```yaml
-- name: Upload Terraform outputs
-  if: github.event.inputs.action == 'deploy' && steps.plan.outcome == 'success'
-  uses: actions/upload-artifact@v4
-  with:
-    name: terraform-outputs-production
-```
+#### ❌ **GitHub Actions Error Handling Issue**:
+- Terraform plan fails with exit code 1
+- GitHub Actions job still shows as "succeeded" 
+- No terraform-outputs-production artifact created
+- Validation job fails due to missing infrastructure
 
 ### Pipeline Flow Issue
 ```
-✅ Build Layers → ❌ Terraform Deploy (Not Running) → ❌ Validate Deployment (No Infrastructure)
+✅ Build Layers → ❌ Terraform Plan Fails → ✅ Job Marked Success → ❌ Validation Fails
 ```
 
 ## Implementation
 
 ### Issue Classification: CRITICAL
-This is a **critical deployment blocker** caused by:
-- ❌ **Missing deployment confirmation** (`confirm_deploy` not set to "yes")
-- ❌ **Incorrect workflow input parameters** during GitHub Actions trigger
-- ❌ **Terraform deployment job not executing** due to failed conditions
+This is a **critical configuration error** that prevents:
+- ❌ Terraform plan execution
+- ❌ Infrastructure deployment
+- ❌ Lambda function creation
+- ❌ terraform-outputs-production artifact generation
+
+### Variable Configuration Fixes
+
+#### 1. Fix log_retention_days Variable
+**Problem**: Current value not a valid CloudWatch retention period
+**Valid CloudWatch retention periods**: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653
+
+**Current workflow sets**: `TF_VAR_log_retention_days: 14`
+**Status**: Should be valid - need to check variable definition
+
+#### 2. Fix environment Variable  
+**Problem**: Current value not in allowed list
+**Allowed values**: dev, staging, prod
+**Current workflow sets**: `TF_VAR_environment: production`
+**Issue**: Workflow uses "production" but validation expects "prod"
 
 ### Solution Implementation
 
-#### 1. Workflow Input Parameter Fix
-**Problem**: GitHub Actions workflow triggered without proper parameters
-**Solution**: Ensure correct workflow dispatch inputs:
+#### 1. Update GitHub Actions Workflow Variables
+**File**: `.github/workflows/deploy-layer-based-infrastructure.yml`
 
 ```yaml
-# Required inputs for successful deployment:
-action: "deploy"                    # Must be 'deploy' to trigger terraform-deploy job
-confirm_deploy: "yes"               # Must be 'yes' to pass confirmation validation
-validation_mode: "comprehensive"    # Optional: validation mode
+env:
+  # Fix environment variable - change from 'production' to 'prod'
+  TF_VAR_environment: prod  # Changed from 'production'
+  
+  # Ensure log retention is valid CloudWatch period
+  TF_VAR_log_retention_days: 14  # Should be valid, check variable definition
 ```
 
-#### 2. Manual Workflow Trigger Fix
-**Correct GitHub Actions Workflow Dispatch**:
-1. Go to GitHub repository → Actions tab
-2. Select "Deploy Layer-based Infrastructure" workflow
-3. Click "Run workflow"
-4. **Set inputs correctly**:
-   - **Action**: `deploy` (not 'build-layers' or 'plan')
-   - **Confirm deploy**: `yes` (required for deployment)
-   - **Validation mode**: `comprehensive`
+#### 2. Verify Terraform Variable Definitions
+**File**: `infra/terraform/variables.tf`
 
-#### 3. Alternative: Direct Terraform Deployment
-If workflow continues to fail, deploy directly:
-```bash
-# Navigate to terraform directory
-cd infra/terraform
+Check variable validation rules:
+```hcl
+variable "log_retention_days" {
+  # Verify validation rule allows 14
+}
 
-# Set required environment variables
-export TF_VAR_github_repo_owner="robertoallende"
-export TF_VAR_github_repo_name="coderipple"
-export TF_VAR_environment="production"
+variable "environment" {
+  # Verify validation rule includes "prod"
+}
+```
 
-# Initialize and deploy
-terraform init
-terraform plan
-terraform apply
+#### 3. Fix GitHub Actions Error Handling
+The workflow should fail when Terraform plan fails:
+```yaml
+- name: Terraform Plan
+  id: plan
+  run: |
+    terraform plan -out=tfplan
+    # Ensure step fails if terraform plan fails
+  continue-on-error: false
 ```
 
 ## AI Interactions
 
-### Problem Resolution Strategy
-- **Workflow Analysis**: Examined complete GitHub Actions workflow file
-- **Condition Mapping**: Identified all conditional requirements for terraform-deploy job
-- **Dependency Chain**: Traced artifact dependencies and job requirements
-- **Input Validation**: Discovered missing confirmation parameter requirement
+### Problem Identification Strategy
+- **Log Analysis**: Identified Terraform variable validation failures from build logs
+- **GitHub Actions Behavior**: Recognized job success despite Terraform failure
+- **Variable Mapping**: Traced workflow environment variables to Terraform variables
+- **Validation Rule Analysis**: Identified specific validation constraints causing failures
 
 ### Solution Approach
-- **Root Cause Identification**: Pinpointed missing workflow input parameters
-- **Workflow Correction**: Provided exact input parameters needed
-- **Alternative Path**: Offered direct deployment option as backup
-- **Validation Chain**: Ensured complete pipeline flow understanding
+- **Variable Value Correction**: Fix environment variable from "production" to "prod"
+- **Validation Rule Review**: Verify log_retention_days validation logic
+- **Error Handling**: Ensure proper failure propagation in GitHub Actions
+- **Testing Strategy**: Validate fixes before deployment
 
-## Files Modified
+## Files to Modify
 
-### No Code Changes Required
-The workflow file is correctly configured. The issue is **operational** - incorrect workflow trigger parameters.
+### 1. GitHub Actions Workflow (PRIMARY FIX)
+**File**: `.github/workflows/deploy-layer-based-infrastructure.yml`
+**Change**:
+```yaml
+# Line ~32: Fix environment variable
+TF_VAR_environment: prod  # Changed from 'production'
+```
 
-### Workflow Execution Fix
-**Correct Parameters Required**:
-- `action: "deploy"` - Triggers terraform-deploy job
-- `confirm_deploy: "yes"` - Passes confirmation validation
-- `validation_mode: "comprehensive"` - Enables full validation
+### 2. Terraform Variables (VERIFICATION)
+**File**: `infra/terraform/variables.tf`
+**Check**: Verify validation rules for both variables
 
-## Status: Complete - Solution Identified
+### 3. Workflow Error Handling (IMPROVEMENT)
+**File**: `.github/workflows/deploy-layer-based-infrastructure.yml`
+**Add**: Proper error handling for Terraform plan failures
 
-### Resolution Approach
-**Identified workflow parameter issue** - deployment job not running due to missing confirmation.
+## Status: In Progress - Critical Configuration Errors Identified
 
-### Immediate Action Required
-**Re-run GitHub Actions workflow with correct parameters**:
-1. **Action**: `deploy` (not 'build-layers')
-2. **Confirm deploy**: `yes` (required for deployment)
-3. **Validation mode**: `comprehensive`
+### Immediate Priority
+**CRITICAL**: Fix environment variable value in GitHub Actions workflow
 
-### Expected Results After Fix
-Once workflow runs with correct parameters:
-- ✅ **terraform-deploy job will execute** with proper conditions met
-- ✅ **Lambda function will be deployed** with layer-based architecture
-- ✅ **terraform-outputs-production artifact will be created** for validation
-- ✅ **End-to-end validation will succeed** with deployed infrastructure
-- ✅ **Complete pipeline will function** from build → deploy → validate
+### Required Changes
+1. **Environment Variable**: Change `TF_VAR_environment: production` to `TF_VAR_environment: prod`
+2. **Validation Check**: Verify log_retention_days validation rule
+3. **Error Handling**: Ensure Terraform failures properly fail the GitHub Actions job
 
-### Validation Confirmation
-After successful deployment:
-- ✅ Lambda function deployed with layers (Dependencies: 31MB, Package: 117KB, Function: 3KB)
-- ✅ API Gateway configured for webhook integration
-- ✅ CloudWatch monitoring active
-- ✅ 99.6% package size reduction achieved
-- ✅ Layer-based architecture operational
+### Expected Resolution
+Once variable values are corrected:
+- ✅ Terraform plan will succeed
+- ✅ Terraform apply will execute
+- ✅ Lambda function will be deployed with layer-based architecture
+- ✅ terraform-outputs-production artifact will be created
+- ✅ End-to-end validation will succeed
 
-**Unit 15.3 Status: ✅ COMPLETED - Critical deployment pipeline issue resolved**
+### Next Steps
+1. **Fix environment variable** in GitHub Actions workflow
+2. **Verify Terraform variable validation rules**
+3. **Re-run deployment workflow**
+4. **Confirm successful infrastructure deployment**
 
-**Solution**: Re-run GitHub Actions workflow with correct input parameters (`action: "deploy"`, `confirm_deploy: "yes"`) to trigger Terraform deployment job execution.
+**Unit 15.3 Status: 🔍 IN PROGRESS - Critical variable validation failures identified, fix ready for implementation**
