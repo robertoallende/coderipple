@@ -72,6 +72,12 @@ resource "aws_lambda_function" "coderipple_orchestrator" {
       CODERIPPLE_ARCHITECTURE          = "single-lambda-with-layers"
       CODERIPPLE_DEPENDENCIES_LAYER    = aws_lambda_layer_version.coderipple_dependencies.arn
       CODERIPPLE_PACKAGE_LAYER         = aws_lambda_layer_version.coderipple_package.arn
+      
+      # OpenTelemetry configuration - disable to fix Python 3.13 compatibility
+      OTEL_SDK_DISABLED     = "true"
+      OTEL_TRACES_EXPORTER  = "none"
+      OTEL_METRICS_EXPORTER = "none"
+      OTEL_LOGS_EXPORTER    = "none"
     }
   }
   
