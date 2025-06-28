@@ -222,6 +222,7 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **15.6**: [OpenTelemetry Python 3.13 Compatibility Issue](015_troubleshooting_006.md) - Resolve Lambda function runtime failure caused by OpenTelemetry compatibility issues with Python 3.13 in AWS Lambda environment, preventing successful webhook processing and validation
   * **15.7**: [Lambda Alias Environment Mismatch and Import Logic Enhancement](015_troubleshooting_007.md) - Resolve Lambda alias ResourceConflictException caused by environment variable mismatch in import logic and enhance import commands to be environment-aware rather than hardcoded
   * **15.8**: [Import Syntax Errors and Duplicate Resource Handling](015_troubleshooting_008.md) - Fix critical import syntax errors for Lambda alias and API Gateway duplicate handling that prevent successful resource imports, causing continued ResourceConflictException errors during deployment
+  * **15.9**: [Lambda Permission Configuration for API Gateway Integration](015_troubleshooting_009.md) - Resolve Lambda permission configuration issue where API Gateway cannot invoke the Lambda function due to missing or incorrect permissions, causing 500 Internal Server Error responses despite successful Terraform deployment
 
 ### Deployment Status
 

@@ -417,6 +417,79 @@ jobs:
           terraform output -json > terraform-outputs.json
           echo "Terraform outputs saved for validation"
       
+      - name: Validate Lambda API Gateway Integration
+        if: github.event.inputs.action == 'deploy' && steps.plan.outcome == 'success'
+        run: |
+          echo "🔍 Validating Lambda API Gateway integration..."
+          
+          # Get the deployed API Gateway ID and Lambda function name
+          API_ID=$(terraform output -raw api_gateway_id 2>/dev/null || echo "")
+          LAMBDA_NAME=$(terraform output -raw lambda_function_name 2>/dev/null || echo "coderipple-orchestrator")
+          
+          if [ ! -z "$API_ID" ] && [ "$API_ID" != "null" ]; then
+            echo "API Gateway ID: $API_ID"
+            echo "Lambda Function: $LAMBDA_NAME"
+            
+            # Check if Lambda permission exists for this API Gateway
+            echo "Checking Lambda permissions..."
+            PERMISSION_EXISTS=$(aws lambda get-policy --function-name $LAMBDA_NAME --query 'Policy' --output text 2>/dev/null | grep -c "$API_ID" || echo "0")
+            
+            if [ "$PERMISSION_EXISTS" -eq "0" ]; then
+              echo "⚠️  Lambda permission missing for API Gateway $API_ID"
+              echo "🔧 Adding Lambda permission..."
+              
+              # Add the missing permission
+              aws lambda add-permission \
+                --function-name $LAMBDA_NAME \
+                --statement-id AllowExecutionFromAPIGateway \
+                --action lambda:InvokeFunction \
+                --principal apigateway.amazonaws.com \
+                --source-arn "arn:aws:execute-api:${{ env.AWS_DEFAULT_REGION }}:$(aws sts get-caller-identity --query Account --output text):$API_ID/*/*" \
+                2>/dev/null || echo "Permission add failed - may already exist with different statement ID"
+              
+              echo "✅ Lambda permission configuration attempted"
+            else
+              echo "✅ Lambda permission already configured for API Gateway $API_ID"
+            fi
+            
+            # Test the integration
+            echo "🧪 Testing API Gateway integration..."
+            WEBHOOK_URL="https://$API_ID.execute-api.${{ env.AWS_DEFAULT_REGION }}.amazonaws.com/prod/webhook"
+            echo "Testing URL: $WEBHOOK_URL"
+            
+            HTTP_STATUS=$(curl -X POST "$WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -H "X-GitHub-Event: push" \
+              -d '{"test": true, "source": "pipeline-validation", "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' \
+              -w "%{http_code}" \
+              -s -o /tmp/webhook_response.json)
+            
+            echo "HTTP Status: $HTTP_STATUS"
+            echo "Response:"
+            cat /tmp/webhook_response.json || echo "No response body"
+            
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "✅ Webhook integration test PASSED"
+              echo "## 🎉 Integration Validation" >> $GITHUB_STEP_SUMMARY
+              echo "✅ **Webhook endpoint is working correctly**" >> $GITHUB_STEP_SUMMARY
+              echo "- **URL**: \`$WEBHOOK_URL\`" >> $GITHUB_STEP_SUMMARY
+              echo "- **Status**: HTTP 200 OK" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ Webhook integration test FAILED with HTTP $HTTP_STATUS"
+              echo "## ⚠️ Integration Validation" >> $GITHUB_STEP_SUMMARY
+              echo "❌ **Webhook endpoint test failed**" >> $GITHUB_STEP_SUMMARY
+              echo "- **URL**: \`$WEBHOOK_URL\`" >> $GITHUB_STEP_SUMMARY
+              echo "- **Status**: HTTP $HTTP_STATUS" >> $GITHUB_STEP_SUMMARY
+              echo "- **Note**: Check Lambda logs for details" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ Could not determine API Gateway ID from Terraform outputs"
+            terraform output || echo "No Terraform outputs available"
+            exit 1
+          fi
+        working-directory: infra/terraform
+        continue-on-error: true
+      
       - name: Upload Terraform outputs
         if: github.event.inputs.action == 'deploy' && steps.plan.outcome == 'success'
         uses: actions/upload-artifact@v4
