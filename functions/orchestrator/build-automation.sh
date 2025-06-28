@@ -1,6 +1,6 @@
 #!/bin/bash
 # functions/orchestrator/build-automation.sh
-# Comprehensive build automation for CodeRipple Lambda Function (Layer-based)
+# Comprehensive build automation for CodeRipple Lambda Function (Simplified Strands Pattern)
 
 set -e
 
@@ -21,7 +21,7 @@ else
     log_section_complete() { echo -e "✅ $1 - COMPLETED\n"; }
 fi
 
-log_section "CodeRipple Lambda Function - Build Automation (Layer-based)"
+log_section "CodeRipple Lambda Function - Build Automation (Simplified Strands Pattern)"
 
 # Configuration
 FUNCTION_NAME="orchestrator"
@@ -208,9 +208,7 @@ import sys
 import os
 sys.path.insert(0, 'build')
 
-# Mock environment variables for testing
-os.environ['CODERIPPLE_LAYER_BASED'] = 'true'
-os.environ['CODERIPPLE_ARCHITECTURE'] = 'single-lambda-with-layers'
+# No environment variables needed for simplified Strands pattern
 
 try:
     from lambda_function import lambda_handler, health_check_handler
@@ -267,14 +265,13 @@ generate_build_report() {
   "function_metrics": {
     "package_size": "$function_size",
     "package_bytes": $function_size_bytes,
-    "architecture": "layer-based",
-    "size_reduction": "99.6% (compared to monolithic)"
+    "architecture": "simplified-strands",
+    "pattern": "official-strands-deployment"
   },
-  "layer_dependencies": {
-    "dependencies_layer": "coderipple-dependencies (~30MB)",
-    "package_layer": "coderipple-package (~120KB)",
-    "total_layer_size": "~30.1MB",
-    "function_only_size": "$function_size"
+  "strands_integration": {
+    "pattern": "simplified-strands",
+    "agent_system": "direct-instantiation",
+    "function_size": "$function_size"
   },
   "build_configuration": {
     "optimization_enabled": $DO_OPTIMIZE,
@@ -286,7 +283,7 @@ generate_build_report() {
     "runtime": "python3.12",
     "handler": "lambda_function.lambda_handler",
     "architecture": "x86_64",
-    "layer_based": true,
+    "strands_pattern": true,
     "max_function_size": "262144000",
     "within_limits": $([ $function_size_bytes -lt 262144000 ] && echo "true" || echo "false")
   }
@@ -295,7 +292,7 @@ EOF
     
     log_success "Build report generated: build-report.json"
     log_debug "Function size: $function_size ($function_size_bytes bytes)"
-    log_debug "Architecture: Layer-based (99.6% size reduction)"
+    log_debug "Architecture: Simplified Strands Pattern"
 }
 
 # Cleanup build artifacts
@@ -331,7 +328,7 @@ main() {
     echo ""
     echo "📊 Build Summary:"
     echo "   Function: $(du -sh function.zip | cut -f1)"
-    echo "   Architecture: Layer-based (99.6% size reduction)"
+    echo "   Architecture: Simplified Strands Pattern"
     echo "   Mode: $BUILD_MODE"
     echo ""
     echo "📁 Generated Files:"
@@ -339,9 +336,9 @@ main() {
     echo "   • build-report.json"
     echo "   • function-metadata.json"
     echo ""
-    echo "🔗 Layer Dependencies:"
-    echo "   • coderipple-dependencies (~30MB)"
-    echo "   • coderipple-package (~120KB)"
+    echo "🚀 Strands Integration:"
+    echo "   • Direct agent instantiation"
+    echo "   • Official AWS Strands pattern"
     echo ""
 }
 

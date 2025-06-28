@@ -1,6 +1,6 @@
 #!/bin/bash
 # functions/orchestrator/comprehensive-validation.sh
-# Comprehensive validation framework for CodeRipple Lambda Function (Layer-based)
+# Comprehensive validation framework for CodeRipple Lambda Function (Simplified Strands Pattern)
 
 set -e
 
@@ -8,21 +8,16 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Source common functions
-if [ -f "../../layers/shared/build-common.sh" ]; then
-    source ../../layers/shared/build-common.sh
-else
-    # Fallback logging functions
-    log_section() { echo -e "\n=== $1 ==="; }
-    log_step() { echo "🔍 $1..."; }
-    log_success() { echo "✅ $1"; }
-    log_error() { echo "❌ $1"; }
-    log_warning() { echo "⚠️  $1"; }
-    log_debug() { echo "🐛 $1"; }
-    log_section_complete() { echo -e "✅ $1 - COMPLETED\n"; }
-fi
+# Fallback logging functions (simplified - no layer dependencies)
+log_section() { echo -e "\n=== $1 ==="; }
+log_step() { echo "🔍 $1..."; }
+log_success() { echo "✅ $1"; }
+log_error() { echo "❌ $1"; }
+log_warning() { echo "⚠️  $1"; }
+log_debug() { echo "🐛 $1"; }
+log_section_complete() { echo -e "✅ $1 - COMPLETED\n"; }
 
-log_section "CodeRipple Lambda Function - Comprehensive Validation"
+log_section "CodeRipple Lambda Function - Comprehensive Validation (Simplified Strands Pattern)"
 
 # Configuration
 FUNCTION_ZIP="function.zip"
@@ -92,14 +87,14 @@ validate_aws_compatibility() {
     function_size_bytes=$(stat -f%z "$FUNCTION_ZIP" 2>/dev/null || stat -c%s "$FUNCTION_ZIP")
     function_size_kb=$((function_size_bytes / 1024))
     
-    # AWS Lambda function limits
+    # AWS Lambda function limits (simplified pattern should be very small)
     MAX_FUNCTION_SIZE_MB=250
-    RECOMMENDED_MAX_KB=10240  # 10MB for layer-based functions
+    RECOMMENDED_MAX_KB=1024  # 1MB for simplified Strands pattern
     
     if [ "$function_size_kb" -le "$RECOMMENDED_MAX_KB" ]; then
-        add_result "PASS" "Function Size" "${function_size_kb}KB (excellent for layer-based architecture)"
+        add_result "PASS" "Function Size" "${function_size_kb}KB (excellent for simplified Strands pattern)"
     elif [ "$function_size_kb" -le $((MAX_FUNCTION_SIZE_MB * 1024)) ]; then
-        add_result "WARN" "Function Size" "${function_size_kb}KB (within AWS limits but large for layer-based)"
+        add_result "WARN" "Function Size" "${function_size_kb}KB (within AWS limits but large for simplified pattern)"
     else
         add_result "FAIL" "Function Size" "${function_size_kb}KB (exceeds AWS limit)"
     fi
@@ -136,7 +131,7 @@ validate_function_code() {
         return 1
     fi
     
-    # Function structure validation
+    # Function structure validation (simplified pattern)
     python3.12 -c "
 import sys
 sys.path.insert(0, '$temp_dir')
@@ -144,7 +139,7 @@ sys.path.insert(0, '$temp_dir')
 try:
     import lambda_function
     
-    # Check required functions
+    # Check required functions (simplified pattern)
     required_functions = ['lambda_handler', 'health_check_handler']
     missing_functions = []
     
@@ -153,16 +148,16 @@ try:
             missing_functions.append(func)
     
     if missing_functions:
-        print(f'MISSING_FUNCTIONS:{\"|\".join(missing_functions)}')
+        print(f'MISSING_FUNCTIONS:{\"|\" .join(missing_functions)}')
         exit(1)
     else:
         print('ALL_FUNCTIONS_FOUND')
         
-    # Check layer-based architecture indicators
-    if hasattr(lambda_function, 'LAYER_BASED') and hasattr(lambda_function, 'ARCHITECTURE'):
-        print('LAYER_ARCHITECTURE_OK')
+    # Check simplified Strands pattern indicators
+    if hasattr(lambda_function, 'CODERIPPLE_SYSTEM_PROMPT'):
+        print('STRANDS_PATTERN_OK')
     else:
-        print('LAYER_ARCHITECTURE_MISSING')
+        print('STRANDS_PATTERN_MISSING')
         
 except Exception as e:
     print(f'IMPORT_ERROR:{e}')
@@ -178,64 +173,17 @@ except Exception as e:
         fi
     fi
     
-    if grep -q "LAYER_ARCHITECTURE_OK" validation_output.txt; then
-        add_result "PASS" "Layer Architecture" "Layer-based architecture indicators present"
+    if grep -q "STRANDS_PATTERN_OK" validation_output.txt; then
+        add_result "PASS" "Strands Pattern" "Simplified Strands pattern indicators present"
     else
-        add_result "WARN" "Layer Architecture" "Layer architecture indicators missing or incomplete"
+        add_result "WARN" "Strands Pattern" "Strands pattern indicators missing or incomplete"
     fi
     
     rm -f validation_output.txt
     rm -rf "$temp_dir"
 }
 
-# Layer dependency validation
-validate_layer_dependencies() {
-    if [ "$VALIDATION_MODE" = "function-only" ]; then
-        log_debug "Skipping layer dependency validation in function-only mode"
-        return 0
-    fi
-    
-    log_step "Validating layer dependencies"
-    
-    # Check if layer ZIPs exist
-    DEPENDENCIES_LAYER="../../layers/dependencies/coderipple-dependencies-layer.zip"
-    PACKAGE_LAYER="../../layers/coderipple-package/coderipple-package-layer.zip"
-    
-    if [ -f "$DEPENDENCIES_LAYER" ]; then
-        deps_size=$(du -sh "$DEPENDENCIES_LAYER" | cut -f1)
-        add_result "PASS" "Dependencies Layer" "Found: $deps_size"
-    else
-        add_result "WARN" "Dependencies Layer" "Layer ZIP not found (may be deployed separately)"
-    fi
-    
-    if [ -f "$PACKAGE_LAYER" ]; then
-        pkg_size=$(du -sh "$PACKAGE_LAYER" | cut -f1)
-        add_result "PASS" "Package Layer" "Found: $pkg_size"
-    else
-        add_result "WARN" "Package Layer" "Layer ZIP not found (may be deployed separately)"
-    fi
-    
-    # Calculate total architecture size
-    if [ -f "$DEPENDENCIES_LAYER" ] && [ -f "$PACKAGE_LAYER" ]; then
-        deps_bytes=$(stat -f%z "$DEPENDENCIES_LAYER" 2>/dev/null || stat -c%s "$DEPENDENCIES_LAYER")
-        pkg_bytes=$(stat -f%z "$PACKAGE_LAYER" 2>/dev/null || stat -c%s "$PACKAGE_LAYER")
-        func_bytes=$(stat -f%z "$FUNCTION_ZIP" 2>/dev/null || stat -c%s "$FUNCTION_ZIP")
-        
-        total_bytes=$((deps_bytes + pkg_bytes + func_bytes))
-        total_mb=$((total_bytes / 1024 / 1024))
-        
-        add_result "INFO" "Total Architecture Size" "${total_mb}MB (layers + function)"
-        
-        # Compare with monolithic approach
-        if [ "$total_mb" -lt 50 ]; then
-            add_result "PASS" "Size Efficiency" "Total size efficient for layer-based architecture"
-        else
-            add_result "WARN" "Size Efficiency" "Total size larger than expected for layer-based architecture"
-        fi
-    fi
-}
-
-# Performance validation
+# Performance validation (simplified)
 validate_performance() {
     if [ "$VALIDATION_MODE" = "quick" ]; then
         log_debug "Skipping performance validation in quick mode"
@@ -247,11 +195,7 @@ validate_performance() {
     temp_dir=$(mktemp -d)
     unzip -q "$FUNCTION_ZIP" -d "$temp_dir"
     
-    # Mock environment for testing
-    export CODERIPPLE_LAYER_BASED="true"
-    export CODERIPPLE_ARCHITECTURE="single-lambda-with-layers"
-    
-    # Function load time test
+    # Function load time test (no layer environment variables needed)
     python3.12 -c "
 import sys
 import time
@@ -287,12 +231,12 @@ except Exception as e:
     # Process performance results
     if grep -q "TOTAL_LOAD_TIME:" performance_results.txt; then
         load_time=$(grep "TOTAL_LOAD_TIME:" performance_results.txt | cut -d: -f2)
-        if (( $(echo "$load_time < 1.0" | bc -l) )); then
-            add_result "PASS" "Load Performance" "${load_time}s (excellent for Lambda cold start)"
-        elif (( $(echo "$load_time < 3.0" | bc -l) )); then
-            add_result "WARN" "Load Performance" "${load_time}s (acceptable for Lambda cold start)"
+        if (( $(echo "$load_time < 0.5" | bc -l) )); then
+            add_result "PASS" "Load Performance" "${load_time}s (excellent for simplified pattern)"
+        elif (( $(echo "$load_time < 1.0" | bc -l) )); then
+            add_result "WARN" "Load Performance" "${load_time}s (acceptable for simplified pattern)"
         else
-            add_result "FAIL" "Load Performance" "${load_time}s (too slow for Lambda cold start)"
+            add_result "FAIL" "Load Performance" "${load_time}s (too slow for simplified pattern)"
         fi
     else
         add_result "FAIL" "Load Performance" "Could not measure function load time"
@@ -300,23 +244,16 @@ except Exception as e:
     
     rm -f performance_results.txt
     rm -rf "$temp_dir"
-    unset CODERIPPLE_LAYER_BASED CODERIPPLE_ARCHITECTURE
 }
 
-# Lambda simulation test
+# Lambda simulation test (simplified)
 validate_lambda_simulation() {
     log_step "Running Lambda simulation test"
     
     temp_dir=$(mktemp -d)
     unzip -q "$FUNCTION_ZIP" -d "$temp_dir"
     
-    # Create mock Lambda environment
-    export CODERIPPLE_LAYER_BASED="true"
-    export CODERIPPLE_ARCHITECTURE="single-lambda-with-layers"
-    export CODERIPPLE_DEPENDENCIES_LAYER="arn:aws:lambda:us-west-2:123456789012:layer:coderipple-dependencies:1"
-    export CODERIPPLE_PACKAGE_LAYER="arn:aws:lambda:us-west-2:123456789012:layer:coderipple-package:1"
-    
-    # Test Lambda handler simulation
+    # Test Lambda handler simulation (no layer environment variables)
     python3.12 -c "
 import sys
 import json
@@ -334,7 +271,7 @@ try:
     
     context = MockContext()
     
-    # Test health check handler (should work without layers)
+    # Test health check handler
     result = lambda_function.health_check_handler({}, context)
     
     if result.get('statusCode') in [200, 503]:  # Either healthy or unhealthy is OK
@@ -342,9 +279,6 @@ try:
     else:
         print(f'HEALTH_CHECK_FAILED:{result}')
         exit(1)
-    
-    # Layer info handler removed in simplified Strands pattern (Unit 15.13)
-    # No longer needed - functionality integrated into main lambda_handler
     
     print('SIMULATION_SUCCESS')
     
@@ -362,10 +296,9 @@ except Exception as e:
     
     rm -f simulation_result.txt
     rm -rf "$temp_dir"
-    unset CODERIPPLE_LAYER_BASED CODERIPPLE_ARCHITECTURE CODERIPPLE_DEPENDENCIES_LAYER CODERIPPLE_PACKAGE_LAYER
 }
 
-# Generate comprehensive validation report
+# Generate comprehensive validation report (simplified)
 generate_validation_report() {
     if [ "$GENERATE_REPORT" != "true" ]; then
         return 0
@@ -400,7 +333,7 @@ generate_validation_report() {
     "timestamp": "$timestamp",
     "function_name": "coderipple-orchestrator",
     "validation_mode": "$VALIDATION_MODE",
-    "architecture": "single-lambda-with-layers",
+    "architecture": "simplified-strands-pattern",
     "summary": {
       "total_tests": $total_tests,
       "passed": $passed_tests,
@@ -412,8 +345,8 @@ generate_validation_report() {
       "file": "$FUNCTION_ZIP",
       "size_bytes": $(stat -f%z "$FUNCTION_ZIP" 2>/dev/null || stat -c%s "$FUNCTION_ZIP"),
       "size_human": "$(du -sh "$FUNCTION_ZIP" | cut -f1)",
-      "architecture": "layer-based",
-      "size_reduction": "99.6%"
+      "architecture": "simplified-strands",
+      "pattern": "official-strands-deployment"
     },
     "test_results": [
 EOF
@@ -447,7 +380,7 @@ EOF
     add_result "INFO" "Validation Report" "Generated: $report_file"
 }
 
-# Print validation summary
+# Print validation summary (simplified)
 print_validation_summary() {
     log_section "Validation Summary"
     
@@ -480,9 +413,9 @@ print_validation_summary() {
     fi
     
     echo ""
-    echo "🏗️  Architecture: Single Lambda with Layers"
+    echo "🚀 Architecture: Simplified Strands Pattern"
     echo "   Function Size: $(du -sh "$FUNCTION_ZIP" | cut -f1)"
-    echo "   Size Reduction: 99.6% (compared to monolithic)"
+    echo "   Pattern: Official AWS Strands Deployment"
     echo ""
     
     # Show failures and warnings
@@ -526,7 +459,7 @@ print_validation_summary() {
     fi
 }
 
-# Main execution flow
+# Main execution flow (simplified)
 main() {
     # Run validation steps based on mode
     case "$VALIDATION_MODE" in
@@ -534,7 +467,6 @@ main() {
             validate_function_integrity || exit 1
             validate_aws_compatibility
             validate_function_code
-            validate_layer_dependencies
             validate_performance
             validate_lambda_simulation
             ;;
@@ -558,7 +490,7 @@ main() {
     generate_validation_report
     
     if print_validation_summary; then
-        log_section_complete "Comprehensive Validation"
+        log_section_complete "Comprehensive Validation (Simplified Strands Pattern)"
         exit 0
     else
         log_section_complete "Comprehensive Validation (WITH FAILURES)"

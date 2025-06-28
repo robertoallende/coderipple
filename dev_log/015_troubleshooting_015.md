@@ -135,8 +135,9 @@ Note: These environment variables are preserved for backward compatibility but t
 
 ## Files Modified
 
-- `functions/orchestrator/build-automation.sh` - Updated import statement to remove deprecated function
-- `functions/orchestrator/comprehensive-validation.sh` - Updated function validation list and removed deprecated function test
+- `functions/orchestrator/build-automation.sh` - Updated import statement to remove deprecated function and cleaned up all layer architecture references
+- `functions/orchestrator/comprehensive-validation.sh` - Complete rewrite to align with simplified Strands pattern, removing all deprecated layer validation logic
+- Removed outdated generated reports: `validation-report.json`, `build-report.json`
 
 ## Status: Complete
 
