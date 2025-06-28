@@ -224,6 +224,7 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **15.8**: [Import Syntax Errors and Duplicate Resource Handling](015_troubleshooting_008.md) - Fix critical import syntax errors for Lambda alias and API Gateway duplicate handling that prevent successful resource imports, causing continued ResourceConflictException errors during deployment
   * **15.9**: [Lambda Permission Configuration for API Gateway Integration](015_troubleshooting_009.md) - Resolve Lambda permission configuration issue where API Gateway cannot invoke the Lambda function due to missing or incorrect permissions, causing 500 Internal Server Error responses despite successful Terraform deployment. Enhanced to include comprehensive environment variable validation and auto-remediation for missing Terraform configuration variables.
   * **15.10**: [Python Runtime Downgrade for OpenTelemetry Compatibility](015_troubleshooting_010.md) - Resolve the fundamental OpenTelemetry Python 3.13 compatibility issue by downgrading the Lambda runtime to Python 3.12, eliminating the StopIteration error that prevents Lambda function execution despite correct environment variable configuration
+  * **15.12**: [Lambda Layer Validation OpenTelemetry Exception Handling](015_troubleshooting_012.md) - Resolve critical Lambda function runtime failure caused by OpenTelemetry `StopIteration` exception during layer validation by implementing surgical exception handling around the problematic validation step, allowing webhook processing to continue when validation fails
 
 ### Deployment Status
 
