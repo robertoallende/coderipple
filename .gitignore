@@ -75,3 +75,11 @@ layers/*/environment_snapshot_*.txt
 # Legacy Lambda Build
 infra/terraform/lambda_build/
 infra/terraform/lambda_deployment.zip
+# Test artifacts (Unit 14.10)
+test-payloads/
+webhook-integration-report.json
+real-world-testing-report.json
+deployment-orchestration-report.json
+e2e-validation-report.json
+github-webhook-instructions.md
+.github-webhook-id
