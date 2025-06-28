@@ -45,9 +45,9 @@ resource "aws_lambda_function" "coderipple_orchestrator" {
     aws_lambda_layer_version.coderipple_package.arn
   ]
   
-  # Function configuration (same as current, but optimized)
+  # Function configuration (optimized for layer-based architecture)
   handler = "lambda_function.lambda_handler"
-  runtime = var.lambda_runtime
+  runtime = var.lambda_runtime  # Python 3.12 for OpenTelemetry compatibility (Unit 15.10)
   
   # Optimized resource allocation (layers reduce memory needs)
   memory_size = 1536  # Reduced from 2048 (dependencies in layers)

@@ -130,14 +130,14 @@ coderipple/
 
 ### Prerequisites
 
-**Python 3.13.x Required** - CodeRipple requires Python 3.13.x for:
-- AWS Lambda runtime compatibility (`python3.13`)
+**Python 3.12.x Required** - CodeRipple requires Python 3.12.x for:
+- AWS Lambda runtime compatibility (`python3.12`)
 - Strands Agents SDK compatibility (requires Python 3.10+)
-- Latest performance and security improvements
+- OpenTelemetry compatibility (Python 3.13 has known issues)
 
 ```bash
 # Verify Python version
-python3 --version  # Should show Python 3.13.x
+python3 --version  # Should show Python 3.12.x
 
 # Validate CodeRipple compatibility
 python3 scripts/validate_python_version.py

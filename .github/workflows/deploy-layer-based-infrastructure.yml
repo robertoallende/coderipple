@@ -51,7 +51,7 @@ env:
   TF_VAR_lambda_function_name: coderipple-orchestrator
   TF_VAR_lambda_memory_size: 1536  # Reduced from 2048 due to layer optimization
   TF_VAR_lambda_timeout: 60        # Reduced from 900 due to improved performance
-  TF_VAR_lambda_runtime: python3.13
+  TF_VAR_lambda_runtime: python3.12  # Downgraded from python3.13 for OpenTelemetry compatibility
   
   # API Gateway configuration
   TF_VAR_api_gateway_name: coderipple-webhook-api
@@ -494,6 +494,21 @@ jobs:
         if: github.event.inputs.action == 'deploy' && steps.plan.outcome == 'success'
         run: |
           echo "🧪 Testing webhook integration..."
+          
+          # Check Lambda runtime compatibility
+          echo "🔍 Validating Python runtime compatibility..."
+          LAMBDA_NAME=$(terraform output -raw lambda_function_name 2>/dev/null || echo "coderipple-orchestrator")
+          RUNTIME_VERSION=$(aws lambda get-function-configuration --function-name $LAMBDA_NAME --query 'Runtime' --output text 2>/dev/null || echo "unknown")
+          echo "Lambda Runtime: $RUNTIME_VERSION"
+          
+          if [ "$RUNTIME_VERSION" = "python3.13" ]; then
+            echo "⚠️  Python 3.13 runtime detected - known OpenTelemetry compatibility issues"
+            echo "💡 Consider using Python 3.12 for better compatibility"
+          elif [ "$RUNTIME_VERSION" = "python3.12" ]; then
+            echo "✅ Python 3.12 runtime - good OpenTelemetry compatibility"
+          else
+            echo "ℹ️  Runtime: $RUNTIME_VERSION"
+          fi
           
           # Get webhook URL from Terraform output
           WEBHOOK_URL=$(terraform output -raw webhook_url 2>/dev/null || echo "")

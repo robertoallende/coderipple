@@ -40,7 +40,7 @@ env:
   TF_VAR_lambda_function_name: coderipple-orchestrator
   TF_VAR_lambda_memory_size: 2048
   TF_VAR_lambda_timeout: 900
-  TF_VAR_lambda_runtime: python3.13
+  TF_VAR_lambda_runtime: python3.12  # Downgraded from python3.13 for OpenTelemetry compatibility
   
   # API Gateway configuration
   TF_VAR_api_gateway_name: coderipple-webhook-api

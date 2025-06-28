@@ -249,6 +249,12 @@ output "lambda_environment_variables" {
   sensitive   = false
 }
 
+output "lambda_runtime_version" {
+  description = "Lambda function runtime version"
+  value       = aws_lambda_function.coderipple_orchestrator.runtime
+  sensitive   = false
+}
+
 output "access_logs_bucket" {
   description = "S3 bucket for Terraform state access logs"
   value       = aws_s3_bucket.terraform_state_access_logs.bucket
