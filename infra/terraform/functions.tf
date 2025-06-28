@@ -73,11 +73,11 @@ resource "aws_lambda_function" "coderipple_orchestrator" {
       CODERIPPLE_DEPENDENCIES_LAYER    = aws_lambda_layer_version.coderipple_dependencies.arn
       CODERIPPLE_PACKAGE_LAYER         = aws_lambda_layer_version.coderipple_package.arn
       
-      # OpenTelemetry configuration - disable to fix Python 3.13 compatibility
-      OTEL_SDK_DISABLED     = "true"
-      OTEL_TRACES_EXPORTER  = "none"
-      OTEL_METRICS_EXPORTER = "none"
-      OTEL_LOGS_EXPORTER    = "none"
+      # OpenTelemetry configuration - enabled for Python 3.12 compatibility with Strands SDK
+      OTEL_SDK_DISABLED     = "false"
+      OTEL_TRACES_EXPORTER  = "otlp"
+      OTEL_METRICS_EXPORTER = "otlp"
+      OTEL_LOGS_EXPORTER    = "otlp"
     }
   }
   
