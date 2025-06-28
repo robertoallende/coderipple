@@ -15,14 +15,6 @@ resource "aws_lambda_layer_version" "coderipple_dependencies" {
   lifecycle {
     create_before_destroy = true
   }
-  
-  tags = {
-    Name        = "coderipple-dependencies"
-    Environment = var.environment
-    Project     = var.project_name
-    LayerType   = "dependencies"
-    Version     = "1.0.0"
-  }
 }
 
 # CodeRipple Package Layer
@@ -38,14 +30,6 @@ resource "aws_lambda_layer_version" "coderipple_package" {
   
   lifecycle {
     create_before_destroy = true
-  }
-  
-  tags = {
-    Name        = "coderipple-package"
-    Environment = var.environment
-    Project     = var.project_name
-    LayerType   = "package"
-    Version     = "1.0.0"
   }
 }
 

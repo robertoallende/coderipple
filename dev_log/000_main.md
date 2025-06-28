@@ -210,6 +210,11 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **14.6**: [Lambda Function Refactoring for Layers](014_layers_008.md) - Single Lambda function refactored to use layers, eliminating package bundling complexity while maintaining proven architecture
   * **14.7**: [Production Testing and Optimization](014_layers_009.md) - Performance testing, resource optimization, and monitoring setup for single Lambda with layers
   * **14.8**: [Production Deployment and Validation](014_layers_010.md) - Layer deployment to production with end-to-end testing, performance assessment, and rollback procedures
+  * **14.9**: [AWS Infrastructure Deployment](014_layers_010.md) - GitHub Actions workflow enhancement and deployment orchestration
+  * **14.10**: [GitHub Webhook Integration & Real-World Testing](014_layers_010.md) - Complete webhook integration with comprehensive testing framework
+
+* **15**: Infrastructure Troubleshooting and Resolution
+  * **15.1**: [Terraform Duplicate Resource Configuration](015_troubleshooting_001.md) - Resolve duplicate Lambda function resources between main.tf and functions.tf preventing deployment initialization
 
 ### Deployment Status
 

@@ -39,24 +39,8 @@ output "api_gateway_execution_arn" {
 # ================================
 # Lambda Function Outputs
 # ================================
-
-output "lambda_function_name" {
-  description = "Lambda function name for monitoring and invocation"
-  value       = aws_lambda_function.coderipple_orchestrator.function_name
-  sensitive   = false
-}
-
-output "lambda_function_arn" {
-  description = "Lambda function ARN for IAM policies and triggers"
-  value       = aws_lambda_function.coderipple_orchestrator.arn
-  sensitive   = false
-}
-
-output "lambda_function_qualified_arn" {
-  description = "Lambda function qualified ARN with version"
-  value       = aws_lambda_function.coderipple_orchestrator.qualified_arn
-  sensitive   = false
-}
+# Lambda function outputs are now defined in functions.tf (layer-based architecture)
+# functions.tf contains more comprehensive outputs for the layer-based implementation
 
 output "lambda_invoke_arn" {
   description = "Lambda invoke ARN for API Gateway integration"
