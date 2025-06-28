@@ -18,7 +18,7 @@ variable "aws_region" {
 variable "github_repo_owner" {
   description = "GitHub repository owner (username or organization)"
   type        = string
-  # No default - must be provided via terraform.tfvars or command line
+  default     = "robertoallende"  # Default to repository owner
 }
 
 variable "github_repo_name" {
