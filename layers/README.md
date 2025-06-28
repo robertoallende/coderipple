@@ -124,13 +124,13 @@ terraform apply -target=aws_lambda_function.coderipple_orchestrator
 aws lambda publish-layer-version \
     --layer-name coderipple-dependencies \
     --zip-file fileb://layers/dependencies/coderipple-dependencies-layer.zip \
-    --compatible-runtimes python3.13
+    --compatible-runtimes python3.12
 
 # Deploy package layer
 aws lambda publish-layer-version \
     --layer-name coderipple-package \
     --zip-file fileb://layers/coderipple-package/coderipple-package-layer.zip \
-    --compatible-runtimes python3.13
+    --compatible-runtimes python3.12
 ```
 
 ## Testing

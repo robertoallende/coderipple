@@ -24,7 +24,7 @@ aws_region = "ap-southeast-2"  # Sydney region (default)
 lambda_function_name = "coderipple-orchestrator"
 lambda_memory_size   = 2048  # MB - required for multi-agent processing
 lambda_timeout       = 900   # seconds (15 minutes)
-lambda_runtime      = "python3.13"
+lambda_runtime      = "python3.12"
 
 # API Gateway Configuration
 api_gateway_name  = "coderipple-webhook-api"

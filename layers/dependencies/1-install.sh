@@ -42,7 +42,7 @@ cleanup_build() {
 create_virtual_environment() {
     log_step "Creating virtual environment with Python $PYTHON_VERSION"
     
-    python3.13 -m venv "$VENV_DIR"
+    python3.12 -m venv "$VENV_DIR"
     source "$VENV_DIR/bin/activate"
     
     # Upgrade pip to latest version
@@ -74,7 +74,7 @@ validate_installation() {
     # Test critical imports
     python3 -c "
 import sys
-sys.path.insert(0, '$VENV_DIR/lib/python3.13/site-packages')
+sys.path.insert(0, '$VENV_DIR/lib/python3.12/site-packages')
 
 critical_packages = [
     ('boto3', 'boto3'), 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.13
+#!/usr/bin/env python3.12
 """
 Comprehensive test suite for CodeRipple Package Layer
 Tests layer functionality, agent imports, and AWS Lambda compatibility

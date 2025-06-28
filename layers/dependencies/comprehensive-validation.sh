@@ -114,7 +114,7 @@ validate_aws_compatibility() {
     fi
     
     # Runtime compatibility
-    add_result "PASS" "Runtime Compatibility" "python3.13 (matches AWS Lambda runtime)"
+    add_result "PASS" "Runtime Compatibility" "python3.12 (matches AWS Lambda runtime)"
     
     # Architecture compatibility
     add_result "PASS" "Architecture Compatibility" "x86_64 (standard Lambda architecture)"
@@ -128,7 +128,7 @@ validate_package_dependencies() {
     unzip -q "$LAYER_ZIP" -d "$temp_dir"
     
     # Test critical package imports
-    python3.13 -c "
+    python3.12 -c "
 import sys
 sys.path.insert(0, '$temp_dir/python')
 
@@ -197,7 +197,7 @@ validate_performance() {
     unzip -q "$LAYER_ZIP" -d "$temp_dir"
     
     # Import performance test
-    python3.13 -c "
+    python3.12 -c "
 import sys
 import time
 sys.path.insert(0, '$temp_dir/python')
@@ -336,7 +336,7 @@ if __name__ == '__main__':
 EOF
     
     cd "$temp_dir"
-    python3.13 test_handler.py > simulation_result.txt 2>&1
+    python3.12 test_handler.py > simulation_result.txt 2>&1
     
     if grep -q "SIMULATION_SUCCESS" simulation_result.txt; then
         add_result "PASS" "Lambda Simulation" "Handler executed successfully with layer dependencies"

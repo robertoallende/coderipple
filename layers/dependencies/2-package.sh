@@ -38,7 +38,7 @@ create_layer_structure() {
     mkdir -p "$TARGET_DIR"
     
     # Copy installed packages to layer structure
-    cp -r "$VENV_DIR/lib/python3.13/site-packages/"* "$TARGET_DIR/"
+    cp -r "$VENV_DIR/lib/python3.12/site-packages/"* "$TARGET_DIR/"
     
     log_success "Layer structure created: $TARGET_DIR"
     
@@ -106,11 +106,11 @@ generate_metadata() {
 {
   "layer_name": "coderipple-dependencies",
   "description": "CodeRipple external dependencies (boto3, strands-agents, etc.)",
-  "compatible_runtimes": ["python3.13"],
+  "compatible_runtimes": ["python3.12"],
   "compatible_architectures": ["x86_64"],
   "created_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "build_info": {
-    "python_version": "$(python3.13 --version)",
+    "python_version": "$(python3.12 --version)",
     "pip_version": "$(pip --version)",
     "platform": "manylinux2014_x86_64",
     "layer_size_mb": $LAYER_SIZE_MB,

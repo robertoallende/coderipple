@@ -39,7 +39,7 @@ create_layer_structure() {
     
     # Copy CodeRipple package to layer structure
     # Only copy the coderipple package, not all site-packages
-    CODERIPPLE_PKG="$VENV_DIR/lib/python3.13/site-packages/coderipple"
+    CODERIPPLE_PKG="$VENV_DIR/lib/python3.12/site-packages/coderipple"
     
     if [ -d "$CODERIPPLE_PKG" ]; then
         cp -r "$CODERIPPLE_PKG" "$TARGET_DIR/"
@@ -146,11 +146,11 @@ generate_package_manifest() {
 {
   "layer_name": "coderipple-package",
   "description": "CodeRipple custom package with agents and tools",
-  "compatible_runtimes": ["python3.13"],
+  "compatible_runtimes": ["python3.12"],
   "compatible_architectures": ["x86_64"],
   "created_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "build_info": {
-    "python_version": "$(python3.13 --version)",
+    "python_version": "$(python3.12 --version)",
     "layer_size_mb": $LAYER_SIZE_MB,
     "module_count": $MODULE_COUNT,
     "function_count": $FUNCTION_COUNT,

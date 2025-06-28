@@ -56,7 +56,7 @@ This is a **critical runtime compatibility issue** that requires:
 **Current Configuration**:
 ```hcl
 # In infra/terraform/functions.tf
-runtime = var.lambda_runtime  # Currently "python3.13"
+runtime = var.lambda_runtime  # Currently "python3.12"
 ```
 
 **Proposed Fix**:
@@ -73,13 +73,13 @@ runtime = "python3.12"  # Downgrade for OpenTelemetry compatibility
 variable "lambda_runtime" {
   description = "Lambda function runtime version"
   type        = string
-  default     = "python3.12"  # Changed from python3.13
+  default     = "python3.12"  # Changed from python3.12
   
   validation {
     condition = contains([
       "python3.8", "python3.9", "python3.10", "python3.11", "python3.12"
     ], var.lambda_runtime)
-    error_message = "Lambda runtime must be a supported Python version. python3.13 has OpenTelemetry compatibility issues."
+    error_message = "Lambda runtime must be a supported Python version. python3.12 has OpenTelemetry compatibility issues."
   }
 }
 ```
@@ -88,7 +88,7 @@ variable "lambda_runtime" {
 **File**: `.github/workflows/deploy-layer-based-infrastructure.yml`
 ```yaml
 env:
-  TF_VAR_lambda_runtime: python3.12  # Changed from python3.13
+  TF_VAR_lambda_runtime: python3.12  # Changed from python3.12
 ```
 
 **Step 3: Update Lambda Function Configuration**
@@ -100,7 +100,7 @@ resource "aws_lambda_function" "coderipple_orchestrator" {
   source_code_hash = data.archive_file.orchestrator_function_package.output_base64sha256
   
   # Runtime downgrade for OpenTelemetry compatibility
-  runtime = "python3.12"  # Explicit downgrade from python3.13
+  runtime = "python3.12"  # Explicit downgrade from python3.12
   handler = "lambda_function.lambda_handler"
   
   # Rest of configuration remains the same...
@@ -123,7 +123,7 @@ echo "🔍 Validating Python runtime compatibility..."
 RUNTIME_VERSION=$(aws lambda get-function-configuration --function-name $LAMBDA_NAME --query 'Runtime' --output text)
 echo "Lambda Runtime: $RUNTIME_VERSION"
 
-if [ "$RUNTIME_VERSION" = "python3.13" ]; then
+if [ "$RUNTIME_VERSION" = "python3.12" ]; then
   echo "⚠️  Python 3.13 runtime detected - known OpenTelemetry compatibility issues"
   echo "💡 Consider downgrading to Python 3.12 for better compatibility"
 elif [ "$RUNTIME_VERSION" = "python3.12" ]; then
@@ -190,7 +190,7 @@ resource "aws_lambda_alias" "coderipple_orchestrator_alias" {
 
 ### 1. Terraform Runtime Configuration (PRIMARY CHANGE)
 **File**: `infra/terraform/functions.tf`
-**Change**: Update Lambda runtime from python3.13 to python3.12
+**Change**: Update Lambda runtime from python3.12 to python3.12
 
 ### 2. Terraform Variables (SUPPORTING CHANGE)
 **File**: `infra/terraform/variables.tf`

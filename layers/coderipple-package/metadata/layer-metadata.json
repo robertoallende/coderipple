@@ -1,7 +1,7 @@
 {
   "layer_name": "coderipple-package",
   "description": "CodeRipple custom package with agents and tools",
-  "compatible_runtimes": ["python3.13"],
+  "compatible_runtimes": ["python3.12"],
   "compatible_architectures": ["x86_64"],
   "created_date": "2025-06-28T00:50:34Z",
   "build_info": {

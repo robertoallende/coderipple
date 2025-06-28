@@ -180,7 +180,7 @@ enhanced_validate() {
     fi
     
     # Validate Python syntax
-    python3.13 -m py_compile "$temp_dir/lambda_function.py"
+    python3.12 -m py_compile "$temp_dir/lambda_function.py"
     
     # Check for lambda_handler function
     if ! grep -q "def lambda_handler" "$temp_dir/lambda_function.py"; then
@@ -203,7 +203,7 @@ test_function() {
     log_step "Testing function locally"
     
     # Test function syntax and basic execution
-    python3.13 -c "
+    python3.12 -c "
 import sys
 import os
 sys.path.insert(0, 'build')
@@ -263,7 +263,7 @@ generate_build_report() {
   "build_timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "build_mode": "$BUILD_MODE",
   "build_host": "$(hostname)",
-  "python_version": "$(python3.13 --version)",
+  "python_version": "$(python3.12 --version)",
   "function_metrics": {
     "package_size": "$function_size",
     "package_bytes": $function_size_bytes,
@@ -283,7 +283,7 @@ generate_build_report() {
     "force_rebuild": "$FORCE_REBUILD"
   },
   "aws_compatibility": {
-    "runtime": "python3.13",
+    "runtime": "python3.12",
     "handler": "lambda_function.lambda_handler",
     "architecture": "x86_64",
     "layer_based": true,

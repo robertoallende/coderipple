@@ -205,7 +205,7 @@ run_comprehensive_tests() {
     fi
     
     # Test critical package versions
-    python3.13 -c "
+    python3.12 -c "
 import sys
 sys.path.insert(0, 'build/python')
 
@@ -247,7 +247,7 @@ generate_build_report() {
   "build_timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "build_mode": "$BUILD_MODE",
   "build_host": "$(hostname)",
-  "python_version": "$(python3.13 --version)",
+  "python_version": "$(python3.12 --version)",
   "layer_metrics": {
     "compressed_size": "$layer_size",
     "compressed_bytes": $layer_size_bytes,
@@ -262,7 +262,7 @@ generate_build_report() {
     "force_rebuild": "$FORCE_REBUILD"
   },
   "aws_compatibility": {
-    "runtime": "python3.13",
+    "runtime": "python3.12",
     "architecture": "x86_64",
     "max_layer_size": "262144000",
     "within_limits": $([ $layer_size_bytes -lt 262144000 ] && echo "true" || echo "false")

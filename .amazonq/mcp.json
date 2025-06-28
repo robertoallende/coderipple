@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "terraform": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-terraform"
+      ],
+      "env": {},
+      "timeout": 120000,
+      "disabled": false
+    },
+    "aws-docs": {
+      "command": "npx",
+      "args": [
+        "@modelcontextprotocol/server-aws-docs"
+      ],
+      "env": {},
+      "timeout": 120000,
+      "disabled": false
+    }
+  }
+}

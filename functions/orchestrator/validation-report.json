@@ -46,7 +46,7 @@
       {
         "test": "Runtime Compatibility",
         "status": "PASS",
-        "details": "python3.13 (matches AWS Lambda runtime)"
+        "details": "python3.12 (matches AWS Lambda runtime)"
       }
 ,
       {

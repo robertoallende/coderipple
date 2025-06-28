@@ -7,7 +7,7 @@ resource "aws_lambda_layer_version" "coderipple_dependencies" {
   filename                 = "${path.module}/../../layers/dependencies/coderipple-dependencies-layer.zip"
   source_code_hash         = filebase64sha256("${path.module}/../../layers/dependencies/coderipple-dependencies-layer.zip")
   
-  compatible_runtimes      = ["python3.13"]
+  compatible_runtimes      = ["python3.12"]
   compatible_architectures = ["x86_64"]
   
   description = "CodeRipple external dependencies (boto3, strands-agents, requests, etc.)"
@@ -23,7 +23,7 @@ resource "aws_lambda_layer_version" "coderipple_package" {
   filename                 = "${path.module}/../../layers/coderipple-package/coderipple-package-layer.zip"
   source_code_hash         = filebase64sha256("${path.module}/../../layers/coderipple-package/coderipple-package-layer.zip")
   
-  compatible_runtimes      = ["python3.13"]
+  compatible_runtimes      = ["python3.12"]
   compatible_architectures = ["x86_64"]
   
   description = "CodeRipple custom package with agents and tools"

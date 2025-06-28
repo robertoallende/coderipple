@@ -13,7 +13,7 @@ The latest Terraform deployment failed with **three distinct categories of error
 ```
 Error running command 'cd ./../../functions/orchestrator && ./1-build.sh':
 exit status 127. Output:
-./1-build.sh: line 86: python3.13: command not found
+./1-build.sh: line 86: python3.12: command not found
 ```
 
 #### ❌ **Missing Resource Imports**:
@@ -35,7 +35,7 @@ EntityAlreadyExists: A policy called coderipple-lambda-sqs-policy already exists
 ### Root Cause Analysis
 
 #### ❌ **Python Environment Issue**:
-1. **Build Script Failure**: `./1-build.sh` cannot find `python3.13` command
+1. **Build Script Failure**: `./1-build.sh` cannot find `python3.12` command
 2. **GitHub Actions Environment**: Python 3.13 not available in the build path during Terraform execution
 3. **Path Configuration**: Python executable not accessible from Terraform local-exec provisioner
 
@@ -62,7 +62,7 @@ This is a **critical multi-faceted deployment failure** affecting:
 #### Problem Analysis
 The build script `./1-build.sh` fails because:
 - **Terraform local-exec provisioner** doesn't inherit GitHub Actions Python environment
-- **python3.13 command not found** in the execution context
+- **python3.12 command not found** in the execution context
 - **PATH environment** not properly configured for Terraform subprocess
 
 #### Solution Implementation
@@ -71,12 +71,12 @@ The build script `./1-build.sh` fails because:
 
 ```bash
 # Before (failing):
-python3.13 -c "import lambda_handler; print('✅ lambda_handler module loads successfully')"
+python3.12 -c "import lambda_handler; print('✅ lambda_handler module loads successfully')"
 
 # After (flexible):
 # Try different Python executables in order of preference
 PYTHON_CMD=""
-for cmd in python3.13 python3 python; do
+for cmd in python3.12 python3 python; do
     if command -v "$cmd" >/dev/null 2>&1; then
         PYTHON_CMD="$cmd"
         echo "🐍 Using Python: $cmd ($(command -v "$cmd"))"
@@ -160,7 +160,7 @@ resource "null_resource" "build_orchestrator_function" {
 - **Incremental Fixes**: Prioritized fixes that build on existing Unit 15.3 work
 
 ### Technical Decision Points
-- **Python Executable Strategy**: Chose flexible detection over hardcoded python3.13
+- **Python Executable Strategy**: Chose flexible detection over hardcoded python3.12
 - **Import Logic Extension**: Enhanced existing step rather than creating separate import phases
 - **Environment Variable Approach**: Used Terraform environment block for local-exec provisioner
 - **Error Handling Consistency**: Maintained existing continue-on-error patterns
@@ -195,7 +195,7 @@ resource "null_resource" "build_orchestrator_function" {
 
 #### ✅ **Python Environment Fixed**:
 - **Enhanced**: Build script with flexible Python executable detection
-- **Added**: Fallback mechanism for python3.13/python3/python
+- **Added**: Fallback mechanism for python3.12/python3/python
 - **Improved**: Error handling and debug output for Python detection
 
 #### ✅ **Import Logic Completed**:

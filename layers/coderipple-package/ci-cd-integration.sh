@@ -101,8 +101,8 @@ pre_build_validation() {
     log_step "Running pre-build validation"
     
     # Check Python version
-    python_version=$(python3.13 --version 2>&1 | cut -d' ' -f2 | cut -d'.' -f1,2)
-    if [ "$python_version" != "3.13" ]; then
+    python_version=$(python3.12 --version 2>&1 | cut -d' ' -f2 | cut -d'.' -f1,2)
+    if [ "$python_version" != "3.12" ]; then
         log_error "Python version mismatch: expected 3.13, got $python_version"
         exit 1
     fi
@@ -167,7 +167,7 @@ ci_validation() {
     # Check validation results
     if [ -f "validation-report.json" ]; then
         # Extract key metrics from validation report
-        failed_tests=$(python3.13 -c "
+        failed_tests=$(python3.12 -c "
 import json
 with open('validation-report.json', 'r') as f:
     data = json.load(f)
@@ -270,7 +270,7 @@ generate_ci_summary() {
     layer_size_bytes=$(du -b "coderipple-package-layer.zip" | cut -f1)
     
     # Get CodeRipple version
-    coderipple_version=$(cd "../../coderipple" && python3.13 setup.py --version 2>/dev/null || echo "unknown")
+    coderipple_version=$(cd "../../coderipple" && python3.12 setup.py --version 2>/dev/null || echo "unknown")
     
     # Create summary for CI logs
     cat > "ci-summary.md" << EOF

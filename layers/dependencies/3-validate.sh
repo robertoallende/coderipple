@@ -50,7 +50,7 @@ extract_and_test_layer() {
 test_package_imports() {
     log_step "Testing package imports from layer"
     
-    python3.13 -c "
+    python3.12 -c "
 import sys
 sys.path.insert(0, 'python')
 
@@ -85,7 +85,7 @@ print('\\n✅ All critical packages imported successfully')
 test_basic_functionality() {
     log_step "Testing basic package functionality"
     
-    python3.13 -c "
+    python3.12 -c "
 import sys
 sys.path.insert(0, 'python')
 
@@ -147,7 +147,7 @@ if __name__ == '__main__':
 EOF
     
     # Execute Lambda simulation
-    python3.13 test_lambda.py
+    python3.12 test_lambda.py
     
     log_success "Lambda environment simulation completed"
 }
@@ -156,7 +156,7 @@ EOF
 test_layer_performance() {
     log_step "Testing layer performance"
     
-    python3.13 -c "
+    python3.12 -c "
 import sys
 import time
 sys.path.insert(0, 'python')

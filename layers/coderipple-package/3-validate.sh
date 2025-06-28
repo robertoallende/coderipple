@@ -50,7 +50,7 @@ extract_and_test_layer() {
 test_agent_imports() {
     log_step "Testing CodeRipple agent imports from layer"
     
-    python3.13 -c "
+    python3.12 -c "
 import sys
 sys.path.insert(0, 'python')
 
@@ -92,7 +92,7 @@ print('\\n✅ All CodeRipple agents imported successfully')
 test_supporting_modules() {
     log_step "Testing supporting module imports"
     
-    python3.13 -c "
+    python3.12 -c "
 import sys
 sys.path.insert(0, 'python')
 
@@ -125,7 +125,7 @@ print('\\n✅ All supporting modules imported successfully')
 test_agent_functionality() {
     log_step "Testing basic agent functionality"
     
-    python3.13 -c "
+    python3.12 -c "
 import sys
 sys.path.insert(0, 'python')
 
@@ -172,7 +172,7 @@ print('\\n✅ Basic agent functionality tests passed')
 test_package_structure() {
     log_step "Testing package structure integrity"
     
-    python3.13 -c "
+    python3.12 -c "
 import sys
 sys.path.insert(0, 'python')
 import pkgutil
@@ -244,7 +244,7 @@ if __name__ == '__main__':
 EOF
     
     # Execute Lambda simulation
-    python3.13 test_lambda_coderipple.py
+    python3.12 test_lambda_coderipple.py
     
     log_success "Lambda environment simulation with CodeRipple layer completed"
 }

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.13
+#!/usr/bin/env python3.12
 """
 Comprehensive test suite for CodeRipple Dependencies Layer
 Tests layer functionality, performance, and AWS Lambda compatibility
@@ -298,7 +298,7 @@ class TestDependenciesLayer(unittest.TestCase):
             
             # Test specific values
             self.assertEqual(metadata['layer_name'], 'coderipple-dependencies')
-            self.assertIn('python3.13', metadata['compatible_runtimes'])
+            self.assertIn('python3.12', metadata['compatible_runtimes'])
             self.assertIn('x86_64', metadata['compatible_architectures'])
     
     @classmethod

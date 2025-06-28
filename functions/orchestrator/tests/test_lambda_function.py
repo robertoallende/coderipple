@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.13
+#!/usr/bin/env python3.12
 """
 Comprehensive test suite for CodeRipple Lambda Function (Layer-based)
 Tests function functionality, layer integration, and AWS Lambda compatibility

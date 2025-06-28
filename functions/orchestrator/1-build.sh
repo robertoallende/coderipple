@@ -61,7 +61,7 @@ copy_function_code() {
 # Detect available Python executable
 detect_python() {
     PYTHON_CMD=""
-    for cmd in python3.13 python3 python; do
+    for cmd in python3.12 python3 python; do
         if command -v "$cmd" >/dev/null 2>&1; then
             PYTHON_CMD="$cmd"
             log_debug "Using Python: $cmd ($(command -v "$cmd"))"
@@ -70,7 +70,7 @@ detect_python() {
     done
     
     if [ -z "$PYTHON_CMD" ]; then
-        log_error "No Python executable found (tried python3.13, python3, python)"
+        log_error "No Python executable found (tried python3.12, python3, python)"
         exit 1
     fi
 }
@@ -158,7 +158,7 @@ generate_function_metadata() {
 {
   "function_name": "$FUNCTION_NAME",
   "description": "CodeRipple Orchestrator Lambda Function (Layer-based)",
-  "runtime": "python3.13",
+  "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
   "created_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "build_info": {

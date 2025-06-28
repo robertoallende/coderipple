@@ -47,8 +47,8 @@ capture_environment_snapshot() {
     {
         echo "=== Environment Snapshot ==="
         echo "Timestamp: $(date)"
-        echo "Python Version: $(python3.13 --version)"
-        echo "Python Executable: $(which python3.13)"
+        echo "Python Version: $(python3.12 --version)"
+        echo "Python Executable: $(which python3.12)"
         echo "Pip Version: $(pip --version)"
         echo "Working Directory: $(pwd)"
         echo "Environment Variables:"
@@ -86,8 +86,8 @@ trap 'handle_error $LINENO' ERR
 
 # Validate Python version
 validate_python_version() {
-    local expected_version="3.13"
-    local current_version=$(python3.13 --version | cut -d' ' -f2 | cut -d'.' -f1,2)
+    local expected_version="3.12"
+    local current_version=$(python3.12 --version | cut -d' ' -f2 | cut -d'.' -f1,2)
     
     if [ "$current_version" != "$expected_version" ]; then
         log_error "Python version mismatch: expected $expected_version, got $current_version"

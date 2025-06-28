@@ -67,7 +67,7 @@ cleanup_build() {
 create_virtual_environment() {
     log_step "Creating virtual environment with Python $PYTHON_VERSION"
     
-    python3.13 -m venv "$VENV_DIR"
+    python3.12 -m venv "$VENV_DIR"
     source "$VENV_DIR/bin/activate"
     
     # Upgrade pip and install setuptools
@@ -95,7 +95,7 @@ install_coderipple_package() {
     # Verify installation
     python3 -c "
 import sys
-sys.path.insert(0, '$VENV_DIR/lib/python3.13/site-packages')
+sys.path.insert(0, '$VENV_DIR/lib/python3.12/site-packages')
 import coderipple
 print(f'CodeRipple package version: {coderipple.__version__}')
 print(f'CodeRipple package path: {coderipple.__file__}')
@@ -109,7 +109,7 @@ validate_package_installation() {
     # Test agent imports
     python3 -c "
 import sys
-sys.path.insert(0, '$VENV_DIR/lib/python3.13/site-packages')
+sys.path.insert(0, '$VENV_DIR/lib/python3.12/site-packages')
 
 # Test all agent imports
 agents = [

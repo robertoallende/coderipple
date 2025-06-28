@@ -149,7 +149,7 @@ def lambda_handler(event, context):
 ```hcl
 # In Terraform Lambda configuration:
 resource "aws_lambda_function" "coderipple_orchestrator" {
-  runtime = "python3.12"  # Instead of python3.13
+  runtime = "python3.12"  # Instead of python3.12
   # ... other configuration
 }
 ```

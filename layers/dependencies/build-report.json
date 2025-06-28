@@ -18,7 +18,7 @@
     "force_rebuild": "false"
   },
   "aws_compatibility": {
-    "runtime": "python3.13",
+    "runtime": "python3.12",
     "architecture": "x86_64",
     "max_layer_size": "262144000",
     "within_limits": false

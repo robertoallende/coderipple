@@ -75,7 +75,7 @@ validate_dependencies_layer() {
     log_step "Validating dependencies layer content"
     
     # Check for critical packages
-    python3.13 -c "
+    python3.12 -c "
 import sys
 sys.path.insert(0, 'python')
 
@@ -127,7 +127,7 @@ validate_package_layer() {
     done
     
     # Test imports
-    python3.13 -c "
+    python3.12 -c "
 import sys
 sys.path.insert(0, 'python')
 

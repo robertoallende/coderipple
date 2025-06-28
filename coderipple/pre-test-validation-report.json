@@ -2,14 +2,14 @@
   "timestamp": "2025-06-27T23:23:28.283367",
   "environment": {
     "python_version": "3.13.3 (main, Apr  8 2025, 13:54:08) [Clang 16.0.0 (clang-1600.0.26.6)]",
-    "python_executable": "/opt/homebrew/opt/python@3.13/bin/python3.13",
+    "python_executable": "/opt/homebrew/opt/python@3.13/bin/python3.12",
     "current_working_directory": "/Users/robertoallende/code/coderipple/coderipple",
     "python_path": [
       "/Users/robertoallende/code/coderipple/coderipple/tests",
       "/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python313.zip",
-      "/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13",
-      "/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13/lib-dynload",
-      "/opt/homebrew/lib/python3.13/site-packages",
+      "/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.12",
+      "/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.12/lib-dynload",
+      "/opt/homebrew/lib/python3.12/site-packages",
       "/Users/robertoallende/code/coderipple/coderipple/src"
     ],
     "environment_variables": {

@@ -23,7 +23,7 @@
     "force_rebuild": "false"
   },
   "aws_compatibility": {
-    "runtime": "python3.13",
+    "runtime": "python3.12",
     "handler": "lambda_function.lambda_handler",
     "architecture": "x86_64",
     "layer_based": true,

@@ -4,7 +4,7 @@
 Enforce Python 3.13 consistency across all CodeRipple development, testing, and production environments to eliminate version-related issues and ensure compatibility with AWS Lambda runtime and Strands Agents SDK requirements.
 
 ## Current State Analysis
-- **AWS Lambda Runtime**: Already configured for `python3.13`
+- **AWS Lambda Runtime**: Already configured for `python3.12`
 - **Local Development**: Python 3.13.3 available
 - **Strands Requirement**: Python 3.10+ (3.13 exceeds requirement ✅)
 - **Version Inconsistency Risk**: Multiple Python versions could cause deployment issues
@@ -109,7 +109,7 @@ Enforce Python 3.13 consistency across all CodeRipple development, testing, and 
        if current_version[0] != REQUIRED_PYTHON[0] or current_version[1] != REQUIRED_PYTHON[1]:
            print(f"⚠️  Warning: Using Python {current_version[0]}.{current_version[1]}")
            print(f"   Recommended: Python {REQUIRED_PYTHON[0]}.{REQUIRED_PYTHON[1]}.x")
-           print(f"   AWS Lambda runtime: python3.13")
+           print(f"   AWS Lambda runtime: python3.12")
        
        print(f"✅ Python version OK: {sys.version}")
    
@@ -135,7 +135,7 @@ Enforce Python 3.13 consistency across all CodeRipple development, testing, and 
    # Create virtual environment with Python 3.13
    if [ ! -d "venv" ]; then
        echo "Creating virtual environment with Python 3.13..."
-       python3.13 -m venv venv
+       python3.12 -m venv venv
    fi
    
    # ... rest of existing script
@@ -153,7 +153,7 @@ Enforce Python 3.13 consistency across all CodeRipple development, testing, and 
    
    # Create virtual environment
    echo "Creating virtual environment..."
-   python3.13 -m venv venv
+   python3.12 -m venv venv
    
    # Activate virtual environment
    source venv/bin/activate
@@ -215,7 +215,7 @@ Enforce Python 3.13 consistency across all CodeRipple development, testing, and 
    ### Python Version Requirement
    
    CodeRipple requires Python 3.13.x to ensure compatibility with:
-   - AWS Lambda runtime (`python3.13`)
+   - AWS Lambda runtime (`python3.12`)
    - Strands Agents SDK (requires Python 3.10+)
    - Latest performance and security improvements
    
@@ -274,7 +274,7 @@ Enforce Python 3.13 consistency across all CodeRipple development, testing, and 
    variable "lambda_runtime" {
      description = "Python runtime for Lambda function"
      type        = string
-     default     = "python3.13"  # ✅ Already correct
+     default     = "python3.12"  # ✅ Already correct
    }
    ```
 
@@ -297,7 +297,7 @@ Enforce Python 3.13 consistency across all CodeRipple development, testing, and 
 - [ ] Verify all current dependencies support Python 3.13
 - [ ] Test virtual environment creation with Python 3.13
 - [ ] Validate Strands Agents SDK works with Python 3.13
-- [ ] Confirm AWS Lambda runtime is python3.13
+- [ ] Confirm AWS Lambda runtime is python3.12
 
 ### Post-Implementation Validation
 - [ ] All requirements.txt files specify Python 3.13 requirement
@@ -341,7 +341,7 @@ Enforce Python 3.13 consistency across all CodeRipple development, testing, and 
 - Setup process fails fast with clear messages for wrong Python versions
 - CI/CD pipelines validate and use Python 3.13
 - Documentation clearly communicates Python 3.13 requirement
-- Lambda deployment maintains python3.13 runtime
+- Lambda deployment maintains python3.12 runtime
 - No version-related issues in development or production
 
 ## Risk Mitigation
@@ -373,7 +373,7 @@ Enforce Python 3.13 consistency across all CodeRipple development, testing, and 
 - Fast failure with helpful error messages for wrong Python versions
 
 ### Production Reliability
-- Perfect match with AWS Lambda runtime (python3.13)
+- Perfect match with AWS Lambda runtime (python3.12)
 - No version-related deployment failures
 - Consistent performance characteristics across local development and production
 

@@ -105,7 +105,7 @@ validate_aws_compatibility() {
     fi
     
     # Runtime compatibility
-    add_result "PASS" "Runtime Compatibility" "python3.13 (matches AWS Lambda runtime)"
+    add_result "PASS" "Runtime Compatibility" "python3.12 (matches AWS Lambda runtime)"
     
     # Handler validation
     temp_dir=$(mktemp -d)
@@ -128,7 +128,7 @@ validate_function_code() {
     unzip -q "$FUNCTION_ZIP" -d "$temp_dir"
     
     # Python syntax validation
-    if python3.13 -m py_compile "$temp_dir/lambda_function.py" 2>/dev/null; then
+    if python3.12 -m py_compile "$temp_dir/lambda_function.py" 2>/dev/null; then
         add_result "PASS" "Python Syntax" "Function code has valid Python syntax"
     else
         add_result "FAIL" "Python Syntax" "Function code has syntax errors"
@@ -137,7 +137,7 @@ validate_function_code() {
     fi
     
     # Function structure validation
-    python3.13 -c "
+    python3.12 -c "
 import sys
 sys.path.insert(0, '$temp_dir')
 
@@ -252,7 +252,7 @@ validate_performance() {
     export CODERIPPLE_ARCHITECTURE="single-lambda-with-layers"
     
     # Function load time test
-    python3.13 -c "
+    python3.12 -c "
 import sys
 import time
 sys.path.insert(0, '$temp_dir')
@@ -317,7 +317,7 @@ validate_lambda_simulation() {
     export CODERIPPLE_PACKAGE_LAYER="arn:aws:lambda:us-west-2:123456789012:layer:coderipple-package:1"
     
     # Test Lambda handler simulation
-    python3.13 -c "
+    python3.12 -c "
 import sys
 import json
 sys.path.insert(0, '$temp_dir')

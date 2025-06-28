@@ -69,13 +69,13 @@ variable "lambda_timeout" {
 variable "lambda_runtime" {
   description = "Python runtime for Lambda function"
   type        = string
-  default     = "python3.12"  # Downgraded from python3.13 for OpenTelemetry compatibility
+  default     = "python3.12"  # Required for OpenTelemetry compatibility
   
   validation {
     condition = contains([
       "python3.8", "python3.9", "python3.10", "python3.11", "python3.12"
     ], var.lambda_runtime)
-    error_message = "Lambda runtime must be a supported Python version. python3.13 has OpenTelemetry compatibility issues with Strands SDK."
+    error_message = "Lambda runtime must be a supported Python version. python3.12 is required for OpenTelemetry compatibility with Strands SDK."
   }
 }
 
