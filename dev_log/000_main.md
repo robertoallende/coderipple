@@ -220,6 +220,7 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **15.4**: [Build Environment and Missing Import Resources](015_troubleshooting_004.md) - Fix Python environment issues in GitHub Actions build scripts, complete import logic coverage for KMS and IAM resources, and resolve Terraform local-exec provisioner environment problems
   * **15.5**: [Lambda Function Import Gap and Pre-Build Validation](015_troubleshooting_005.md) - Resolve Lambda function ResourceConflictException by fixing missing import logic and implementing early pipeline validation to detect state drift issues before expensive build processes
   * **15.6**: [OpenTelemetry Python 3.13 Compatibility Issue](015_troubleshooting_006.md) - Resolve Lambda function runtime failure caused by OpenTelemetry compatibility issues with Python 3.13 in AWS Lambda environment, preventing successful webhook processing and validation
+  * **15.7**: [Lambda Alias Environment Mismatch and Import Logic Enhancement](015_troubleshooting_007.md) - Resolve Lambda alias ResourceConflictException caused by environment variable mismatch in import logic and enhance import commands to be environment-aware rather than hardcoded
 
 ### Deployment Status
 

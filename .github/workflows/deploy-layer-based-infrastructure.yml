@@ -323,7 +323,7 @@ jobs:
           if [ ! -z "$REST_API_ID" ] && [ "$REST_API_ID" != "None" ]; then
             echo "Found API Gateway with ID: $REST_API_ID"
             terraform import aws_api_gateway_rest_api.webhook_api $REST_API_ID || echo "API Gateway REST API import skipped (may not exist or already imported)"
-            terraform import aws_api_gateway_stage.webhook_stage $REST_API_ID/dev || echo "API Gateway stage import skipped (may not exist or already imported)"
+            terraform import aws_api_gateway_stage.webhook_stage $REST_API_ID/${{ env.TF_VAR_environment }} || echo "API Gateway stage import skipped (may not exist or already imported)"
             
             # Import API Gateway resources and methods
             ROOT_RESOURCE_ID=$(aws apigateway get-resources --rest-api-id $REST_API_ID --query 'items[?path==`/`].id' --output text 2>/dev/null || echo "")
@@ -343,7 +343,7 @@ jobs:
           # Import Lambda function if it exists
           echo "Importing Lambda function..."
           terraform import aws_lambda_function.coderipple_orchestrator coderipple-orchestrator || echo "Lambda function import skipped (may not exist or already imported)"
-          terraform import aws_lambda_alias.coderipple_orchestrator_alias coderipple-orchestrator:dev || echo "Lambda alias import skipped (may not exist or already imported)"
+          terraform import aws_lambda_alias.coderipple_orchestrator_alias coderipple-orchestrator:${{ env.TF_VAR_environment }} || echo "Lambda alias import skipped (may not exist or already imported)"
           
           # Import Lambda permissions if they exist
           terraform import aws_lambda_permission.api_gateway_invoke coderipple-orchestrator/AllowExecutionFromAPIGateway || echo "Lambda permission import skipped (may not exist or already imported)"
