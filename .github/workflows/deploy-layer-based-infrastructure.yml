@@ -38,7 +38,7 @@ on:
 env:
   AWS_DEFAULT_REGION: ${{ secrets.TF_VAR_aws_region }}
   TF_VAR_aws_region: ${{ secrets.TF_VAR_aws_region }}
-  TF_VAR_environment: production
+  TF_VAR_environment: prod
   TF_VAR_project_name: coderipple
   
   # GitHub repository configuration
