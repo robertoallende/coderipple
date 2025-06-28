@@ -155,10 +155,80 @@ jobs:
             functions/orchestrator/function.zip
           retention-days: 7
 
+  validate-terraform-state:
+    name: Early Terraform State Validation
+    runs-on: ubuntu-latest
+    if: always() && (github.event.inputs.action == 'plan' || github.event.inputs.action == 'deploy')
+    
+    defaults:
+      run:
+        working-directory: infra/terraform
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.0.11
+      
+      - name: Initialize Terraform
+        run: |
+          terraform init \
+            -backend-config="bucket=coderipple-terraform-state" \
+            -backend-config="key=coderipple/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_DEFAULT_REGION }}" \
+            -backend-config="encrypt=true"
+      
+      - name: Early State Validation
+        run: |
+          echo "🔍 Early validation of Terraform state vs AWS resources..."
+          
+          # Check Lambda function early - this is the main conflict we're trying to catch
+          echo "Checking Lambda function..."
+          LAMBDA_EXISTS=$(aws lambda get-function --function-name coderipple-orchestrator --query 'Configuration.FunctionName' --output text 2>/dev/null || echo "NOT_FOUND")
+          if [ "$LAMBDA_EXISTS" != "NOT_FOUND" ] && [ "$LAMBDA_EXISTS" != "None" ]; then
+            echo "⚠️  Lambda function 'coderipple-orchestrator' exists in AWS"
+            
+            # Check if it's in Terraform state
+            terraform show -json | jq -r '.values.root_module.resources[]? | select(.type=="aws_lambda_function" and .name=="coderipple_orchestrator") | .values.function_name' 2>/dev/null || {
+              echo "❌ CRITICAL: Lambda function exists in AWS but not tracked in Terraform state"
+              echo "🔄 Import logic will handle this, but flagging early to avoid build waste"
+              echo "LAMBDA_IMPORT_NEEDED=true" >> $GITHUB_ENV
+            }
+          else
+            echo "ℹ️  Lambda function 'coderipple-orchestrator' not found in AWS - will be created"
+          fi
+          
+          # Quick check of other critical resources
+          echo "Checking other critical resources..."
+          
+          # API Gateway
+          REST_API_EXISTS=$(aws apigateway get-rest-apis --query 'items[?name==`coderipple-webhook-api`].id' --output text 2>/dev/null || echo "")
+          if [ ! -z "$REST_API_EXISTS" ] && [ "$REST_API_EXISTS" != "None" ]; then
+            echo "ℹ️  API Gateway 'coderipple-webhook-api' exists: $REST_API_EXISTS"
+          fi
+          
+          # S3 bucket
+          S3_EXISTS=$(aws s3api head-bucket --bucket coderipple-terraform-state 2>/dev/null && echo "EXISTS" || echo "NOT_FOUND")
+          if [ "$S3_EXISTS" = "EXISTS" ]; then
+            echo "ℹ️  S3 bucket 'coderipple-terraform-state' exists"
+          fi
+          
+          echo "✅ Early validation complete - proceeding with parallel build process"
+
   terraform-deploy:
     name: Terraform Deployment
     runs-on: ubuntu-latest
-    needs: [build-layers]
+    needs: [build-layers, validate-terraform-state]
     if: always() && (github.event.inputs.action == 'plan' || github.event.inputs.action == 'deploy')
     
     defaults:
@@ -209,6 +279,14 @@ jobs:
       - name: Import Existing AWS Resources
         run: |
           echo "🔄 Attempting to import existing AWS resources..."
+          echo "🔍 Import process debugging enabled..."
+          
+          # Show AWS resources that exist for debugging
+          echo "AWS Lambda functions matching 'coderipple':"
+          aws lambda list-functions --query 'Functions[?starts_with(FunctionName, `coderipple`)].FunctionName' --output table || echo "No Lambda functions found"
+          
+          echo "AWS API Gateways matching 'coderipple':"
+          aws apigateway get-rest-apis --query 'items[?starts_with(name, `coderipple`)].{Name:name,Id:id}' --output table || echo "No API Gateways found"
           
           # Import S3 buckets if they exist
           echo "Importing S3 buckets..."
@@ -264,8 +342,11 @@ jobs:
           
           # Import Lambda function if it exists
           echo "Importing Lambda function..."
-          terraform import aws_lambda_function.orchestrator coderipple-orchestrator || echo "Lambda function import skipped (may not exist or already imported)"
-          terraform import aws_lambda_alias.orchestrator_alias coderipple-orchestrator:dev || echo "Lambda alias import skipped (may not exist or already imported)"
+          terraform import aws_lambda_function.coderipple_orchestrator coderipple-orchestrator || echo "Lambda function import skipped (may not exist or already imported)"
+          terraform import aws_lambda_alias.coderipple_orchestrator_alias coderipple-orchestrator:dev || echo "Lambda alias import skipped (may not exist or already imported)"
+          
+          # Import Lambda permissions if they exist
+          terraform import aws_lambda_permission.api_gateway_invoke coderipple-orchestrator/AllowExecutionFromAPIGateway || echo "Lambda permission import skipped (may not exist or already imported)"
           
           # Import KMS key and alias if they exist
           echo "Importing KMS resources..."

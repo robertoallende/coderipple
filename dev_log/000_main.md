@@ -218,6 +218,7 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **15.2**: [GitHub Actions Build Script Resolution](015_troubleshooting_002.md) - Fix missing 1-build.sh orchestrator scripts for automated layer building in CI/CD pipeline
   * **15.3**: [Terraform State Management and EntityAlreadyExists Errors](015_troubleshooting_003.md) - Resolve critical Terraform state drift causing EntityAlreadyExists errors by implementing comprehensive resource import logic in deploy-layer-based-infrastructure.yml workflow
   * **15.4**: [Build Environment and Missing Import Resources](015_troubleshooting_004.md) - Fix Python environment issues in GitHub Actions build scripts, complete import logic coverage for KMS and IAM resources, and resolve Terraform local-exec provisioner environment problems
+  * **15.5**: [Lambda Function Import Gap and Pre-Build Validation](015_troubleshooting_005.md) - Resolve Lambda function ResourceConflictException by fixing missing import logic and implementing early pipeline validation to detect state drift issues before expensive build processes
 
 ### Deployment Status
 
