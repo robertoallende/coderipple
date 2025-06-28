@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.12
 """
-Comprehensive test suite for CodeRipple Lambda Function (Layer-based)
-Tests function functionality, layer integration, and AWS Lambda compatibility
+Comprehensive test suite for CodeRipple Lambda Function (Simplified Strands Pattern)
+Tests function functionality and AWS Lambda compatibility
 """
 
 import sys
@@ -19,19 +19,13 @@ FUNCTION_ZIP = FUNCTION_DIR / "function.zip"
 BUILD_DIR = FUNCTION_DIR / "build"
 
 class TestLambdaFunction(unittest.TestCase):
-    """Test suite for CodeRipple Lambda Function"""
+    """Test suite for CodeRipple Lambda Function (Simplified Strands Pattern)"""
     
     @classmethod
     def setUpClass(cls):
         """Set up test environment"""
         cls.temp_dir = tempfile.mkdtemp()
         cls.function_extracted = False
-        
-        # Mock environment variables for layer-based architecture
-        os.environ['CODERIPPLE_LAYER_BASED'] = 'true'
-        os.environ['CODERIPPLE_ARCHITECTURE'] = 'single-lambda-with-layers'
-        os.environ['CODERIPPLE_DEPENDENCIES_LAYER'] = 'arn:aws:lambda:us-west-2:123456789012:layer:coderipple-dependencies:1'
-        os.environ['CODERIPPLE_PACKAGE_LAYER'] = 'arn:aws:lambda:us-west-2:123456789012:layer:coderipple-package:1'
         
         # Extract function if ZIP exists
         if FUNCTION_ZIP.exists():
@@ -68,10 +62,12 @@ class TestLambdaFunction(unittest.TestCase):
             import lambda_function
             self.assertIsNotNone(lambda_function, "Failed to import lambda_function")
             
-            # Check required functions exist
+            # Check required functions exist (simplified pattern)
             self.assertTrue(hasattr(lambda_function, 'lambda_handler'))
             self.assertTrue(hasattr(lambda_function, 'health_check_handler'))
-            self.assertTrue(hasattr(lambda_function, 'layer_info_handler'))
+            
+            # Check system prompt is defined
+            self.assertTrue(hasattr(lambda_function, 'CODERIPPLE_SYSTEM_PROMPT'))
             
         except ImportError as e:
             self.fail(f"Failed to import lambda_function: {e}")
@@ -92,68 +88,23 @@ class TestLambdaFunction(unittest.TestCase):
         self.assertIn('event', params, "lambda_handler should have 'event' parameter")
         self.assertIn('context', params, "lambda_handler should have 'context' parameter")
     
-    @patch('lambda_function.validate_layer_imports')
-    def test_layer_validation_success(self, mock_validate):
-        """Test successful layer validation"""
+    @patch('strands.Agent')
+    def test_lambda_handler_success_mock_strands(self, mock_agent_class):
+        """Test successful webhook processing with mocked Strands"""
         if not self.function_extracted:
             self.skipTest("Function code not available")
         
-        # Mock successful layer validation
-        mock_validate.return_value = {
-            'dependencies_layer': True,
-            'package_layer': True,
-            'errors': []
-        }
-        
-        import lambda_function
-        
-        result = lambda_function.validate_layer_imports()
-        
-        self.assertTrue(result['dependencies_layer'])
-        self.assertTrue(result['package_layer'])
-        self.assertEqual(len(result['errors']), 0)
-    
-    @patch('lambda_function.validate_layer_imports')
-    @patch('lambda_function.OrchestratorAgent')
-    @patch('lambda_function.parse_github_webhook')
-    @patch('lambda_function.CodeRippleConfig')
-    def test_lambda_handler_success(self, mock_config, mock_parser, mock_orchestrator, mock_validate):
-        """Test successful webhook processing"""
-        if not self.function_extracted:
-            self.skipTest("Function code not available")
-        
-        # Mock successful layer validation
-        mock_validate.return_value = {
-            'dependencies_layer': True,
-            'package_layer': True,
-            'errors': []
-        }
-        
-        # Mock webhook parsing
-        mock_parser.return_value = {
-            'repository': {'name': 'test-repo'},
-            'commits': [{'id': 'abc123', 'message': 'test commit'}]
-        }
-        
-        # Mock orchestrator
-        mock_orchestrator_instance = Mock()
-        mock_orchestrator_instance.process_webhook.return_value = {
-            'agents_invoked': ['tourist_guide', 'building_inspector'],
-            'documentation_updated': True
-        }
-        mock_orchestrator.return_value = mock_orchestrator_instance
-        
-        # Mock config
-        mock_config_instance = Mock()
-        mock_config_instance.doc_strategy = 'github_direct'
-        mock_config.return_value = mock_config_instance
+        # Mock Strands Agent
+        mock_agent_instance = Mock()
+        mock_agent_instance.return_value = "Documentation updated successfully"
+        mock_agent_class.return_value = mock_agent_instance
         
         import lambda_function
         
         # Test event
         test_event = {
             'body': json.dumps({
-                'repository': {'name': 'test-repo'},
+                'repository': {'name': 'test-repo', 'full_name': 'user/test-repo'},
                 'commits': [{'id': 'abc123', 'message': 'test commit'}]
             })
         }
@@ -163,29 +114,50 @@ class TestLambdaFunction(unittest.TestCase):
         # Verify response structure
         self.assertEqual(result['statusCode'], 200)
         self.assertIn('body', result)
+        self.assertIn('X-CodeRipple-Pattern', result['headers'])
+        self.assertEqual(result['headers']['X-CodeRipple-Pattern'], 'simplified-strands')
         
         body = json.loads(result['body'])
         self.assertEqual(body['message'], 'Webhook processed successfully')
-        self.assertEqual(body['repository'], 'test-repo')
-        self.assertTrue(body['layer_based'])
-        self.assertEqual(body['architecture'], 'single-lambda-with-layers')
+        self.assertEqual(body['repository'], 'user/test-repo')
+        self.assertEqual(body['pattern'], 'simplified-strands')
+        self.assertIn('agent_response', body)
     
-    @patch('lambda_function.validate_layer_imports')
-    def test_lambda_handler_layer_failure(self, mock_validate):
-        """Test lambda_handler with layer validation failure"""
+    def test_lambda_handler_direct_invocation(self):
+        """Test lambda_handler with direct invocation (no body wrapper)"""
         if not self.function_extracted:
             self.skipTest("Function code not available")
         
-        # Mock layer validation failure
-        mock_validate.return_value = {
-            'dependencies_layer': False,
-            'package_layer': True,
-            'errors': ['Dependencies layer import failed: No module named boto3']
+        import lambda_function
+        
+        # Test direct invocation (no API Gateway wrapper)
+        test_event = {
+            'repository': {'name': 'test-repo', 'full_name': 'user/test-repo'},
+            'commits': [{'id': 'abc123', 'message': 'test commit'}]
         }
+        
+        # This will fail due to missing Strands, but should handle gracefully
+        result = lambda_function.lambda_handler(test_event, self.mock_context)
+        
+        # Should return error response for missing dependencies
+        self.assertEqual(result['statusCode'], 500)
+        
+        body = json.loads(result['body'])
+        self.assertEqual(body['message'], 'Webhook processing failed')
+        self.assertIn('error', body)
+        self.assertEqual(body['pattern'], 'simplified-strands')
+    
+    def test_lambda_handler_invalid_json(self):
+        """Test lambda_handler with invalid JSON in body"""
+        if not self.function_extracted:
+            self.skipTest("Function code not available")
         
         import lambda_function
         
-        test_event = {'repository': {'name': 'test-repo'}}
+        # Test event with invalid JSON
+        test_event = {
+            'body': '{"invalid": json}'  # Invalid JSON
+        }
         
         result = lambda_function.lambda_handler(test_event, self.mock_context)
         
@@ -196,18 +168,11 @@ class TestLambdaFunction(unittest.TestCase):
         self.assertEqual(body['message'], 'Webhook processing failed')
         self.assertIn('error', body)
     
-    @patch('lambda_function.validate_layer_imports')
-    def test_health_check_handler_healthy(self, mock_validate):
-        """Test health check with healthy layers"""
+    @patch('strands.Agent')
+    def test_health_check_handler_success(self, mock_agent_class):
+        """Test health check with successful Strands import"""
         if not self.function_extracted:
             self.skipTest("Function code not available")
-        
-        # Mock successful layer validation
-        mock_validate.return_value = {
-            'dependencies_layer': True,
-            'package_layer': True,
-            'errors': []
-        }
         
         import lambda_function
         
@@ -217,77 +182,59 @@ class TestLambdaFunction(unittest.TestCase):
         
         body = json.loads(result['body'])
         self.assertEqual(body['status'], 'healthy')
-        self.assertTrue(body['layer_based'])
-        self.assertTrue(body['layers']['dependencies']['functional'])
-        self.assertTrue(body['layers']['package']['functional'])
+        self.assertEqual(body['pattern'], 'simplified-strands')
+        self.assertTrue(body['strands_available'])
     
-    @patch('lambda_function.validate_layer_imports')
-    def test_health_check_handler_unhealthy(self, mock_validate):
-        """Test health check with unhealthy layers"""
+    def test_health_check_handler_strands_unavailable(self):
+        """Test health check when Strands is not available"""
         if not self.function_extracted:
             self.skipTest("Function code not available")
         
-        # Mock layer validation failure
-        mock_validate.return_value = {
-            'dependencies_layer': False,
-            'package_layer': True,
-            'errors': ['Dependencies layer failed']
-        }
-        
         import lambda_function
         
+        # This will fail due to missing Strands in test environment
         result = lambda_function.health_check_handler({}, self.mock_context)
         
         self.assertEqual(result['statusCode'], 503)
         
         body = json.loads(result['body'])
         self.assertEqual(body['status'], 'unhealthy')
-        self.assertFalse(body['layers']['dependencies']['functional'])
+        self.assertEqual(body['pattern'], 'simplified-strands')
+        self.assertIn('error', body)
     
-    @patch('lambda_function.validate_layer_imports')
-    def test_layer_info_handler(self, mock_validate):
-        """Test layer info handler"""
-        if not self.function_extracted:
-            self.skipTest("Function code not available")
-        
-        # Mock layer validation
-        mock_validate.return_value = {
-            'dependencies_layer': True,
-            'package_layer': True,
-            'errors': []
-        }
-        
-        import lambda_function
-        
-        result = lambda_function.layer_info_handler({}, self.mock_context)
-        
-        self.assertEqual(result['statusCode'], 200)
-        
-        body = json.loads(result['body'])
-        self.assertEqual(body['architecture']['type'], 'single-lambda-with-layers')
-        self.assertTrue(body['architecture']['layer_based'])
-        self.assertIn('dependencies', body['layers'])
-        self.assertIn('package', body['layers'])
-    
-    def test_environment_variables(self):
-        """Test environment variable handling"""
+    def test_system_prompt_defined(self):
+        """Test that system prompt is properly defined"""
         if not self.function_extracted:
             self.skipTest("Function code not available")
         
         import lambda_function
         
-        # Test that environment variables are properly read
-        self.assertTrue(lambda_function.LAYER_BASED)
-        self.assertEqual(lambda_function.ARCHITECTURE, 'single-lambda-with-layers')
-        self.assertIn('coderipple-dependencies', lambda_function.DEPENDENCIES_LAYER)
-        self.assertIn('coderipple-package', lambda_function.PACKAGE_LAYER)
+        self.assertIsInstance(lambda_function.CODERIPPLE_SYSTEM_PROMPT, str)
+        self.assertGreater(len(lambda_function.CODERIPPLE_SYSTEM_PROMPT), 100)
+        
+        # Check key concepts are mentioned
+        prompt = lambda_function.CODERIPPLE_SYSTEM_PROMPT
+        self.assertIn('Three Mirror Documentation Framework', prompt)
+        self.assertIn('Tourist Guide', prompt)
+        self.assertIn('Building Inspector', prompt)
+        self.assertIn('Historian', prompt)
+        self.assertIn('Layer Selection Decision Tree', prompt)
     
-    @classmethod
-    def tearDownClass(cls):
-        """Clean up test environment"""
-        import shutil
-        if hasattr(cls, 'temp_dir') and os.path.exists(cls.temp_dir):
-            shutil.rmtree(cls.temp_dir)
+    def test_response_headers(self):
+        """Test that response includes correct headers"""
+        if not self.function_extracted:
+            self.skipTest("Function code not available")
+        
+        import lambda_function
+        
+        test_event = {'repository': {'name': 'test'}}
+        result = lambda_function.lambda_handler(test_event, self.mock_context)
+        
+        headers = result['headers']
+        self.assertEqual(headers['Content-Type'], 'application/json')
+        self.assertEqual(headers['Access-Control-Allow-Origin'], '*')
+        self.assertEqual(headers['X-CodeRipple-Pattern'], 'simplified-strands')
+        self.assertIn('X-Request-ID', headers)
 
 
 class TestLambdaFunctionBuild(unittest.TestCase):
@@ -318,18 +265,30 @@ class TestLambdaFunctionBuild(unittest.TestCase):
         except SyntaxError as e:
             self.fail(f"Syntax error in lambda_function.py: {e}")
     
+    def test_requirements_exist(self):
+        """Test that requirements.txt exists and contains Strands dependencies"""
+        requirements_file = FUNCTION_DIR / "requirements.txt"
+        self.assertTrue(requirements_file.exists(), "requirements.txt missing")
+        
+        with open(requirements_file, 'r') as f:
+            content = f.read()
+        
+        # Should contain simplified Strands dependencies
+        self.assertIn('strands-agents', content)
+        self.assertIn('strands-agents-tools', content)
+    
     def test_function_package_size(self):
         """Test that function package meets size requirements"""
         if FUNCTION_ZIP.exists():
-            # Function package should be small (layer-based)
+            # Function package should be small (simplified pattern)
             size_bytes = FUNCTION_ZIP.stat().st_size
             size_mb = size_bytes / (1024 * 1024)
             
             # Should be much smaller than 50MB (typical Lambda limit)
             self.assertLess(size_mb, 10, f"Function package too large: {size_mb:.1f}MB")
             
-            # Should be significantly smaller than monolithic approach
-            self.assertLess(size_mb, 1, f"Function package should be <1MB with layers: {size_mb:.1f}MB")
+            # Should be very small with simplified pattern
+            self.assertLess(size_mb, 1, f"Function package should be <1MB with simplified pattern: {size_mb:.1f}MB")
 
 
 def run_comprehensive_tests():
@@ -351,13 +310,13 @@ def run_comprehensive_tests():
         failfast=False
     )
     
-    print("🧪 Running CodeRipple Lambda Function Test Suite")
-    print("=" * 60)
+    print("🧪 Running CodeRipple Lambda Function Test Suite (Simplified Strands Pattern)")
+    print("=" * 70)
     
     result = runner.run(suite)
     
     # Print summary
-    print("\n" + "=" * 60)
+    print("\n" + "=" * 70)
     print(f"🧪 Test Summary:")
     print(f"   Tests run: {result.testsRun}")
     print(f"   Failures: {len(result.failures)}")

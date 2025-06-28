@@ -226,6 +226,7 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **15.10**: [Python Runtime Downgrade for OpenTelemetry Compatibility](015_troubleshooting_010.md) - Resolve the fundamental OpenTelemetry Python 3.13 compatibility issue by downgrading the Lambda runtime to Python 3.12, eliminating the StopIteration error that prevents Lambda function execution despite correct environment variable configuration
   * **15.12**: [Lambda Layer Validation OpenTelemetry Exception Handling](015_troubleshooting_012.md) - Resolve critical Lambda function runtime failure caused by OpenTelemetry `StopIteration` exception during layer validation by implementing surgical exception handling around the problematic validation step, allowing webhook processing to continue when validation fails
   * **15.13**: [Lambda Refactor Using Official Strands Pattern](015_troubleshooting_013.md) - Refactor CodeRipple Lambda function to follow official AWS Strands deployment pattern, eliminating OpenTelemetry compatibility issues by simplifying architecture and removing complex layer validation and initialization procedures
+  * **15.14**: [GitHub Actions Test Suite Update for Simplified Strands Pattern](015_troubleshooting_014.md) - Update GitHub Actions test suite to align with the simplified Strands pattern Lambda function implementation, resolving CI/CD test failures caused by tests expecting the old complex layer validation architecture and ensuring comprehensive test coverage for the new streamlined approach
 
 ### Deployment Status
 
