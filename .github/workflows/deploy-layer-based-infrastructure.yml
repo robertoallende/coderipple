@@ -490,6 +490,49 @@ jobs:
         working-directory: infra/terraform
         continue-on-error: true
       
+      - name: Test Webhook Integration
+        if: github.event.inputs.action == 'deploy' && steps.plan.outcome == 'success'
+        run: |
+          echo "🧪 Testing webhook integration..."
+          
+          # Get webhook URL from Terraform output
+          WEBHOOK_URL=$(terraform output -raw webhook_url 2>/dev/null || echo "")
+          
+          if [ ! -z "$WEBHOOK_URL" ] && [ "$WEBHOOK_URL" != "null" ]; then
+            echo "Testing: $WEBHOOK_URL"
+            
+            # Simple webhook test
+            HTTP_STATUS=$(curl -X POST "$WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -H "X-GitHub-Event: push" \
+              -d '{"test": true, "source": "deployment-validation"}' \
+              -w "%{http_code}" \
+              -s -o /dev/null)
+            
+            echo "HTTP Status: $HTTP_STATUS"
+            
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "✅ Webhook test passed"
+              echo "## 🎉 Webhook Validation" >> $GITHUB_STEP_SUMMARY
+              echo "✅ **Webhook endpoint is working correctly**" >> $GITHUB_STEP_SUMMARY
+              echo "- **URL**: \`$WEBHOOK_URL\`" >> $GITHUB_STEP_SUMMARY
+              echo "- **Status**: HTTP 200 OK" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "⚠️ Webhook test failed with HTTP $HTTP_STATUS"
+              echo "## ⚠️ Webhook Validation" >> $GITHUB_STEP_SUMMARY
+              echo "⚠️ **Webhook endpoint test failed**" >> $GITHUB_STEP_SUMMARY
+              echo "- **URL**: \`$WEBHOOK_URL\`" >> $GITHUB_STEP_SUMMARY
+              echo "- **Status**: HTTP $HTTP_STATUS" >> $GITHUB_STEP_SUMMARY
+              echo "- **Note**: Check Lambda logs for details" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⚠️ Could not get webhook URL from Terraform outputs"
+            echo "## ⚠️ Webhook Validation" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **Could not determine webhook URL**" >> $GITHUB_STEP_SUMMARY
+          fi
+        working-directory: infra/terraform
+        continue-on-error: true
+      
       - name: Upload Terraform outputs
         if: github.event.inputs.action == 'deploy' && steps.plan.outcome == 'success'
         uses: actions/upload-artifact@v4

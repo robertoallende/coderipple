@@ -227,6 +227,28 @@ output "security_features_enabled" {
   sensitive = false
 }
 
+# ================================
+# Layer Outputs (for debugging and validation)
+# ================================
+
+output "dependencies_layer_arn" {
+  description = "ARN of the dependencies layer"
+  value       = aws_lambda_layer_version.coderipple_dependencies.arn
+  sensitive   = false
+}
+
+output "package_layer_arn" {
+  description = "ARN of the package layer"  
+  value       = aws_lambda_layer_version.coderipple_package.arn
+  sensitive   = false
+}
+
+output "lambda_environment_variables" {
+  description = "Lambda function environment variables for debugging"
+  value       = aws_lambda_function.coderipple_orchestrator.environment[0].variables
+  sensitive   = false
+}
+
 output "access_logs_bucket" {
   description = "S3 bucket for Terraform state access logs"
   value       = aws_s3_bucket.terraform_state_access_logs.bucket
