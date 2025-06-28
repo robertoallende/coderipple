@@ -58,13 +58,30 @@ copy_function_code() {
     log_debug "Function code size: $FUNCTION_SIZE"
 }
 
+# Detect available Python executable
+detect_python() {
+    PYTHON_CMD=""
+    for cmd in python3.13 python3 python; do
+        if command -v "$cmd" >/dev/null 2>&1; then
+            PYTHON_CMD="$cmd"
+            log_debug "Using Python: $cmd ($(command -v "$cmd"))"
+            return 0
+        fi
+    done
+    
+    if [ -z "$PYTHON_CMD" ]; then
+        log_error "No Python executable found (tried python3.13, python3, python)"
+        exit 1
+    fi
+}
+
 # Install function-specific dependencies (if any)
 install_function_dependencies() {
     log_step "Installing function-specific dependencies"
     
     if [ -f "requirements.txt" ]; then
         # Create minimal virtual environment for function-specific deps
-        python3.13 -m venv temp_venv
+        $PYTHON_CMD -m venv temp_venv
         source temp_venv/bin/activate
         
         pip install -r requirements.txt -t "$BUILD_DIR/"
@@ -83,10 +100,10 @@ validate_function_code() {
     log_step "Validating function code"
     
     # Check Python syntax
-    python3.13 -m py_compile "$BUILD_DIR/lambda_function.py"
+    $PYTHON_CMD -m py_compile "$BUILD_DIR/lambda_function.py"
     
     # Test imports (without layers - will fail but syntax should be OK)
-    python3.13 -c "
+    $PYTHON_CMD -c "
 import ast
 import sys
 
@@ -159,6 +176,7 @@ EOF
 }
 
 # Execute build steps
+detect_python
 cleanup_build
 copy_function_code
 install_function_dependencies

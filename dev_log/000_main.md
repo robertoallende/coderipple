@@ -217,6 +217,7 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **15.1**: [Terraform Duplicate Resource Configuration](015_troubleshooting_001.md) - Resolve duplicate Lambda function resources between main.tf and functions.tf preventing deployment initialization
   * **15.2**: [GitHub Actions Build Script Resolution](015_troubleshooting_002.md) - Fix missing 1-build.sh orchestrator scripts for automated layer building in CI/CD pipeline
   * **15.3**: [Terraform State Management and EntityAlreadyExists Errors](015_troubleshooting_003.md) - Resolve critical Terraform state drift causing EntityAlreadyExists errors by implementing comprehensive resource import logic in deploy-layer-based-infrastructure.yml workflow
+  * **15.4**: [Build Environment and Missing Import Resources](015_troubleshooting_004.md) - Fix Python environment issues in GitHub Actions build scripts, complete import logic coverage for KMS and IAM resources, and resolve Terraform local-exec provisioner environment problems
 
 ### Deployment Status
 

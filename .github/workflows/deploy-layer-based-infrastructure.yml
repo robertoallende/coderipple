@@ -228,6 +228,7 @@ jobs:
           terraform import aws_iam_policy.parameter_store_policy arn:aws:iam::${ACCOUNT_ID}:policy/coderipple-parameter-store-access || echo "Parameter store policy import skipped (may not exist or already imported)"
           terraform import aws_iam_policy.lambda_kms_policy arn:aws:iam::${ACCOUNT_ID}:policy/coderipple-lambda-kms-policy || echo "Lambda KMS policy import skipped (may not exist or already imported)"
           terraform import aws_iam_policy.lambda_xray_policy arn:aws:iam::${ACCOUNT_ID}:policy/coderipple-lambda-xray-policy || echo "Lambda X-Ray policy import skipped (may not exist or already imported)"
+          terraform import aws_iam_policy.lambda_sqs_policy arn:aws:iam::${ACCOUNT_ID}:policy/coderipple-lambda-sqs-policy || echo "Lambda SQS policy import skipped (may not exist or already imported)"
           
           # Import SQS queue if it exists
           echo "Importing SQS queue..."
@@ -270,8 +271,8 @@ jobs:
           echo "Importing KMS resources..."
           KMS_KEY_ID=$(aws kms list-aliases --query 'Aliases[?AliasName==`alias/coderipple-encryption-key`].TargetKeyId' --output text 2>/dev/null || echo "")
           if [ ! -z "$KMS_KEY_ID" ] && [ "$KMS_KEY_ID" != "None" ]; then
-            terraform import aws_kms_key.encryption_key $KMS_KEY_ID || echo "KMS key import skipped (may not exist or already imported)"
-            terraform import aws_kms_alias.encryption_key_alias alias/coderipple-encryption-key || echo "KMS alias import skipped (may not exist or already imported)"
+            terraform import aws_kms_key.coderipple_key $KMS_KEY_ID || echo "KMS key import skipped (may not exist or already imported)"
+            terraform import aws_kms_alias.coderipple_key_alias alias/coderipple-encryption-key || echo "KMS alias import skipped (may not exist or already imported)"
           fi
           
           # Import CloudWatch alarms if they exist
