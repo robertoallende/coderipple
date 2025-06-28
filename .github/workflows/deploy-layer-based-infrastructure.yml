@@ -206,6 +206,83 @@ jobs:
             -backend-config="region=${{ env.AWS_DEFAULT_REGION }}" \
             -backend-config="encrypt=true"
       
+      - name: Import Existing AWS Resources
+        run: |
+          echo "🔄 Attempting to import existing AWS resources..."
+          
+          # Import S3 buckets if they exist
+          echo "Importing S3 buckets..."
+          terraform import aws_s3_bucket.terraform_state coderipple-terraform-state || echo "S3 terraform state bucket import skipped (may not exist or already imported)"
+          terraform import aws_s3_bucket.terraform_state_access_logs coderipple-terraform-state-access-logs || echo "S3 access logs bucket import skipped (may not exist or already imported)"
+          
+          # Import IAM roles if they exist
+          echo "Importing IAM roles..."
+          terraform import aws_iam_role.lambda_execution_role coderipple-lambda-execution-role || echo "Lambda execution role import skipped (may not exist or already imported)"
+          terraform import aws_iam_role.api_gateway_cloudwatch_role coderipple-api-gateway-cloudwatch-role || echo "API Gateway CloudWatch role import skipped (may not exist or already imported)"
+          
+          # Import IAM policies if they exist
+          echo "Importing IAM policies..."
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          terraform import aws_iam_policy.bedrock_access_policy arn:aws:iam::${ACCOUNT_ID}:policy/coderipple-bedrock-access || echo "Bedrock access policy import skipped (may not exist or already imported)"
+          terraform import aws_iam_policy.cloudwatch_enhanced_policy arn:aws:iam::${ACCOUNT_ID}:policy/coderipple-cloudwatch-enhanced || echo "CloudWatch enhanced policy import skipped (may not exist or already imported)"
+          terraform import aws_iam_policy.parameter_store_policy arn:aws:iam::${ACCOUNT_ID}:policy/coderipple-parameter-store-access || echo "Parameter store policy import skipped (may not exist or already imported)"
+          terraform import aws_iam_policy.lambda_kms_policy arn:aws:iam::${ACCOUNT_ID}:policy/coderipple-lambda-kms-policy || echo "Lambda KMS policy import skipped (may not exist or already imported)"
+          terraform import aws_iam_policy.lambda_xray_policy arn:aws:iam::${ACCOUNT_ID}:policy/coderipple-lambda-xray-policy || echo "Lambda X-Ray policy import skipped (may not exist or already imported)"
+          
+          # Import SQS queue if it exists
+          echo "Importing SQS queue..."
+          terraform import aws_sqs_queue.lambda_dlq https://sqs.${{ env.AWS_DEFAULT_REGION }}.amazonaws.com/${ACCOUNT_ID}/coderipple-lambda-dlq || echo "SQS DLQ import skipped (may not exist or already imported)"
+          
+          # Import CloudWatch log groups if they exist
+          echo "Importing CloudWatch log groups..."
+          terraform import aws_cloudwatch_log_group.lambda_logs /aws/lambda/coderipple-orchestrator || echo "Lambda log group import skipped (may not exist or already imported)"
+          terraform import aws_cloudwatch_log_group.api_gateway_logs /aws/apigateway/coderipple-webhook-api || echo "API Gateway log group import skipped (may not exist or already imported)"
+          
+          # Import API Gateway resources if they exist
+          echo "Checking for existing API Gateway..."
+          REST_API_ID=$(aws apigateway get-rest-apis --query 'items[?name==`coderipple-webhook-api`].id' --output text 2>/dev/null || echo "")
+          if [ ! -z "$REST_API_ID" ] && [ "$REST_API_ID" != "None" ]; then
+            echo "Found API Gateway with ID: $REST_API_ID"
+            terraform import aws_api_gateway_rest_api.webhook_api $REST_API_ID || echo "API Gateway REST API import skipped (may not exist or already imported)"
+            terraform import aws_api_gateway_stage.webhook_stage $REST_API_ID/dev || echo "API Gateway stage import skipped (may not exist or already imported)"
+            
+            # Import API Gateway resources and methods
+            ROOT_RESOURCE_ID=$(aws apigateway get-resources --rest-api-id $REST_API_ID --query 'items[?path==`/`].id' --output text 2>/dev/null || echo "")
+            if [ ! -z "$ROOT_RESOURCE_ID" ] && [ "$ROOT_RESOURCE_ID" != "None" ]; then
+              # Find webhook resource
+              WEBHOOK_RESOURCE_ID=$(aws apigateway get-resources --rest-api-id $REST_API_ID --query 'items[?pathPart==`webhook`].id' --output text 2>/dev/null || echo "")
+              if [ ! -z "$WEBHOOK_RESOURCE_ID" ] && [ "$WEBHOOK_RESOURCE_ID" != "None" ]; then
+                terraform import aws_api_gateway_resource.webhook_resource $REST_API_ID/$WEBHOOK_RESOURCE_ID || echo "API Gateway webhook resource import skipped"
+                terraform import aws_api_gateway_method.webhook_post $REST_API_ID/$WEBHOOK_RESOURCE_ID/POST || echo "API Gateway POST method import skipped"
+                terraform import aws_api_gateway_integration.webhook_integration $REST_API_ID/$WEBHOOK_RESOURCE_ID/POST || echo "API Gateway integration import skipped"
+              fi
+            fi
+          else
+            echo "No existing API Gateway found"
+          fi
+          
+          # Import Lambda function if it exists
+          echo "Importing Lambda function..."
+          terraform import aws_lambda_function.orchestrator coderipple-orchestrator || echo "Lambda function import skipped (may not exist or already imported)"
+          terraform import aws_lambda_alias.orchestrator_alias coderipple-orchestrator:dev || echo "Lambda alias import skipped (may not exist or already imported)"
+          
+          # Import KMS key and alias if they exist
+          echo "Importing KMS resources..."
+          KMS_KEY_ID=$(aws kms list-aliases --query 'Aliases[?AliasName==`alias/coderipple-encryption-key`].TargetKeyId' --output text 2>/dev/null || echo "")
+          if [ ! -z "$KMS_KEY_ID" ] && [ "$KMS_KEY_ID" != "None" ]; then
+            terraform import aws_kms_key.encryption_key $KMS_KEY_ID || echo "KMS key import skipped (may not exist or already imported)"
+            terraform import aws_kms_alias.encryption_key_alias alias/coderipple-encryption-key || echo "KMS alias import skipped (may not exist or already imported)"
+          fi
+          
+          # Import CloudWatch alarms if they exist
+          echo "Importing CloudWatch alarms..."
+          terraform import aws_cloudwatch_metric_alarm.dlq_messages coderipple-dlq-messages || echo "DLQ messages alarm import skipped (may not exist or already imported)"
+          terraform import aws_cloudwatch_metric_alarm.lambda_throttles coderipple-lambda-throttles || echo "Lambda throttles alarm import skipped (may not exist or already imported)"
+          
+          echo "✅ Resource import attempt completed"
+        working-directory: infra/terraform
+        continue-on-error: true
+      
       - name: Validate Terraform configuration
         run: terraform validate
       
