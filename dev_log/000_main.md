@@ -234,6 +234,12 @@ Total: \~8,000+ lines of code, \~2,800+ lines of test coverage
   * **15.19**: [Production vs Development Test Failure Analysis and CI/CD Dependency Fix](015_troubleshooting_019.md) - Comprehensive analysis distinguishing between development environment test failures and actual production issues, confirming production readiness through dependency simulation and identifying simple CI/CD fix to achieve 98.6% test success rate
   * **15.20**: [CI/CD Pipeline Dependency Fix Implementation](015_troubleshooting_020.md) - Implementation of dependency fixes in GitHub Actions CI/CD pipeline to achieve 100% test success rate, including strands-agents, boto3, markdown-it-py, and pytest installations with Python 3.12 standardization for reliable automated testing and deployment
 
+* **16**: [Platform Targeting Resolution](016_platform.md) - Resolution of OpenTelemetry StopIteration error in AWS Lambda through platform targeting fixes, addressing macOS ARM64 vs Linux x86_64 compatibility issues, layer structure optimization, and deployment automation for reliable production Lambda execution
+
+* **17**: Hello World Debugging Layer Implementation
+  * **17.1**: [Hello World Debugging Layer Implementation Model](017_helloworld.md) - Complete minimal Lambda function for CI/CD pipeline testing and infrastructure validation, serving as implementation template with platform targeting, layer structure, and deployment automation patterns
+  * **17.2**: [CI/CD Integration with Optional Workflow](017_helloworld_001.md) - GitHub Actions workflow integration using workflow_dispatch pattern for manual infrastructure validation, featuring retry logic for Function URL testing, comprehensive error handling, and integration with existing AWS credentials
+
 ### Deployment Status
 
 **AWS Infrastructure:** ✅ Complete
