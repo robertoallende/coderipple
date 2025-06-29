@@ -105,10 +105,10 @@ def test_imports():
     
     if failed_imports:
         print(f"❌ Failed imports: {', '.join(failed_imports)}")
-        return False
+        assert False, f"Failed imports: {', '.join(failed_imports)}"
     else:
         print("🎉 All imports successful! Lambda package is ready.")
-        return True
+        assert True
 
 def test_strands_agent_creation():
     """Test that Strands agent can be created with all tools."""
@@ -138,12 +138,12 @@ def test_strands_agent_creation():
         )
         
         print("✅ Strands Agent creation successful with all tools")
-        return True
+        assert True
         
     except Exception as e:
         print(f"❌ Strands Agent creation failed: {e}")
         traceback.print_exc()
-        return False
+        assert False, f"Strands Agent creation failed: {e}"
 
 if __name__ == "__main__":
     import_success = test_imports()

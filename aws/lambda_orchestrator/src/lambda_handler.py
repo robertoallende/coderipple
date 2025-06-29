@@ -9,7 +9,7 @@ import json
 import logging
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 
 # Configure structured logging for Lambda
@@ -33,7 +33,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     # Structured logging for webhook event
     logger.info(json.dumps({
         'event': 'webhook_received',
-        'timestamp': datetime.utcnow().isoformat(),
+        'timestamp': datetime.now(timezone.utc).isoformat(),
         'request_id': request_id,
         'memory_limit': getattr(context, 'memory_limit_in_mb', 'unknown'),
         'remaining_time': getattr(context, 'get_remaining_time_in_millis', lambda: 'unknown')()
@@ -106,7 +106,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'repository': agent_result.get('repository'),
             'commits_processed': agent_result.get('commits_processed', 0),
             'agent_decisions': agent_result.get('agent_decisions', 0),
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': datetime.now(timezone.utc).isoformat()
         }))
         
         return create_success_response(agent_result)
@@ -121,7 +121,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'error_type': type(e).__name__,
             'processing_time': processing_time,
             'request_id': request_id,
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': datetime.now(timezone.utc).isoformat()
         }))
         
         return create_error_response(500, f"Import error: {str(e)}", request_id)
@@ -136,7 +136,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'error_type': type(e).__name__,
             'processing_time': processing_time,
             'request_id': request_id,
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': datetime.now(timezone.utc).isoformat()
         }))
         
         return create_error_response(500, f"Internal processing error: {str(e)}", request_id)
@@ -244,7 +244,7 @@ def create_error_response(status_code: int, message: str, request_id: str) -> Di
         'body': json.dumps({
             'error': message,
             'request_id': request_id,
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': datetime.now(timezone.utc).isoformat()
         })
     }
 
@@ -264,7 +264,7 @@ def health_check_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'status': 'healthy',
                 'pattern': 'function-based',
                 'orchestrator_agent_available': True,
-                'timestamp': datetime.utcnow().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             })
         }
         
@@ -276,7 +276,7 @@ def health_check_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'status': 'unhealthy',
                 'error': str(e),
                 'pattern': 'function-based',
-                'timestamp': datetime.utcnow().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             })
         }
 

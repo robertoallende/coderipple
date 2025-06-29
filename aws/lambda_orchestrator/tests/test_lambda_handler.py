@@ -53,10 +53,10 @@ def test_lambda_handler():
         
         if result['statusCode'] == 200:
             print("🎉 Lambda handler test PASSED!")
-            return True
+            assert True
         else:
             print("❌ Lambda handler test FAILED!")
-            return False
+            assert False, f"Lambda handler returned status {result['statusCode']}"
             
     except Exception as e:
         print(f"❌ Lambda handler test ERROR: {e}")

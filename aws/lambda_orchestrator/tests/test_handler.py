@@ -47,14 +47,34 @@ def test_response_creation():
     assert 'test' in json.loads(success_resp['body'])
 
 def test_orchestrator_initialization():
-    """Test orchestrator initialization (expected to fail gracefully without Strands)."""
-    from lambda_handler import initialize_strands_orchestrator
-    
-    # This should either return None (Strands not available) or an orchestrator (Strands available)
-    orchestrator = initialize_strands_orchestrator()
-    
-    # Both None and non-None are valid outcomes
-    assert orchestrator is None or orchestrator is not None
+    """Test orchestrator function import (our new function-based approach)."""
+    try:
+        # Test that we can import the orchestrator_agent function
+        from coderipple.orchestrator_agent import orchestrator_agent
+        
+        # Test that the function is callable
+        assert callable(orchestrator_agent)
+        
+        # Test basic functionality with minimal payload
+        import json
+        test_payload = json.dumps({
+            'repository': {'name': 'test', 'full_name': 'test/test', 'html_url': 'https://github.com/test/test'},
+            'commits': [],
+            'ref': 'refs/heads/main',
+            'before': 'abc123',
+            'after': 'def456'
+        })
+        
+        result = orchestrator_agent(test_payload, 'push')
+        
+        # Should return an OrchestrationResult
+        assert hasattr(result, 'summary')
+        assert hasattr(result, 'agent_decisions')
+        
+    except ImportError:
+        # If coderipple package not available, that's expected in some CI environments
+        # The test should pass as long as the Lambda handler itself works
+        pass
 
 def test_full_handler():
     """Test the full Lambda handler with mock context."""
