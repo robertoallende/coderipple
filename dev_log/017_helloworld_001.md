@@ -80,17 +80,66 @@ FUNCTION_URL=$(aws lambda get-function-url-config \
   --output text)
 ```
 
-### **6. Conditional Step Execution**
-**Based on Input Parameters:**
-```yaml
-- name: Deploy
-  if: ${{ github.event.inputs.action == 'build-and-deploy' && github.event.inputs.confirm_deploy == 'yes' }}
+### **7. AWS CLI Parameter Order Pattern**
+**Critical for Lambda Invoke Commands:**
+```bash
+# Correct parameter order
+aws lambda invoke \
+  --function-name FUNCTION_NAME \
+  --region REGION \
+  --payload '{"test": "data"}' \
+  --cli-binary-format raw-in-base64-out \
+  /tmp/output.json
 
-- name: Test Comprehensive
-  if: ${{ github.event.inputs.test_mode == 'comprehensive' }}
+# WRONG - causes "Unknown options" error
+aws lambda invoke \
+  --function-name FUNCTION_NAME \
+  --payload '{"test": "data"}' \
+  --cli-binary-format raw-in-base64-out \
+  --region REGION \
+  /tmp/output.json  # ← Parameter after this causes error
+```
 
-- name: Cleanup
-  if: ${{ github.event.inputs.action == 'cleanup' && github.event.inputs.confirm_deploy == 'yes' }}
+### **8. Robust JSON Processing Pattern**
+**Handle Missing Dependencies Gracefully:**
+```bash
+if command -v jq &> /dev/null; then
+    cat /tmp/response.json | jq '.'
+else
+    echo "jq not available, showing raw response:"
+    cat /tmp/response.json
+fi
+```
+
+### **6. AWS CLI Parameter Order Pattern**
+**Critical for Lambda Invoke Commands:**
+```bash
+# Correct parameter order
+aws lambda invoke \
+  --function-name FUNCTION_NAME \
+  --region REGION \
+  --payload '{"test": "data"}' \
+  --cli-binary-format raw-in-base64-out \
+  /tmp/output.json
+
+# WRONG - causes "Unknown options" error
+aws lambda invoke \
+  --function-name FUNCTION_NAME \
+  --payload '{"test": "data"}' \
+  --cli-binary-format raw-in-base64-out \
+  --region REGION \
+  /tmp/output.json  # ← Parameter after this causes error
+```
+
+### **7. Robust JSON Processing Pattern**
+**Handle Missing Dependencies Gracefully:**
+```bash
+if command -v jq &> /dev/null; then
+    cat /tmp/response.json | jq '.'
+else
+    echo "jq not available, showing raw response:"
+    cat /tmp/response.json
+fi
 ```
 
 ## Critical CI/CD Decisions
@@ -115,10 +164,17 @@ FUNCTION_URL=$(aws lambda get-function-url-config \
 - **Reason**: Different validation needs for different scenarios
 - **Benefit**: Flexible testing without rebuilding entire workflow
 
-### **5. Non-Failing URL Tests**
-- **Decision**: Function URL test failures don't fail entire workflow
-- **Reason**: URL testing is informational, not critical for infrastructure validation
-- **Implementation**: Continue workflow with warning messages
+### **6. AWS CLI Parameter Order Fix**
+- **Decision**: Correct parameter order for `aws lambda invoke` commands
+- **Reason**: `--cli-binary-format` must come before output file parameter
+- **Impact**: Prevents "Unknown options" errors in CI/CD pipeline
+- **Pattern**: Always place output file as last parameter
+
+### **7. Graceful Dependency Handling**
+- **Decision**: Check for tool availability before using (jq, curl, etc.)
+- **Reason**: CI/CD environments may have different tool availability
+- **Implementation**: Conditional execution with fallback options
+- **Benefit**: Robust pipeline execution across different environments
 
 ## Implementation Results
 

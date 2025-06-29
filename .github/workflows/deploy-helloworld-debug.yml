@@ -150,9 +150,9 @@ jobs:
           
           aws lambda invoke \
             --function-name helloworld-debug \
+            --region ${{ env.AWS_DEFAULT_REGION }} \
             --payload '{"test": "ci-cd-comprehensive", "source": "github-actions"}' \
             --cli-binary-format raw-in-base64-out \
-            --region ${{ env.AWS_DEFAULT_REGION }} \
             /tmp/helloworld_comprehensive.json
           
           RESPONSE_BODY=$(cat /tmp/helloworld_comprehensive.json | jq -r '.body' | jq -r '.')
@@ -174,9 +174,9 @@ jobs:
           
           aws lambda invoke \
             --function-name helloworld-debug \
+            --region ${{ env.AWS_DEFAULT_REGION }} \
             --payload '{"test": "platform-validation"}' \
             --cli-binary-format raw-in-base64-out \
-            --region ${{ env.AWS_DEFAULT_REGION }} \
             /tmp/helloworld_platform.json
           
           RESPONSE_BODY=$(cat /tmp/helloworld_platform.json | jq -r '.body' | jq -r '.')
