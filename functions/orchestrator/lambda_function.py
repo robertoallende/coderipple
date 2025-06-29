@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-CodeRipple Lambda Handler (Simplified Strands Pattern)
+CodeRipple Lambda Handler (Function-Based Pattern)
 
-Follows official AWS Strands deployment pattern for reliability and simplicity.
-Based on strands/deploy_to_lambda/lambda/agent_handler.py
+Uses the working orchestrator_agent function instead of trying to create
+an OrchestratorAgent class that doesn't exist.
 """
 
 import json
@@ -14,90 +14,58 @@ from typing import Dict, Any
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# CodeRipple system prompt for multi-agent documentation
-CODERIPPLE_SYSTEM_PROMPT = """You are the CodeRipple Orchestrator Agent.
-
-Your role is to process GitHub webhook events and coordinate documentation updates through the Three Mirror Documentation Framework:
-
-1. **Tourist Guide Layer** (How to ENGAGE): User workflows, getting started, troubleshooting
-2. **Building Inspector Layer** (What it IS): Current architecture, capabilities, interfaces  
-3. **Historian Layer** (Why it BECAME): ADRs, decisions, evolution context
-
-For each webhook:
-1. Analyze the code changes using git diff analysis
-2. Apply Layer Selection Decision Tree:
-   - Does this change how users interact? → Tourist Guide updates
-   - Does this change what the system is/does? → Building Inspector updates
-   - Does this represent a significant decision? → Historian updates
-3. Generate appropriate documentation updates
-4. Return structured results
-
-Process webhooks systematically and ensure comprehensive documentation coverage."""
-
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
-    CodeRipple Lambda Handler (Simplified Strands Pattern)
-    
-    Processes GitHub webhooks using direct Strands Agent instantiation.
-    Follows official Strands deployment pattern for maximum reliability.
+    CodeRipple Lambda Handler using the working orchestrator_agent function
     """
     
     request_id = getattr(context, 'aws_request_id', 'unknown')
     logger.info(f"🚀 CodeRipple Lambda started (Request ID: {request_id})")
     
     try:
-        # SIMPLIFIED PATTERN - Direct agent creation (like official Strands example)
-        from strands import Agent
-        from coderipple.git_analysis_tool import analyze_git_diff
-        from coderipple.content_generation_tools import generate_documentation
-        from coderipple.webhook_parser import parse_github_webhook
+        # Import the working orchestrator_agent function
+        from coderipple.orchestrator_agent import orchestrator_agent
         
-        logger.info("📦 Creating CodeRipple agent using Strands pattern")
-        
-        # Create agent directly (following official Strands pattern)
-        coderipple_agent = Agent(
-            system_prompt=CODERIPPLE_SYSTEM_PROMPT,
-            tools=[
-                analyze_git_diff,
-                generate_documentation,
-                parse_github_webhook
-            ]
-        )
-        
-        logger.info("📥 Processing webhook event")
+        logger.info("📦 orchestrator_agent function imported successfully")
         
         # Parse webhook payload
         if 'body' in event:
             # API Gateway event
-            webhook_data = event['body']
-            if isinstance(webhook_data, str):
-                webhook_data = json.loads(webhook_data)
+            webhook_payload = event['body']
+            if isinstance(webhook_payload, str):
+                # Already a JSON string, use as-is
+                pass
+            else:
+                # Convert dict to JSON string
+                webhook_payload = json.dumps(webhook_payload)
         else:
-            # Direct invocation
-            webhook_data = event
+            # Direct invocation - convert to JSON string
+            webhook_payload = json.dumps(event)
         
-        # Extract key information for agent processing
-        repository = webhook_data.get('repository', {}).get('full_name', 'unknown')
-        commits = webhook_data.get('commits', [])
+        # Extract event type from headers
+        event_type = 'push'  # Default
+        if 'headers' in event:
+            event_type = event.get('headers', {}).get('X-GitHub-Event', 'push')
         
-        # Create agent prompt from webhook data
-        agent_prompt = f"""
-GitHub webhook received for repository: {repository}
-
-Webhook data:
-{json.dumps(webhook_data, indent=2)}
-
-Please process this webhook and coordinate appropriate documentation updates according to the Three Mirror Documentation Framework.
-"""
+        logger.info(f"📥 Processing webhook event type: {event_type}")
+        logger.info(f"📦 Payload size: {len(webhook_payload)} bytes")
         
-        logger.info(f"📂 Repository: {repository}")
-        logger.info(f"📝 Commits: {len(commits)}")
-        
-        # Process through agent (following official Strands pattern)
-        logger.info("🤖 Processing webhook through CodeRipple agent")
-        response = coderipple_agent(agent_prompt)
+        # Process through orchestrator_agent function
+        logger.info("🤖 Processing webhook through orchestrator_agent function")
+        result = orchestrator_agent(webhook_payload, event_type)
         
         logger.info("✅ Webhook processed successfully")
+        logger.info(f"📊 Result type: {type(result).__name__}")
+        logger.info(f"🎯 Agent decisions: {len(result.agent_decisions)} decisions made")
+        
+        # Extract repository info for response
+        try:
+            webhook_data = json.loads(webhook_payload)
+            repository = webhook_data.get('repository', {}).get('full_name', 'unknown')
+            commits = webhook_data.get('commits', [])
+        except:
+            repository = 'unknown'
+            commits = []
         
         # Return API Gateway compatible response
         return {
@@ -105,21 +73,23 @@ Please process this webhook and coordinate appropriate documentation updates acc
             'headers': {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*',
-                'X-CodeRipple-Pattern': 'simplified-strands',
+                'X-CodeRipple-Pattern': 'function-based',
                 'X-Request-ID': request_id
             },
             'body': json.dumps({
                 'message': 'Webhook processed successfully',
                 'repository': repository,
                 'commits_processed': len(commits),
-                'agent_response': str(response),
+                'agent_decisions': len(result.agent_decisions),
+                'orchestration_summary': result.summary,
                 'request_id': request_id,
-                'pattern': 'simplified-strands'
+                'pattern': 'function-based'
             })
         }
         
     except Exception as e:
         logger.error(f"💥 Error processing webhook: {e}")
+        logger.error(f"📍 Traceback: {str(e)}")
         
         # Return error response
         return {
@@ -127,31 +97,31 @@ Please process this webhook and coordinate appropriate documentation updates acc
             'headers': {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*',
-                'X-CodeRipple-Pattern': 'simplified-strands',
+                'X-CodeRipple-Pattern': 'function-based',
                 'X-Request-ID': request_id
             },
             'body': json.dumps({
                 'message': 'Webhook processing failed',
                 'error': str(e),
                 'request_id': request_id,
-                'pattern': 'simplified-strands'
+                'pattern': 'function-based'
             })
         }
 
 def health_check_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    """Simple health check following Strands pattern"""
+    """Health check using function-based pattern"""
     
     try:
-        # Test basic Strands import
-        from strands import Agent
+        # Test orchestrator_agent import
+        from coderipple.orchestrator_agent import orchestrator_agent
         
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json'},
             'body': json.dumps({
                 'status': 'healthy',
-                'pattern': 'simplified-strands',
-                'strands_available': True
+                'pattern': 'function-based',
+                'orchestrator_agent_available': True
             })
         }
         
@@ -162,18 +132,21 @@ def health_check_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': json.dumps({
                 'status': 'unhealthy',
                 'error': str(e),
-                'pattern': 'simplified-strands'
+                'pattern': 'function-based'
             })
         }
 
 if __name__ == "__main__":
-    # Local testing (following Strands example pattern)
-    print("🧪 Testing CodeRipple Lambda (Simplified Strands Pattern)")
+    # Local testing
+    print("🧪 Testing CodeRipple Lambda (Function-Based Pattern)")
     
     test_event = {
-        'repository': {'name': 'test-repo', 'full_name': 'user/test-repo'},
-        'commits': [{'id': 'test123', 'message': 'test commit', 'modified': ['README.md']}],
-        'ref': 'refs/heads/main'
+        'body': json.dumps({
+            'repository': {'name': 'test-repo', 'full_name': 'user/test-repo'},
+            'commits': [{'id': 'test123', 'message': 'test commit', 'modified': ['README.md']}],
+            'ref': 'refs/heads/main'
+        }),
+        'headers': {'X-GitHub-Event': 'push'}
     }
     
     class MockContext:

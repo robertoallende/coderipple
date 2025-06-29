@@ -339,12 +339,15 @@ def lambda_handler(event, context):
     """Test Lambda handler using CodeRipple package layer"""
     
     try:
-        from coderipple.orchestrator_agent import OrchestratorAgent
+        from coderipple.orchestrator_agent import orchestrator_agent
         from coderipple.config import CodeRippleConfig
         
         # Test basic functionality
         config = CodeRippleConfig()
-        orchestrator = OrchestratorAgent()
+        
+        # Test orchestrator function with mock data
+        mock_payload = '{"repository": {"name": "test"}, "commits": []}'
+        result = orchestrator_agent(mock_payload, 'push')
         
         return {
             'statusCode': 200,

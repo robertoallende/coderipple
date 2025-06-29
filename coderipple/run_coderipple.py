@@ -56,7 +56,7 @@ def run_coderipple_system():
         print("📦 Loading CodeRipple components...")
         
         # Create mock implementations since we don't have Strands installed
-        from webhook_parser import WebhookEvent, CommitInfo
+        from coderipple.webhook_parser import WebhookEvent, CommitInfo
         
         # Create webhook event
         mock_data = create_mock_webhook_event()
