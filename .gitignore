@@ -85,3 +85,6 @@ github-webhook-instructions.md
 .github-webhook-id
 
 functions/orchestrator/function.zip
+test_strands_env/
+*_env/
+aws/lambda_orchestrator/coderipple/

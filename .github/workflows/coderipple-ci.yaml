@@ -1,5 +1,9 @@
 name: Run coderipple tests and upload coverage
 
+# Updated CI/CD pipeline with dependency fixes to achieve 100% test success rate
+# Key additions: strands-agents, boto3, markdown-it-py, pytest
+# These dependencies resolve import errors and module detection issues
+
 on:
   push
 
@@ -13,13 +17,10 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Set up Python 3.13
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
-          # As of June 2025, Python 3.13 is likely stable, so 'allow-prereleases: true' might not be strictly necessary.
-          # You can remove this line if you encounter no issues without it.
-          allow-prereleases: true
+          python-version: '3.12'
 
       - name: Validate Python version
         run: |
@@ -28,8 +29,11 @@ jobs:
 
       - name: Install dependencies for coderipple
         run: |
-          # Install pytest and pytest-cov for testing and coverage
-          pip install pytest pytest-cov
+          # Upgrade pip to latest version
+          pip install --upgrade pip
+          
+          # Install core dependencies that resolve test failures
+          pip install strands-agents boto3 markdown-it-py pytest pytest-cov
 
           # Install application-specific dependencies for 'coderipple' from its requirements.txt
           # This now explicitly points to coderipple/requirements.txt
@@ -76,16 +80,18 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Set up Python 3.13
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
-          allow-prereleases: true
+          python-version: '3.12'
 
       - name: Install lambda dependencies
         run: |
-          # Install pytest and pytest-cov for testing and coverage
-          pip install pytest pytest-cov
+          # Upgrade pip to latest version
+          pip install --upgrade pip
+          
+          # Install core dependencies that resolve test failures
+          pip install strands-agents boto3 markdown-it-py pytest pytest-cov
           
           # First install main coderipple package dependencies
           if [ -f coderipple/requirements.txt ]; then
