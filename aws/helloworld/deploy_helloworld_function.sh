@@ -40,6 +40,11 @@ aws lambda create-function \
       --zip-file fileb://helloworld-function.zip \
       --region "$REGION"
     
+    echo "Waiting for function update to complete..."
+    aws lambda wait function-updated \
+      --function-name "$FUNCTION_NAME" \
+      --region "$REGION"
+    
     echo "Updating function configuration..."
     aws lambda update-function-configuration \
       --function-name "$FUNCTION_NAME" \
