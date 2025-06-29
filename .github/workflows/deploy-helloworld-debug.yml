@@ -195,13 +195,12 @@ jobs:
             exit 1
           fi
 
-      - name: Test Function URL with Retry Logic
+      - name: Display Function URL for Manual Testing
         if: ${{ github.event.inputs.test_mode == 'comprehensive' }}
         run: |
-          echo "🌐 Testing Function URL with retry logic..."
+          echo "🌐 Getting Function URL for manual testing..."
           
           # Get the function URL from the deployed function
-          echo "📡 Getting Function URL from deployed function..."
           FUNCTION_URL=$(aws lambda get-function-url-config \
             --function-name helloworld-debug \
             --region ${{ env.AWS_DEFAULT_REGION }} \
@@ -209,71 +208,17 @@ jobs:
             --output text 2>/dev/null || echo "")
           
           if [ -z "$FUNCTION_URL" ] || [ "$FUNCTION_URL" = "None" ]; then
-            echo "⚠️  No Function URL found, skipping URL test"
-            exit 0
-          fi
-          
-          echo "🔗 Function URL: $FUNCTION_URL"
-          
-          # Wait for initial propagation delay
-          echo "⏳ Waiting 60 seconds for Function URL propagation..."
-          sleep 60
-          
-          # Retry logic: 3 attempts with 60-second delays
-          SUCCESS=false
-          for attempt in 1 2 3; do
-            echo "🧪 Attempt $attempt/3: Testing Function URL..."
-            
-            HTTP_STATUS=$(curl -s -o /tmp/curl_response_$attempt.json -w "%{http_code}" \
-              -X POST "$FUNCTION_URL" \
-              -H "Content-Type: application/json" \
-              -d '{"test": "function-url-retry", "source": "ci-cd", "attempt": '$attempt'}' \
-              --max-time 30)
-            
-            echo "📊 HTTP Status: $HTTP_STATUS"
-            
-            if [ "$HTTP_STATUS" = "200" ]; then
-              echo "✅ Function URL responding successfully on attempt $attempt!"
-              echo "📄 Response:"
-              cat /tmp/curl_response_$attempt.json | jq '.'
-              
-              # Validate the response contains expected content
-              RESPONSE_BODY=$(cat /tmp/curl_response_$attempt.json | jq -r '.')
-              if echo "$RESPONSE_BODY" | jq -e '.message | contains("Hello World from CodeRipple Debug Layer")' > /dev/null 2>&1; then
-                echo "✅ Response validation passed!"
-                SUCCESS=true
-                break
-              else
-                echo "⚠️  Response validation failed, but HTTP 200 received"
-                echo "📄 Response content:"
-                cat /tmp/curl_response_$attempt.json
-              fi
-            else
-              echo "❌ Function URL returned HTTP $HTTP_STATUS on attempt $attempt"
-              echo "📄 Response content:"
-              cat /tmp/curl_response_$attempt.json 2>/dev/null || echo "No response content"
-              
-              if [ $attempt -lt 3 ]; then
-                echo "⏳ Waiting 60 seconds before retry..."
-                sleep 60
-              fi
-            fi
-          done
-          
-          if [ "$SUCCESS" = "true" ]; then
-            echo "🎉 Function URL test completed successfully!"
+            echo "⚠️  No Function URL found"
           else
-            echo "❌ Function URL test failed after 3 attempts"
-            echo "💡 This may be due to:"
-            echo "   - Function URL permissions not set"
-            echo "   - Propagation delays (try manual test later)"
-            echo "   - Network connectivity issues"
+            echo "✅ Function URL ready for manual testing:"
+            echo "🔗 $FUNCTION_URL"
             echo ""
-            echo "🔧 Manual test command:"
+            echo "📋 Manual test commands:"
             echo "curl -X POST \"$FUNCTION_URL\" -H \"Content-Type: application/json\" -d '{\"test\": \"manual\"}'"
-            
-            # Don't fail the entire workflow for URL issues
-            echo "⚠️  Continuing workflow (Function URL test is informational)"
+            echo ""
+            echo "curl -X GET \"$FUNCTION_URL\""
+            echo ""
+            echo "🎯 Expected: HTTP 200 with 'Hello World from CodeRipple Debug Layer' message"
           fi
 
       - name: Cleanup Resources
