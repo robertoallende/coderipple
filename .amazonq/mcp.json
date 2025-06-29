@@ -1,13 +1,16 @@
 {
   "mcpServers": {
-    "terraform": {
-      "command": "npx",
+    "awslabs.aws-documentation-mcp-server": {
+      "command": "uvx",
       "args": [
-        "@modelcontextprotocol/server-terraform"
+        "awslabs.aws-documentation-mcp-server@latest"
       ],
-      "env": {},
-      "timeout": 120000,
-      "disabled": false
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR",
+        "AWS_DOCUMENTATION_PARTITION": "aws"
+      },
+      "disabled": false,
+      "autoApprove": []
     },
     "aws-docs": {
       "command": "npx",
@@ -18,5 +21,30 @@
       "timeout": 120000,
       "disabled": false
     }
+  },
+  "awslabs.iam-mcp-server": {
+    "command": "uvx",
+    "args": [
+      "awslabs.iam-mcp-server@latest"
+    ],
+    "env": {
+      "AWS_PROFILE": "your-aws-profile",
+      "AWS_REGION": "us-east-1",
+      "FASTMCP_LOG_LEVEL": "ERROR"
+    }
+  },
+  "awslabs.aws-serverless-mcp-server": {
+    "command": "uvx",
+    "args": [
+      "awslabs.aws-serverless-mcp-server@latest",
+      "--allow-write",
+      "--allow-sensitive-data-access"
+    ],
+    "env": {
+      "AWS_PROFILE": "your-aws-profile",
+      "AWS_REGION": "us-east-1"
+    },
+    "disabled": false,
+    "autoApprove": []
   }
 }

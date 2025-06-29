@@ -1,20 +1,74 @@
-# Project Overview
+# Project Plan and Dev Log
 
-We want to create a serverless project that automatically analyzes code and generates analysis documentation. The process is triggered by a GitHub webhook when code is committed.
+Serverless automated code analysis system that generates documentation and insights through GitHub pull requests.
 
-The **Receptionist** receives the webhook, clones the repository, and asks the **Librarian** to store it safely. The **Analyst** retrieves the repository from the **Librarian**, performs code analysis using Strands, generates analysis files (reports, metrics, recommendations), and has the **Librarian** store the results. When analysis completes, the **Telephonist** notifies the **Deliverer**. The **Deliverer** retrieves the generated analysis files from the **Librarian** and creates a pull request to include the analysis results in the repository.
+## Structure
 
-This architecture provides automated code analysis with minimal manual intervention, delivering insights directly into the development workflow through GitHub pull requests.
+Development follows Micromanaged Driven Development (MDD) with systematic unit breakdown:
+- **Units** represent major development phases (architecture, implementation, deployment)
+- **Subunits** capture discrete build moments within each unit
+- Files follow naming convention: `<sequence>_<unitname>[_subunit<number|name>].md`
+- Chronological tracking enables AI-assisted development with clear context
 
-## Architecture Diagram
+## About the Project
+
+### What This Is
+An automated code analysis pipeline triggered by GitHub webhooks. When code is committed, the system clones the repository, performs analysis using Strands, generates reports and metrics, then creates a pull request with the analysis results. This provides continuous code insights directly integrated into the development workflow.
+
+### Architecture
+Professional team metaphor with specialized services:
+- **Receptionist** (Lambda) - Webhook intake and repository cloning
+- **Telephonist** (EventBridge) - Event routing and coordination
+- **Analyst** (Lambda) - Code analysis using Strands
+- **Librarian** (S3) - Document storage and retrieval
+- **Deliverer** (Lambda) - Pull request creation
+- **GitHub Diplomat** - Repository interaction layer
 
 ```
 GitHub Repo → Webhook → Receptionist → Telephonist → Analyst → Telephonist → Deliverer → Pull Request
-                       (Clone via       (Route)     (Analyze via  (Route)     (PR Creation)
-                        Librarian)                   Librarian)
+                         Clone Code       Route    Analyze via   Route      PR Creation
+                       via Librarian                Librarian
 ```
 
-## Detailed Flow
+### Technical Stack
+- **AWS Lambda** - Serverless compute for Receptionist, Analyst, Deliverer
+- **AWS EventBridge** - Event routing and service coordination
+- **AWS S3** - Repository and analysis file storage
+- **GitHub API** - Repository operations and PR creation
+- **Strands** - Code analysis engine
+- **Python** - Lambda runtime environments
+
+## Project Status
+
+### Overall Completion
+**0%** - Project initialization and architecture design phase
+
+### Completed Features
+- Architecture design and service definitions
+- Event flow specification
+- Professional team service mapping
+
+## Units Implemented
+
+### Completed Units
+* **000**: Foundations - Architecture design, service definitions, and event flow specification
+
+### Units In Progress
+
+#### 001. Receptionist Implementation
+**Status:** Planning
+- Webhook handling and repository cloning service
+
+## Planned Units
+
+* **001**: Receptionist Implementation - Webhook handling and repository cloning
+* **002**: Librarian Service - S3 storage operations and file management
+* **003**: Telephonist Configuration - EventBridge rules and event routing
+* **004**: Analyst Implementation - Strands integration and analysis generation
+* **005**: Deliverer Implementation - GitHub PR creation and file delivery
+* **006**: Integration Testing - End-to-end workflow validation
+
+## Detailed Flow Reference
 
 ### Receptionist - Repository Intake
 ```
@@ -44,20 +98,9 @@ GitHub Repo → Webhook → Receptionist → Telephonist → Analyst → Telepho
 16. Create Pull Request with results
 ```
 
-## Event Flow
+## Event Flow Specification
 
 ```
 Event 1: {type: "repo_ready", s3_location: "bucket/repo-123/"}
 Event 2: {type: "analysis_complete", s3_files: ["report.md", "metrics.json"]}
 ```
-
-## Professional Team Services
-
-- **3 Lambda Functions** (Receptionist, Analyst, Deliverer)
-- **EventBridge Telephonist** (2 routing rules for coordination)
-- **S3 Librarian** (Document storage and retrieval)
-- **GitHub Diplomat** (Repository interaction and PR creation)
-
-## Why This Works with Claude
-
-Each professional role = One focused conversation with Claude about a single responsibility.
