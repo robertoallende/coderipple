@@ -1,0 +1,10 @@
+{
+  "name": "coderipple-gatekeeper",
+  "description": "GitHub webhook endpoint for CodeRipple automated analysis",
+  "tags": {
+    "Project": "coderipple"
+  },
+  "endpointConfiguration": {
+    "types": ["REGIONAL"]
+  }
+}
