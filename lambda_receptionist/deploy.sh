@@ -163,7 +163,7 @@ aws lambda update-function-configuration \
   --timeout 300 \
   --memory-size 1024 \
   --ephemeral-storage Size=5120 \
-  --environment Variables='{"DRAWER_BUCKET":"'$DRAWER_BUCKET'","GITHUB_WEBHOOK_SECRET":""}' \
+  --environment file://env-vars.json \
   --region $REGION
 
 echo "✅ Lambda function deployed"
