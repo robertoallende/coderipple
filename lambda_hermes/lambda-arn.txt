@@ -1,1 +1,0 @@
-arn:aws:lambda:us-east-1:741448943849:function:coderipple-hermes
