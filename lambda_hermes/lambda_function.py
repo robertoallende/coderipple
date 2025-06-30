@@ -120,15 +120,10 @@ def clean_table_empty_lines(content):
         elif in_table and header_separator_found:
             # We're in the table data section
             if line.strip() == '' or line.strip() == '|':
-                # Skip empty lines in table
+                # Skip empty lines in table completely
                 continue
             elif line.startswith('|') and line.endswith('|'):
                 # Valid table row
-                cleaned_lines.append(line)
-            elif line.strip() == '':
-                # Empty line after table - keep it and stop processing table
-                in_table = False
-                header_separator_found = False
                 cleaned_lines.append(line)
             else:
                 # Non-table content - stop processing table
