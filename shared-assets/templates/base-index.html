@@ -39,8 +39,12 @@
             // Create custom header with logo
             const header = document.createElement('div');
             header.className = 'app-name';
-            header.innerHTML = '<a href="#/" class="app-name-link">' +
-              '<img src="assets/images/coderipple-logo.png" alt="CodeRipple">' +
+            // Analysis pages need different navigation
+            var headerHref = window.location.pathname.includes('/analyses/') ? '../../../' : '#/';
+            var logoSrc = window.location.pathname.includes('/analyses/') ? '../../../assets/images/coderipple-logo.png' : 'assets/images/coderipple-logo.png';
+            
+            header.innerHTML = '<a href="' + headerHref + '" class="app-name-link">' +
+              '<img src="' + logoSrc + '" alt="CodeRipple">' +
               '<div class="app-name-text">' +
                 '<div class="app-name-title">{{HEADER_TITLE}}</div>' +
                 '<div class="app-name-tagline">{{HEADER_TAGLINE}}</div>' +
@@ -48,13 +52,23 @@
             '</a>';
             document.body.insertBefore(header, document.body.firstChild);
             
-            // Create fixed footer at bottom
-            const footer = document.createElement('div');
-            footer.className = 'footer-content';
-            footer.innerHTML = '<p style="font-size: 1.1em; margin-bottom: 8px;"><strong>{{FOOTER_TITLE}}</strong></p>' +
-              '<p style="font-family: \'JetBrains Mono\', monospace; font-size: 0.9em; opacity: 0.8; margin-bottom: 12px;">{{FOOTER_TAGLINE}}</p>' +
-              '<p style="font-size: 0.8em; opacity: 0.7;"><em>Last updated: ' + new Date().toLocaleString() + '</em></p>';
-            document.body.appendChild(footer);
+            // Add download button for analysis pages
+            if (window.location.pathname.includes('/analyses/')) {
+              const downloadBtn = document.createElement('div');
+              downloadBtn.style.cssText = 'position: fixed; top: 100px; right: 20px; z-index: 1000;';
+              downloadBtn.innerHTML = '<a href="./analysis.zip" class="coderipple-btn" style="background-color: #1EA3B7; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px;">Download Results</a>';
+              document.body.appendChild(downloadBtn);
+            }
+            
+            // Create fixed footer at bottom (only for non-analysis pages)
+            if (!window.location.pathname.includes('/analyses/')) {
+              const footer = document.createElement('div');
+              footer.className = 'footer-content';
+              footer.innerHTML = '<p style="font-size: 1.1em; margin-bottom: 8px;"><strong>{{FOOTER_TITLE}}</strong></p>' +
+                '<p style="font-family: \'JetBrains Mono\', monospace; font-size: 0.9em; opacity: 0.8; margin-bottom: 12px;">{{FOOTER_TAGLINE}}</p>' +
+                '<p style="font-size: 0.8em; opacity: 0.7;"><em>Last updated: ' + new Date().toLocaleString() + '</em></p>';
+              document.body.appendChild(footer);
+            }
           });
           
           hook.doneEach(function() {

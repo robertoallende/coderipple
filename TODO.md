@@ -337,4 +337,76 @@ Features aimed at improving contextual project insights and actionable developer
 
 ---
 
+## Infrastructure as Code & CI/CD Implementation
+
+**Problem**: Currently using manual deployment scripts scattered across components, making deployments inconsistent, error-prone, and difficult to reproduce across environments.
+
+**Current Status**: Individual bash scripts for each component (Lambdas, S3 buckets, EventBridge rules) requiring manual execution and configuration management.
+
+**Impact**:
+- Deployment inconsistencies between environments (dev/staging/prod)
+- Manual configuration management prone to human error
+- Difficult to track infrastructure changes and maintain version control
+- No automated rollback capabilities on deployment failures
+- Complex onboarding for new developers due to deployment complexity
+- Risk of configuration drift between environments
+
+**Future Solutions**:
+- **Terraform Infrastructure**: Convert all AWS resources to Infrastructure as Code
+- **GitHub Actions Pipeline**: Automated deployment pipeline with CI/CD best practices
+- **Environment Management**: Consistent dev/staging/prod environment provisioning
+- **State Management**: Centralized Terraform state with S3 backend and DynamoDB locking
+- **Secret Management**: Secure handling of environment variables and AWS credentials
+- **Automated Testing**: Infrastructure validation and deployment verification
+- **Rollback Strategy**: Automated rollback on deployment failures
+
+**Implementation Plan**:
+
+### Phase 1: Infrastructure Analysis & Design
+- **Research existing deployment scripts**: Catalog all current deployment mechanisms across components
+- **Terraform module design**: Create modular structure for each CodeRipple service
+- **Resource mapping**: Map current manual resources to Terraform configurations
+
+### Phase 2: Terraform Configuration Development  
+- **Core resources**: Lambda functions, S3 buckets, EventBridge rules, API Gateway
+- **IAM policies**: Secure, least-privilege access configurations
+- **Lambda layers**: Strands dependencies and shared libraries
+- **Environment variables**: Parameterized configurations for different environments
+
+### Phase 3: GitHub Actions CI/CD Pipeline
+- **Terraform workflow**: Automated plan/apply on pull requests
+- **Environment promotion**: Staged deployment through dev → staging → prod
+- **Security scanning**: Infrastructure security validation
+- **Deployment verification**: Automated testing of deployed resources
+
+### Phase 4: State Management & Security
+- **Remote state backend**: S3 + DynamoDB for state locking and collaboration
+- **Secret management**: AWS Secrets Manager integration
+- **Access control**: GitHub environment protection rules
+- **Monitoring**: CloudWatch integration for deployment tracking
+
+**Success Criteria**:
+- Single command deployment: `terraform apply`
+- Zero-downtime deployments through GitHub Actions
+- Environment parity between dev/staging/prod
+- Automated rollback on deployment failures
+- Complete infrastructure reproducibility
+- Reduced deployment time from hours to minutes
+
+**Components Affected**:
+- All Lambda functions (Gatekeeper, Receptionist, Telephonist, Analyst, Deliverer, Hermes)
+- S3 buckets (Drawer, Showroom, Cabinet)
+- EventBridge rules and event routing
+- API Gateway REST API configuration
+- IAM roles and policies
+- Lambda layers for dependencies
+
+**Priority**: High - Critical for production readiness and team scalability
+
+**Estimated Effort**: 2-3 weeks for complete implementation and testing
+
+**Related Components**: All system components, deployment infrastructure
+
+---
+
 *Add new TODO items below as they arise during development*
