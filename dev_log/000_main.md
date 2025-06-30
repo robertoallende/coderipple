@@ -21,10 +21,10 @@ Professional team metaphor with specialized services:
 - **Receptionist** (Lambda) - Webhook processing and repository cloning
 - **Telephonist** (EventBridge) - Event routing and coordination
 - **Analyst** (Lambda) - Code analysis using Strands
-- **Librarian** (S3 Private) - Private document storage and retrieval
+- **Drawer** (S3 Private) - Private document storage and retrieval
 - **Deliverer** (Lambda) - Pull request creation
 - **Hermes** (Lambda) - Event logging and status tracking bureaucrat
-- **Inventory** (S3 Public) - Public event logs and pipeline status
+- **Cabinet** (S3 Public) - Public event logs and pipeline status
 - **GitHub Diplomat** - Repository interaction layer
 
 ``` 
@@ -35,7 +35,7 @@ Professional team metaphor with specialized services:
                         Gatekeeper (API Gateway)
                              | Validate & Authenticate
                              ↓
-Library (S3 Private) ───── Receptionist (Lambda) ─────┐  
+Drawer (S3 Private) ────── Receptionist (Lambda) ─────┐  
 - Cloned repositories        | Clone Code             │  
 - Analysis files             ↓                        │
 - Temporary storage ─┐   Telephonist (EventBridge) ───┤ 
@@ -50,7 +50,7 @@ Library (S3 Private) ───── Receptionist (Lambda) ─────┐
                      └── Deliverer (Lambda)           │
                             PR Creation               | 
                               ↓                       ↓
-                          Pull Request       Inventory (S3 Public)
+                          Pull Request       Cabinet (S3 Public)
                                              - Event logs & status
 
 
@@ -126,29 +126,28 @@ This applies to all components: Lambda functions, API Gateway, EventBridge rules
 
 ### Units In Progress
 
-#### 004. Receptionist Implementation (Repository Handler)
-**Status:** Planning
-- **Subunit 001**: Planned - Receptionist Lambda function for webhook processing
-- **Subunit 002**: Planned - Repository cloning and S3 storage operations
-- **Subunit 003**: Planned - EventBridge event publishing and integration testing
+#### 004. Repository Processing System
+**Status:** Planning Complete - Ready for Implementation
+- **Subunit 001**: ✅ Drawer S3 bucket deployment and IAM setup - PLANNED
+- **Subunit 002**: ✅ Receptionist Lambda implementation with git operations - PLANNED
+- **Subunit 003**: Planned - Integration testing and EventBridge event publishing
 
 ## Planned Units
 
-* **004**: Receptionist Implementation - Webhook handling and repository cloning
-* **005**: Librarian Service - S3 storage operations and file management
-* **006**: Analyst Implementation - Strands integration and analysis generation
-* **007**: Deliverer Implementation - GitHub PR creation and file delivery
-* **008**: Integration Testing - End-to-end workflow validation
+* **005**: Analyst Implementation - Strands integration and analysis generation
+* **006**: Deliverer Implementation - GitHub PR creation and file delivery
+* **007**: Integration Testing - End-to-end workflow validation
 
 ## Detailed Flow Reference
 
 ### Receptionist - Repository Intake
 ```
-1. GitHub webhook → Receptionist
-2. Check if analysis/ folder exists (GitHub API)
-3. Git clone repo to /tmp
-4. Ask Librarian to store cloned repo in S3
-5. Tell Telephonist: "Repo Ready for Analysis"
+1. GitHub webhook → Receptionist (push events only)
+2. Clone full repository with git CLI (public repos only)
+3. Checkout specific commit from webhook
+4. Create clean working copy via git archive
+5. Upload workingcopy + repohistory to Drawer S3 bucket
+6. Publish "repo_ready" event to Telephonist
 ```
 
 ### Analyst - Code Analysis

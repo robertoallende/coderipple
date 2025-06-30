@@ -95,6 +95,63 @@ Future improvements and known limitations to address after MVP completion.
 
 **Related Components**: EventBridge rules, all Lambda functions, monitoring setup
 
+## Lambda Ephemeral Storage Optimization
+
+**Problem**: Receptionist Lambda configured with 5GB ephemeral storage for initial testing and large repository handling.
+
+**Current Status**: Set to 5GB (4.5GB additional) for one week testing period to handle large repository clones comfortably.
+
+**Action Required**: After one week of testing (by 2025-07-07):
+- Monitor actual storage usage patterns from CloudWatch metrics
+- Analyze repository sizes being processed
+- Optimize storage allocation based on real usage data
+- Reduce to optimal size (likely 1-2GB) to minimize ongoing costs
+
+**Cost Impact**: 
+- Current: ~$0.01-0.02 per week additional cost
+- Optimized: Reduce to minimal necessary storage after testing
+
+**Monitoring**: Check CloudWatch metrics for:
+- Maximum storage used per invocation
+- Repository clone sizes
+- Performance impact of storage constraints
+
+**Priority**: Medium - Cost optimization after initial testing phase
+
+**Related Components**: Receptionist Lambda, repository cloning operations
+
+## Private Repository Support
+
+**Problem**: Currently only supports public GitHub repositories for code analysis.
+
+**Current Status**: MVP implementation uses public repositories only to avoid authentication complexity and rate limiting.
+
+**Impact**:
+- Limited to public repositories only
+- Cannot analyze private codebases or enterprise repositories
+- Missing significant portion of potential user base
+- No access to proprietary code analysis opportunities
+
+**Future Solutions**:
+- **GitHub App Authentication**: Create GitHub App for secure, scalable authentication
+- **Personal Access Token**: Support user-provided PAT for private repo access
+- **OAuth Integration**: Web-based authentication flow for user repositories
+- **Enterprise GitHub**: Support GitHub Enterprise Server installations
+- **Fine-grained permissions**: Request minimal required permissions (repository read access)
+- **Token management**: Secure storage and rotation of authentication credentials
+- **Rate limit handling**: Implement proper rate limiting and backoff strategies
+
+**Implementation Requirements**:
+- GitHub App registration and webhook configuration
+- Secure credential storage (AWS Secrets Manager or Parameter Store)
+- Authentication flow in Receptionist Lambda
+- Error handling for authentication failures
+- Documentation for users on setting up repository access
+
+**Priority**: Medium - Important for broader adoption but not blocking MVP functionality
+
+**Related Components**: Receptionist Lambda, GitHub integration, webhook processing
+
 ---
 
 *Add new TODO items below as they arise during development*
