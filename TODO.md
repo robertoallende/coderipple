@@ -72,6 +72,29 @@ Future improvements and known limitations to address after MVP completion.
 
 **Related Components**: All Lambda functions, API Gateway, EventBridge rules
 
+## Custom EventBridge Bus Implementation
+
+**Problem**: Currently using default EventBridge bus which mixes CodeRipple events with other AWS account events.
+
+**Current Status**: MVP uses default event bus for simplicity and faster deployment.
+
+**Impact**:
+- Event isolation concerns in production environments
+- Potential event conflicts with other applications in same AWS account
+- Less granular access control and monitoring
+- Harder to implement cross-account event sharing if needed
+
+**Future Solutions**:
+- **Custom Event Bus**: Create `coderipple-events` custom bus for complete isolation
+- **Cross-account sharing**: Enable event sharing between dev/staging/prod accounts
+- **Enhanced monitoring**: Bus-specific CloudWatch metrics and alarms
+- **Access control**: Fine-grained IAM policies for custom bus
+- **Event archiving**: Custom bus enables better event replay and debugging
+
+**Priority**: Low - Default bus works for MVP, but important for production scalability
+
+**Related Components**: EventBridge rules, all Lambda functions, monitoring setup
+
 ---
 
 *Add new TODO items below as they arise during development*

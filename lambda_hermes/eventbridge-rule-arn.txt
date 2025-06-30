@@ -1,0 +1,1 @@
+arn:aws:events:us-east-1:741448943849:rule/coderipple-hermes-logging

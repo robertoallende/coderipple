@@ -122,18 +122,18 @@ This applies to all components: Lambda functions, API Gateway, EventBridge rules
 * **000**: Foundations - Architecture design, service definitions, and event flow specification
 * **001**: Gatekeeper Implementation - API Gateway REST API for GitHub webhook endpoint
 * **002**: Telephonist Implementation - EventBridge configuration for event routing and service coordination
+* **003**: Hermes Implementation - Event logging Lambda with Cabinet S3 bucket and Docsify integration
 
 ### Units In Progress
 
-#### 003. Hermes Implementation (The Bureaucrat)
-**Status:** In Progress
-- **Subunit 001**: ✅ Hermes Lambda function for event logging - COMPLETE
-- **Subunit 002**: 🔄 Cabinet S3 bucket for log storage - IN PROGRESS
-- **Subunit 003**: Planned - EventBridge integration and testing
+#### 004. Receptionist Implementation (Repository Handler)
+**Status:** Planning
+- **Subunit 001**: Planned - Receptionist Lambda function for webhook processing
+- **Subunit 002**: Planned - Repository cloning and S3 storage operations
+- **Subunit 003**: Planned - EventBridge event publishing and integration testing
 
 ## Planned Units
 
-* **003**: Hermes Implementation - Event logging and status tracking (the bureaucrat)
 * **004**: Receptionist Implementation - Webhook handling and repository cloning
 * **005**: Librarian Service - S3 storage operations and file management
 * **006**: Analyst Implementation - Strands integration and analysis generation
