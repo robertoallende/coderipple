@@ -32,15 +32,15 @@ case $SITE_TYPE in
         ;;
     "cabinet")
         SITE_NAME="CodeRipple Cabinet"
-        SITE_TITLE="CodeRipple Cabinet - System Documentation"
-        SITE_DESCRIPTION="CodeRipple system documentation and event monitoring"
-        LOADING_MESSAGE="System documentation and monitoring"
-        LOAD_SIDEBAR="true"
-        SEARCH_PLACEHOLDER="Search documentation..."
+        SITE_TITLE="CodeRipple Cabinet - Event Logs"
+        SITE_DESCRIPTION="CodeRipple event logging and system monitoring"
+        LOADING_MESSAGE="Event logging and monitoring"
+        LOAD_SIDEBAR="false"
+        SEARCH_PLACEHOLDER="Search events..."
         HEADER_TITLE="CodeRipple Cabinet"
-        HEADER_TAGLINE="system documentation and event monitoring"
+        HEADER_TAGLINE="event logging and system monitoring"
         FOOTER_TITLE="CodeRipple Cabinet"
-        FOOTER_TAGLINE="system documentation and event monitoring"
+        FOOTER_TAGLINE="event logging and system monitoring"
         ;;
     *)
         echo "❌ Unknown site type: $SITE_TYPE"

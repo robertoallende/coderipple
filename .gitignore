@@ -96,9 +96,9 @@ api_gatekeeper/api-id.txt
 eventbridge_telephonist/event-bus-name.txt
 
 # Lambda deployment artifacts
-lambda_hermes/lambda-arn.txt
-lambda_hermes/website-url.txt
-lambda_receptionist/lambda-arn.txt
+lambda_*/lambda-arn.txt
+lambda_*/website-url.txt
+lambda_*/bucket-name.txt
 
 # Lambda build artifacts
 lambda_*/python/
@@ -161,3 +161,4 @@ lambda_hermes/eventbridge-rule-arn.txt
 response.json
 test-policy.json
 *.zip
+s3_showroom/samples/
