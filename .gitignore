@@ -88,3 +88,6 @@ functions/orchestrator/function.zip
 test_strands_env/
 *_env/
 aws/lambda_orchestrator/coderipple/
+
+# API Gateway deployment artifacts
+api_gatekeeper/api-id.txt

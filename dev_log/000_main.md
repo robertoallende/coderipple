@@ -113,21 +113,22 @@ This applies to all components: Lambda functions, API Gateway, EventBridge rules
 
 ### Completed Units
 * **000**: Foundations - Architecture design, service definitions, and event flow specification
+* **001**: Gatekeeper Implementation - API Gateway REST API for GitHub webhook endpoint
 
 ### Units In Progress
 
-#### 001. Gatekeeper Implementation
+#### 002. Telephonist Implementation
 **Status:** Planning
-- API Gateway REST API for GitHub webhook endpoint
+- EventBridge configuration for event routing and service coordination
 
 ## Planned Units
 
-* **002**: Receptionist Implementation - Webhook handling and repository cloning
-* **003**: Librarian Service - S3 storage operations and file management
-* **004**: Telephonist Configuration - EventBridge rules and event routing
-* **005**: Analyst Implementation - Strands integration and analysis generation
-* **006**: Deliverer Implementation - GitHub PR creation and file delivery
-* **007**: Integration Testing - End-to-end workflow validation
+* **003**: Hermes Implementation - Event logging and status tracking (the bureaucrat)
+* **004**: Receptionist Implementation - Webhook handling and repository cloning
+* **005**: Librarian Service - S3 storage operations and file management
+* **006**: Analyst Implementation - Strands integration and analysis generation
+* **007**: Deliverer Implementation - GitHub PR creation and file delivery
+* **008**: Integration Testing - End-to-end workflow validation
 
 ## Detailed Flow Reference
 
