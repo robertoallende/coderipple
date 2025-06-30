@@ -1,0 +1,48 @@
+{
+  "repo_ready": {
+    "source": "coderipple.system",
+    "detail-type": "repo_ready",
+    "detail": {
+      "component": "Receptionist",
+      "repository": {
+        "owner": "username",
+        "name": "repo-name",
+        "commit_sha": "abc123def456",
+        "default_branch": "main"
+      },
+      "s3_location": "bucket/repos/username/repo-name/abc123def456/",
+      "timestamp": "2025-06-30T12:30:00Z"
+    }
+  },
+  "analysis_complete": {
+    "source": "coderipple.system", 
+    "detail-type": "analysis_complete",
+    "detail": {
+      "component": "Analyst",
+      "repository": {
+        "owner": "username",
+        "name": "repo-name",
+        "commit_sha": "abc123def456",
+        "default_branch": "main"
+      },
+      "s3_files": ["analysis/report.md", "analysis/metrics.json"],
+      "timestamp": "2025-06-30T12:31:00Z"
+    }
+  },
+  "pr_created": {
+    "source": "coderipple.system",
+    "detail-type": "pr_created", 
+    "detail": {
+      "component": "Deliverer",
+      "repository": {
+        "owner": "username",
+        "name": "repo-name",
+        "commit_sha": "abc123def456",
+        "default_branch": "main"
+      },
+      "pr_number": 123,
+      "pr_url": "https://github.com/username/repo-name/pull/123",
+      "timestamp": "2025-06-30T12:32:00Z"
+    }
+  }
+}

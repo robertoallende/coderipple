@@ -88,3 +88,49 @@ functions/orchestrator/function.zip
 test_strands_env/
 *_env/
 aws/lambda_orchestrator/coderipple/
+
+# API Gateway deployment artifacts
+api_gatekeeper/api-id.txt
+
+# EventBridge deployment artifacts
+eventbridge_telephonist/event-bus-name.txt
+
+# Lambda deployment artifacts
+lambda_hermes/lambda-arn.txt
+lambda_hermes/website-url.txt
+lambda_receptionist/lambda-arn.txt
+
+# Lambda build artifacts
+lambda_*/python/
+python/
+
+# Lambda environment configuration (sensitive)
+lambda_*/env-vars.json
+env-vars.json
+
+# Lambda deployment policies (generated)
+lambda_*/*-policy.json
+*-policy.json
+
+# Lambda test files (temporary)
+lambda_*/test-*.json
+lambda_*/test_*.py
+lambda_*/response.json
+test-payload*.json
+response.json
+
+# Lambda temporary/cache files
+lambda_*/__pycache__/
+lambda_*/.*cache/
+
+# S3 Drawer deployment artifacts
+s3_drawer/bucket-name.txt
+
+# EventBridge deployment artifacts
+eventbridge_telephonist/event-bus-name.txt
+lambda_hermes/eventbridge-rule-arn.txt
+
+# General deployment artifacts
+response.json
+test-policy.json
+*.zip

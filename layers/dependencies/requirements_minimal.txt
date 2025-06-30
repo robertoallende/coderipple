@@ -1,9 +1,0 @@
-# CodeRipple Dependencies Layer - Minimal Requirements
-# Let strands-agents manage its own dependencies including OpenTelemetry
-
-# Multi-Agent Framework - This pulls in all necessary dependencies
-strands-agents>=0.1.0
-strands-agents-tools>=0.1.0
-
-# AWS SDK - For Bedrock and other AWS services
-boto3
