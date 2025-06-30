@@ -142,7 +142,12 @@ s3_cabinet/bucket-policy.json
 
 # Shared assets build artifacts (future)
 shared-assets/build/
+shared-assets/test-*.html
 */build/
+
+# Template generation test files
+test-*.html
+**/test-*.html
 
 # Temporary deployment files
 **/website-url.txt
