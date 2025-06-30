@@ -2,9 +2,7 @@
   "mcpServers": {
     "awslabs.aws-documentation-mcp-server": {
       "command": "uvx",
-      "args": [
-        "awslabs.aws-documentation-mcp-server@latest"
-      ],
+      "args": ["awslabs.aws-documentation-mcp-server@latest"],
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR",
         "AWS_DOCUMENTATION_PARTITION": "aws"
@@ -14,37 +12,34 @@
     },
     "aws-docs": {
       "command": "npx",
-      "args": [
-        "@modelcontextprotocol/server-aws-docs"
-      ],
+      "args": ["@modelcontextprotocol/server-aws-docs"],
       "env": {},
       "timeout": 120000,
       "disabled": false
-    }
-  },
-  "awslabs.iam-mcp-server": {
-    "command": "uvx",
-    "args": [
-      "awslabs.iam-mcp-server@latest"
-    ],
-    "env": {
-      "AWS_PROFILE": "your-aws-profile",
-      "AWS_REGION": "us-east-1",
-      "FASTMCP_LOG_LEVEL": "ERROR"
-    }
-  },
-  "awslabs.aws-serverless-mcp-server": {
-    "command": "uvx",
-    "args": [
-      "awslabs.aws-serverless-mcp-server@latest",
-      "--allow-write",
-      "--allow-sensitive-data-access"
-    ],
-    "env": {
-      "AWS_PROFILE": "your-aws-profile",
-      "AWS_REGION": "us-east-1"
     },
-    "disabled": false,
-    "autoApprove": []
+    "awslabs.iam-mcp-server": {
+      "command": "uvx",
+      "args": ["awslabs.iam-mcp-server@latest"],
+      "env": {
+        "AWS_PROFILE": "your-aws-profile",
+        "AWS_REGION": "us-east-1",
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      }
+    },
+    "awslabs.aws-serverless-mcp-server": {
+      "command": "uvx",
+      "args": [
+        "awslabs.aws-serverless-mcp-server@latest",
+        "--allow-write",
+        "--allow-sensitive-data-access"
+      ],
+      "env": {
+        "AWS_PROFILE": "your-aws-profile",
+        "AWS_REGION": "us-east-1"
+      },
+      "disabled": false,
+      "autoApprove": []
+    }
   }
 }
+

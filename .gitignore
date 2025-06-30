@@ -168,3 +168,9 @@ response.json
 test-policy.json
 *.zip
 s3_showroom/samples/
+lambda_analyst/=*
+lambda_analyst/*.zip
+lambda_analyst/test-*.json
+lambda_analyst/test-*.txt
+lambda_analyst/*-policy.json
+lambda_analyst/trust-policy.json

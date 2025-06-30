@@ -42,9 +42,21 @@ case $SITE_TYPE in
         FOOTER_TITLE="CodeRipple Cabinet"
         FOOTER_TAGLINE="event logging and system monitoring"
         ;;
+    "analysis")
+        SITE_NAME="CodeRipple Analysis"
+        SITE_TITLE="CodeRipple Analysis - ${3:-Repository Analysis}"
+        SITE_DESCRIPTION="CodeRipple code analysis results and documentation"
+        LOADING_MESSAGE="Loading analysis results..."
+        LOAD_SIDEBAR="false"
+        SEARCH_PLACEHOLDER="Search analysis..."
+        HEADER_TITLE="CodeRipple Analysis"
+        HEADER_TAGLINE="${4:-repository analysis results}"
+        FOOTER_TITLE="CodeRipple Analysis"
+        FOOTER_TAGLINE="documentation that evolves with your code, automatically"
+        ;;
     *)
         echo "❌ Unknown site type: $SITE_TYPE"
-        echo "Usage: $0 <showroom|cabinet> [output-file]"
+        echo "Usage: $0 <showroom|cabinet|analysis> [output-file] [repo-name] [tagline]"
         exit 1
         ;;
 esac

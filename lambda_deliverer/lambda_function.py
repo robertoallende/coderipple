@@ -235,7 +235,6 @@ def upload_to_showroom(repo_owner: str, repo_name: str, commit_sha: str, package
                 Key=zip_key,
                 Body=f,
                 ContentType='application/zip',
-                ACL='public-read'
             )
         
         # Generate and upload analysis page
@@ -251,13 +250,14 @@ def upload_to_showroom(repo_owner: str, repo_name: str, commit_sha: str, package
         # Upload individual analysis files for web viewing
         for filename, content in analysis_data.items():
             if filename.endswith('.md'):
+                # Use README.md for main analysis content for Docsify rendering
+                output_filename = 'README.md' if 'README.md' in filename or len([f for f in analysis_data.keys() if f.endswith('.md')]) == 1 else filename
                 s3_client.put_object(
                     Bucket=SHOWROOM_BUCKET,
-                    Key=f"{showroom_prefix}/{filename}",
+                    Key=f"{showroom_prefix}/{output_filename}",
                     Body=content if isinstance(content, str) else content.decode('utf-8'),
                     ContentType='text/markdown',
-                    ACL='public-read'
-                )
+                    )
         
         analysis_url = f"http://{SHOWROOM_BUCKET}.s3-website-us-east-1.amazonaws.com/analyses/{repo_owner}/{repo_name}/{commit_sha}/"
         
@@ -270,29 +270,18 @@ def upload_to_showroom(repo_owner: str, repo_name: str, commit_sha: str, package
 
 def generate_analysis_page(repo_owner: str, repo_name: str, commit_sha: str, analysis_data: Dict[str, Any]) -> str:
     """
-    Generate HTML page for analysis results using Showroom template style
+    Generate HTML page for analysis results using shared template system
     """
     
-    # Find the main analysis report
-    main_report = None
-    for filename, content in analysis_data.items():
-        if filename.endswith('.md') and isinstance(content, str):
-            main_report = content
-            break
-    
-    if not main_report:
-        main_report = "# Analysis Results\n\nAnalysis completed successfully. Download the full results package for detailed information."
-    
-    # Convert markdown to HTML-friendly format (basic conversion)
-    html_content = main_report.replace('\n', '<br>\n').replace('# ', '<h1>').replace('## ', '<h2>').replace('### ', '<h3>')
-    
-    return f"""<!DOCTYPE html>
+    # Base template from shared-assets/templates/base-index.html
+    # This template is designed to automatically render README.md with Docsify
+    template = """<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>CodeRipple Analysis - {repo_owner}/{repo_name}</title>
+  <title>{{SITE_TITLE}}</title>
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="description" content="CodeRipple analysis results for {repo_owner}/{repo_name}">
+  <meta name="description" content="{{SITE_DESCRIPTION}}">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
   <link rel="stylesheet" href="../../../assets/css/coderipple.css">
@@ -301,56 +290,108 @@ def generate_analysis_page(repo_owner: str, repo_name: str, commit_sha: str, ana
 <body>
   <div id="app">
     <div style="text-align: center; padding: 50px; color: #021A2D;">
-      <h2>Loading Analysis Results...</h2>
-      <p>CodeRipple analysis for {repo_owner}/{repo_name}</p>
+      <h2>Loading {{SITE_NAME}}...</h2>
+      <p>{{LOADING_MESSAGE}}</p>
     </div>
   </div>
   <script>
-    window.$docsify = {{
-      name: 'CodeRipple Analysis',
+    window.$docsify = {
+      name: '{{SITE_NAME}}',
       repo: '',
-      loadSidebar: false,
+      loadSidebar: {{LOAD_SIDEBAR}},
       loadNavbar: false,
       maxLevel: 4,
       subMaxLevel: 3,
       auto2top: true,
+      search: {
+        maxAge: 86400000,
+        paths: 'auto',
+        placeholder: '{{SEARCH_PLACEHOLDER}}',
+        noData: 'No results found.',
+        depth: 3
+      },
       plugins: [
-        function(hook, vm) {{
-          hook.mounted(function() {{
-            // Create custom header
+        function(hook, vm) {
+          hook.mounted(function() {
+            // Create custom header with logo
             const header = document.createElement('div');
             header.className = 'app-name';
-            header.innerHTML = '<a href="../../../#/" class="app-name-link">' +
-              '<img src="../../../assets/images/coderipple-logo.png" alt="CodeRipple">' +
+            // Analysis pages need different navigation
+            var headerHref = window.location.pathname.includes('/analyses/') ? '../../../' : '#/';
+            var logoSrc = window.location.pathname.includes('/analyses/') ? '../../../assets/images/coderipple-logo.png' : 'assets/images/coderipple-logo.png';
+            
+            header.innerHTML = '<a href="' + headerHref + '" class="app-name-link">' +
+              '<img src="' + logoSrc + '" alt="CodeRipple">' +
               '<div class="app-name-text">' +
-                '<div class="app-name-title">CodeRipple Analysis</div>' +
-                '<div class="app-name-tagline">{repo_owner}/{repo_name} @ {commit_sha[:8]}</div>' +
+                '<div class="app-name-title">{{HEADER_TITLE}}</div>' +
+                '<div class="app-name-tagline">{{HEADER_TAGLINE}}</div>' +
               '</div>' +
             '</a>';
             document.body.insertBefore(header, document.body.firstChild);
             
-            // Create fixed footer
-            const footer = document.createElement('div');
-            footer.className = 'footer-content';
-            footer.innerHTML = '<p style="font-size: 1.1em; margin-bottom: 8px;"><strong>CodeRipple Analysis</strong></p>' +
-              '<p style="font-family: \\'JetBrains Mono\\', monospace; font-size: 0.9em; opacity: 0.8; margin-bottom: 12px;">documentation that evolves with your code, automatically</p>' +
-              '<p style="font-size: 0.8em; opacity: 0.7;"><em>Generated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")} UTC</em></p>';
-            document.body.appendChild(footer);
+            // Add download button for analysis pages
+            if (window.location.pathname.includes('/analyses/')) {
+              const downloadBtn = document.createElement('div');
+              downloadBtn.style.cssText = 'position: fixed; top: 100px; right: 20px; z-index: 1000;';
+              downloadBtn.innerHTML = '<a href="./analysis.zip" class="coderipple-btn" style="background-color: #1EA3B7; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px;">Download Results</a>';
+              document.body.appendChild(downloadBtn);
+            }
             
-            // Add download button
-            const downloadBtn = document.createElement('div');
-            downloadBtn.style.cssText = 'position: fixed; top: 100px; right: 20px; z-index: 1000;';
-            downloadBtn.innerHTML = '<a href="./analysis.zip" class="coderipple-btn" style="background-color: #1EA3B7; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px;">Download Results</a>';
-            document.body.appendChild(downloadBtn);
-          }});
-        }}
+            // Create fixed footer at bottom (only for non-analysis pages)
+            if (!window.location.pathname.includes('/analyses/')) {
+              const footer = document.createElement('div');
+              footer.className = 'footer-content';
+              footer.innerHTML = '<p style="font-size: 1.1em; margin-bottom: 8px;"><strong>{{FOOTER_TITLE}}</strong></p>' +
+                '<p style="font-family: \\'JetBrains Mono\\', monospace; font-size: 0.9em; opacity: 0.8; margin-bottom: 12px;">{{FOOTER_TAGLINE}}</p>' +
+                '<p style="font-size: 0.8em; opacity: 0.7;"><em>Generated: ' + new Date().toLocaleString() + '</em></p>';
+              document.body.appendChild(footer);
+            }
+          });
+          
+          hook.doneEach(function() {
+            // Add click tracking for analysis links
+            const analysisLinks = document.querySelectorAll('a[href*="/analyses/"]');
+            analysisLinks.forEach(link => {
+              link.addEventListener('click', function(e) {
+                console.log('CodeRipple analysis access:', this.href);
+              });
+            });
+          });
+        }
       ]
-    }}
+    }
   </script>
   <!-- Docsify v4 -->
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+  <!-- Search plugin -->
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <!-- Copy code plugin -->
+  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+  <!-- Zoom image plugin -->
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
 </body>
 </html>"""
+    
+    # Analysis-specific template variables
+    template_vars = {
+        "SITE_NAME": "CodeRipple Analysis",
+        "SITE_TITLE": f"CodeRipple Analysis - {repo_owner}/{repo_name}",
+        "SITE_DESCRIPTION": "CodeRipple code analysis results and documentation",
+        "LOADING_MESSAGE": "Loading analysis results...",
+        "LOAD_SIDEBAR": "false",
+        "SEARCH_PLACEHOLDER": "Search analysis...",
+        "HEADER_TITLE": "CodeRipple Analysis",
+        "HEADER_TAGLINE": f"{repo_owner}/{repo_name} @ {commit_sha[:8]}",
+        "FOOTER_TITLE": "CodeRipple Analysis",
+        "FOOTER_TAGLINE": "documentation that evolves with your code, automatically",
+    }
+    
+    # Replace template variables
+    html = template
+    for key, value in template_vars.items():
+        html = html.replace(f"{{{{{key}}}}}", value)
+    
+    return html
 
 def update_showroom_website(repo_owner: str, repo_name: str, commit_sha: str, analysis_url: str):
     """
@@ -369,7 +410,7 @@ def update_showroom_website(repo_owner: str, repo_name: str, commit_sha: str, an
         new_entry = f"""
 <div class="analysis-item">
   <div class="repo-name">
-    <a href="/analyses/{repo_owner}/{repo_name}/{commit_sha}/">{repo_owner}/{repo_name}</a>
+    <a href="/analyses/{repo_owner}/{repo_name}/{commit_sha}/">{repo_name}</a>
   </div>
   <div class="analysis-time">Analyzed: {timestamp}</div>
   <div class="analysis-links">

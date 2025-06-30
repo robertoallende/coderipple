@@ -152,6 +152,189 @@ Future improvements and known limitations to address after MVP completion.
 
 **Related Components**: Receptionist Lambda, GitHub integration, webhook processing
 
+## Intelligence Reporting Workflows
+
+Features aimed at improving contextual project insights and actionable developer documentation.
+
+### Smart File Pattern Recognition + Code Examples
+
+**Problem**: Current documentation lacks specific code context. Generic framework detection doesn't capture the actual patterns used within the codebase.
+
+**Current Status**: n/d
+
+**Impact**:
+- Documentation feels generic and disconnected from the actual project
+- Missed opportunity to show real usage examples from the code
+- Reduced trust and usability for developers seeking project insights
+
+**Future Solutions**:
+- Implement regex and AST-based analysis for specific code pattern extraction
+- Detect framework usage at the pattern level (e.g., React hooks, API endpoints, database models)
+- Output real examples like:  
+  `"Your React app uses: useState, useEffect, useContext"`  
+  `"Detected API endpoints: /users, /auth/login, /posts"`
+
+**Priority**: Medium - Increases documentation relevance and developer trust
+
+**Related Components**: Analyst Lambda, Documentation Generator (Showroom)
+
+---
+
+### Instant Runnable Commands
+
+**Problem**: Developers currently need to guess project setup steps.
+
+**Current Status**: n/d
+
+**Impact**:
+- High setup friction for new developers
+- Increased support requests and onboarding time
+- Risk of project abandonment due to setup confusion
+
+**Future Solutions**:
+- Auto-generate copy-pasteable command sequences based on project type
+- Verify commands against actual repository configuration
+- Include setup for environment variables, dependencies, database migrations, and server start
+
+**Priority**: High - Immediate developer productivity impact
+
+**Related Components**: Analyst Lambda, Documentation Generator (Showroom)
+
+---
+
+### Environment Requirements Detection
+
+**Problem**: Documentation provides vague environment setup instructions.
+
+**Current Status**: n/d
+
+**Impact**:
+- Developers install wrong versions of Node.js, Python, or databases
+- Leads to runtime errors and wasted debugging time
+
+**Future Solutions**:
+- Parse package.json, requirements.txt, Dockerfiles, and CI configs
+- Extract precise version requirements (e.g., Node >=16.0.0, Python 3.9+)
+- Display as part of the generated documentation
+
+**Priority**: Medium - Reduces setup errors
+
+**Related Components**: Analyst Lambda, Documentation Generator (Showroom)
+
+---
+
+### Dependency Health Check
+
+**Problem**: No automated dependency analysis for security or performance risks.
+
+**Current Status**: n/d
+
+**Impact**:
+- Users unknowingly deploy projects with vulnerable or deprecated dependencies
+- Increased risk of security incidents or performance issues
+
+**Future Solutions**:
+- Check for known vulnerabilities (e.g., CVEs)
+- Flag deprecated packages
+- Suggest lightweight alternatives for heavy packages
+- Example output:  
+  `"⚠️ lodash version vulnerable to prototype pollution"`  
+  `"📦 Consider replacing moment.js with date-fns"`
+
+**Priority**: Medium - Improves project safety and performance
+
+**Related Components**: Analyst Lambda
+
+---
+
+### Performance Insights
+
+**Problem**: No performance-specific recommendations based on project type.
+
+**Current Status**: n/d
+
+**Impact**:
+- Missed optimization opportunities
+- Poor runtime performance in production
+
+**Future Solutions**:
+- Tailor recommendations to project type (React, Django, etc.)
+- Suggest tools like bundle analyzers, middleware, production settings
+- Output actionable performance tips
+
+**Priority**: Low - Useful but not MVP critical
+
+**Related Components**: Analyst Lambda, Documentation Generator (Showroom)
+
+---
+
+### Smart Prerequisites Detection
+
+**Problem**: Developers receive long, generic setup lists that include unnecessary tools.
+
+**Current Status**: n/d
+
+**Impact**:
+- Wasted time installing unused tools
+- Confusion and bloated developer environments
+
+**Future Solutions**:
+- Detect only required tools for the specific project
+- Parse for TypeScript, Docker Compose, environment templates, etc.
+- Generate minimal, precise prerequisite lists
+
+**Priority**: Medium - Improves developer experience
+
+**Related Components**: Analyst Lambda, Documentation Generator (Showroom)
+
+---
+
+### Common Issues Prevention
+
+**Problem**: No proactive warnings for typical setup mistakes.
+
+**Current Status**: n/d
+
+**Impact**:
+- Higher failure rates during project setup
+- Frustration for developers encountering preventable issues
+
+**Future Solutions**:
+- Analyze configuration for known problem patterns
+- Warn about missing .gitignore, production misconfigs, virtual environment setup, etc.
+- Provide preventive best practice checks
+
+**Priority**: Medium - Reduces support burden and setup failures
+
+**Related Components**: Analyst Lambda
+
+---
+
+### Smart Context Extraction (Ultimate Feature)
+
+**Problem**: No unified, intelligent project overview.
+
+**Current Status**: n/d
+
+**Impact**:
+- Fragmented insights across multiple tools
+- Developers must manually stitch together information
+
+**Future Solutions**:
+- Combine all intelligence features into a single assistant
+- Generate full project overviews including:
+  - Real code patterns
+  - Runnable commands
+  - Version requirements
+  - Dependency health
+  - Performance tips
+  - Common issue prevention
+- Deliver as a personalized documentation page for each project
+
+**Priority**: High - Long-term strategic goal for product differentiation
+
+**Related Components**: Analyst Lambda, Documentation Generator (Showroom)
+
 ---
 
 *Add new TODO items below as they arise during development*
