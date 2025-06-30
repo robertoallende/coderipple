@@ -157,7 +157,12 @@ This logging standard ensures complete observability across the pipeline, enabli
 
 ## Planned Units
 
-* **005**: Analyst Implementation - Strands integration and analysis generation
+* **005**: Analyst Implementation - Code analysis engine with Strands integration
+  - **Subunit 5.1**: Analyst Foundation and EventBridge Integration
+  - **Subunit 5.2**: Mock Analysis Implementation  
+  - **Subunit 5.3**: Analysis Results Storage and Event Publishing
+  - **Subunit 5.4**: Performance Optimization and Error Resilience
+  - **Subunit 5.5**: Real Strands Integration (Final Implementation)
 * **006**: Showroom Implementation - Public S3 bucket with Docsify website for analysis delivery
 * **007**: Deliverer Implementation - Analysis packaging and Showroom delivery
 * **008**: Integration Testing - End-to-end workflow validation
