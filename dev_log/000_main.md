@@ -106,6 +106,26 @@ All AWS services and resources must be tagged with:
 
 This applies to all components: Lambda functions, API Gateway, EventBridge rules, S3 buckets, IAM roles, etc.
 
+### Component Task Logging Standard
+
+**All components must implement comprehensive task logging through EventBridge events:**
+
+Every component (Receptionist, Telephonist, Analyst, Deliverer, etc.) must publish EventBridge events to record:
+
+1. **Task Start Acknowledgment** - When a component begins processing a task
+   - Event type: `task_started`
+   - Include: component name, task type, task ID, relevant context (repo info, etc.)
+
+2. **Task Completion** - When a task finishes successfully
+   - Event type: `task_completed` 
+   - Include: task ID, results summary, output locations
+
+3. **Task Failure** - When a task fails for any reason
+   - Event type: `task_failed`
+   - Include: task ID, error details, failure context
+
+This logging standard ensures complete observability across the pipeline, enabling debugging, monitoring, and audit trails for all system operations. Components should log both the start and end of every discrete task they perform, regardless of success or failure outcome.
+
 ## Project Status
 
 ### Overall Completion
