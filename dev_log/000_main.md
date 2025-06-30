@@ -17,6 +17,7 @@ An automated code analysis pipeline triggered by GitHub webhooks. When code is c
 
 ### Architecture
 Professional team metaphor with specialized services:
+- **Gatekeeper** (API Gateway) - Webhook endpoint security and validation
 - **Receptionist** (Lambda) - Webhook intake and repository cloning
 - **Telephonist** (EventBridge) - Event routing and coordination
 - **Analyst** (Lambda) - Code analysis using Strands
@@ -25,9 +26,29 @@ Professional team metaphor with specialized services:
 - **GitHub Diplomat** - Repository interaction layer
 
 ```
-GitHub Repo → Webhook → Receptionist → Telephonist → Analyst → Telephonist → Deliverer → Pull Request
-                         Clone Code       Route    Analyze via   Route      PR Creation
-                       via Librarian                Librarian
+GitHub Repo
+     |
+     | Webhook
+     ↓
+Gatekeeper (API Gateway)
+     | Validate & Authenticate
+     ↓
+Receptionist (Lambda)
+     | Clone Code via Librarian
+     ↓
+Telephonist (EventBridge)
+     | Route: "Repo Ready"
+     ↓
+Analyst (Lambda)
+     | Analyze via Librarian
+     ↓
+Telephonist (EventBridge)
+     | Route: "Analysis Complete"
+     ↓
+Deliverer (Lambda)
+     | PR Creation
+     ↓
+Pull Request
 ```
 
 ### Technical Stack
@@ -37,6 +58,46 @@ GitHub Repo → Webhook → Receptionist → Telephonist → Analyst → Telepho
 - **GitHub API** - Repository operations and PR creation
 - **Strands** - Code analysis engine
 - **Python** - Lambda runtime environments
+
+### Cross-Platform Dependency Management
+
+**Problem:** Development on macOS ARM64 vs Production on AWS Lambda Linux x86_64
+
+Development Environment:
+- macOS ARM64 (Apple Silicon) with darwin_arm64 binaries (Mach-O format)
+
+Production Environment:
+- AWS Lambda Linux x86_64 runtime requiring manylinux2014_x86_64 binaries (ELF format)
+
+**Solution:** Platform-targeted dependency installation for Lambda compatibility:
+
+```bash
+# ❌ Standard installation (uses local platform)
+pip install strands-agents boto3
+
+# ✅ Platform-targeted installation for Lambda
+pip install \
+  --platform manylinux2014_x86_64 \
+  --only-binary=:all: \
+  --target python \
+  strands-agents>=0.1.0 \
+  strands-agents-tools>=0.1.0 \
+  boto3
+```
+
+Key parameters:
+- `--platform manylinux2014_x86_64`: Force Linux x86_64 binaries
+- `--only-binary=:all:`: Prevent source compilation
+- `--target python`: Install to Lambda layer directory structure
+
+This ensures ARM64 development machines install x86_64 binaries compatible with Lambda's runtime.
+
+### AWS Resource Tagging
+
+All AWS services and resources must be tagged with:
+- **Project:** `coderipple`
+
+This applies to all components: Lambda functions, API Gateway, EventBridge rules, S3 buckets, IAM roles, etc.
 
 ## Project Status
 
@@ -55,18 +116,18 @@ GitHub Repo → Webhook → Receptionist → Telephonist → Analyst → Telepho
 
 ### Units In Progress
 
-#### 001. Receptionist Implementation
+#### 001. Gatekeeper Implementation
 **Status:** Planning
-- Webhook handling and repository cloning service
+- API Gateway REST API for GitHub webhook endpoint
 
 ## Planned Units
 
-* **001**: Receptionist Implementation - Webhook handling and repository cloning
-* **002**: Librarian Service - S3 storage operations and file management
-* **003**: Telephonist Configuration - EventBridge rules and event routing
-* **004**: Analyst Implementation - Strands integration and analysis generation
-* **005**: Deliverer Implementation - GitHub PR creation and file delivery
-* **006**: Integration Testing - End-to-end workflow validation
+* **002**: Receptionist Implementation - Webhook handling and repository cloning
+* **003**: Librarian Service - S3 storage operations and file management
+* **004**: Telephonist Configuration - EventBridge rules and event routing
+* **005**: Analyst Implementation - Strands integration and analysis generation
+* **006**: Deliverer Implementation - GitHub PR creation and file delivery
+* **007**: Integration Testing - End-to-end workflow validation
 
 ## Detailed Flow Reference
 
