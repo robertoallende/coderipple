@@ -121,12 +121,15 @@ This applies to all components: Lambda functions, API Gateway, EventBridge rules
 ### Completed Units
 * **000**: Foundations - Architecture design, service definitions, and event flow specification
 * **001**: Gatekeeper Implementation - API Gateway REST API for GitHub webhook endpoint
+* **002**: Telephonist Implementation - EventBridge configuration for event routing and service coordination
 
 ### Units In Progress
 
-#### 002. Telephonist Implementation
+#### 003. Hermes Implementation (The Bureaucrat)
 **Status:** Planning
-- EventBridge configuration for event routing and service coordination
+- **Subunit 001**: Hermes Lambda function for event logging
+- **Subunit 002**: Inventory S3 bucket for log storage  
+- **Subunit 003**: EventBridge integration and testing
 
 ## Planned Units
 
