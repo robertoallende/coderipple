@@ -180,7 +180,7 @@ const configs = {
   showroom: {
     siteName: 'CodeRipple',
     siteTitle: 'CodeRipple - Code Analysis Platform',
-    siteDescription: 'CodeRipple - Professional code analysis results and insights',
+    siteDescription: 'CodeRipple - documentation that evolves with your code, automatically',
     loadingContent: `
       <div style="text-align: center; padding: 50px; color: #021A2D;">
         <h2>Loading CodeRipple...</h2>

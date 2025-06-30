@@ -340,7 +340,7 @@ def generate_analysis_page(repo_owner: str, repo_name: str, commit_sha: str, ana
             // Add download button
             const downloadBtn = document.createElement('div');
             downloadBtn.style.cssText = 'position: fixed; top: 100px; right: 20px; z-index: 1000;';
-            downloadBtn.innerHTML = '<a href="./analysis.zip" class="coderipple-btn" style="background-color: #1EA3B7; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px;">📥 Download Results</a>';
+            downloadBtn.innerHTML = '<a href="./analysis.zip" class="coderipple-btn" style="background-color: #1EA3B7; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px;">Download Results</a>';
             document.body.appendChild(downloadBtn);
           }});
         }}
@@ -371,7 +371,7 @@ def update_showroom_website(repo_owner: str, repo_name: str, commit_sha: str, an
   <div class="repo-name">
     <a href="/analyses/{repo_owner}/{repo_name}/{commit_sha}/">{repo_owner}/{repo_name}</a>
   </div>
-  <div class="analysis-time">⏰ Analyzed: {timestamp}</div>
+  <div class="analysis-time">Analyzed: {timestamp}</div>
   <div class="analysis-links">
     <a href="/analyses/{repo_owner}/{repo_name}/{commit_sha}/">View Analysis</a>
     <a href="/analyses/{repo_owner}/{repo_name}/{commit_sha}/analysis.zip">Download Results</a>

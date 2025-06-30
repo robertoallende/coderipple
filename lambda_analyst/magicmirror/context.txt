@@ -1,0 +1,544 @@
+CODERIPPLE PROJECT CONTEXT
+
+================================================================================
+PROJECT OVERVIEW
+================================================================================
+
+CodeRipple is an intelligent code documentation generator built on the Strands 
+Agents framework. It automatically analyzes git repositories and generates 
+comprehensive documentation using time-aware analysis and progressive quality 
+improvement.
+
+Core Design: Single agent with specialized tools and progressive prompts, 
+designed for AWS Lambda deployment with 15-minute execution limits.
+
+================================================================================
+ARCHITECTURE & FILES
+================================================================================
+
+coderipple/
+├── git_tools.py              # Git repository analysis tools
+├── generic_tools.py          # Time management and execution control
+├── file_system_tools.py      # File system navigation and inspection
+├── prompts.py               # All system prompts organized by phase
+├── magic_mirror.py          # Main agent implementation with AWS Lambda handler
+├── CODERIPPLE_DESIGN.md     # Comprehensive design documentation
+└── context.txt              # This file - project context summary
+
+================================================================================
+CORE TOOLS MODULES
+================================================================================
+
+1. GIT_TOOLS.PY - Repository Intelligence
+   - git_log() - Commit history and development patterns
+   - git_files() - Repository structure and file organization  
+   - git_contributors() - Team structure and activity levels
+   - git_recent_files() - Most actively developed components
+   - git_branch_info() - Development workflow and branching strategy
+   - git_repo_stats() - High-level repository statistics
+   - find_key_files() - Configuration and documentation files
+
+2. GENERIC_TOOLS.PY - Time Management
+   - execution_time_status() - Comprehensive time analysis with recommendations
+   - quick_time_check() - Fast decision making for continue/stop decisions
+   - current_time() - Timestamp logging and tracking
+   - reset_execution_timer() - Clean state for next Lambda invocation
+   
+   Key Pattern: Reset timer at END of Lambda execution for accurate next-invocation timing
+
+3. FILE_SYSTEM_TOOLS.PY - Complete File System Access
+   - list_directory() - Complete directory listing (including untracked files)
+   - peek_file() - Quick file previews without full file_read
+   - change_directory() - Navigation between project areas
+   - find_files_by_pattern() - File discovery by pattern matching
+   - get_file_info() - File metadata and characteristics
+   - explore_project_structure() - Tree-like project overview
+
+================================================================================
+PROGRESSIVE PROMPT STRATEGY
+================================================================================
+
+PROMPTS.PY contains specialized prompts for different analysis phases:
+
+Phase 1: GETTING_STARTED_PROMPT (Critical Priority - 3 minutes)
+- Project overview and purpose
+- Prerequisites and dependencies
+- Installation and setup steps  
+- Basic usage examples
+- Tools: execution_time_status, git_repo_stats, find_key_files, file_read
+
+Phase 2: ARCHITECTURE_PROMPT (High Priority - 4 minutes)  
+- Project structure and organization
+- Key components and relationships
+- Technology stack and frameworks
+- Design patterns and conventions
+- Tools: execution_time_status, git_files, git_recent_files, file_read
+
+Phase 3: EVOLUTION_PROMPT (Medium Priority - 3 minutes)
+- Development activity and team structure  
+- Recent changes and project direction
+- Branching strategy and workflow
+- Project health and maintenance status
+- Tools: execution_time_status, git_log, git_contributors, git_branch_info
+
+Quality Progression: Each phase has quality check and improvement prompts
+- GETTING_STARTED_QUALITY_CHECK / GETTING_STARTED_IMPROVEMENT
+- ARCHITECTURE_QUALITY_CHECK / ARCHITECTURE_IMPROVEMENT
+
+================================================================================
+WORKFLOW STRATEGY
+================================================================================
+
+Time-Adaptive Quality Progression:
+
+1. ALWAYS start with Getting Started analysis (most critical)
+2. Check execution_time_status() for time-based decisions
+3. Add Architecture analysis if time allows  
+4. Add Evolution analysis if abundant time
+5. Apply quality improvement loops based on remaining time
+6. Reset timer at end for next Lambda invocation
+
+Decision Matrix:
+- GOOD/CAUTION (>8 min): Full analysis with quality improvements
+- WARNING (4-8 min): Essential phases only, focused improvements
+- URGENT/CRITICAL (<4 min): Basic analysis, deliver immediately
+
+Progressive Quality Loop:
+Initial Analysis → Quality Assessment → Targeted Improvements → Final Output
+
+================================================================================
+TIME MANAGEMENT PRINCIPLES
+================================================================================
+
+Lambda Constraints: 15-minute maximum execution, use 14-minute safety margin
+
+Timer State Management:
+- Global timer starts when module loads
+- Reset at END of Lambda execution (in finally block)
+- Handles Lambda container reuse correctly
+
+Time-Based Decisions:
+- execution_time_status() provides both numeric data AND English recommendations
+- quick_time_check() for fast continue/stop decisions
+- Always prioritize delivering partial results over timing out
+
+================================================================================
+TOOL INTEGRATION PATTERNS
+================================================================================
+
+Complete Project Understanding:
+- git_tools: Source code and repository intelligence
+- file_system_tools: Complete ecosystem including build artifacts
+- Strands tools: file_read, file_write for detailed analysis
+
+Smart Analysis Flow:
+1. explore_project_structure() - Overall layout
+2. git_repo_stats() - Repository overview
+3. find_key_files() - Locate important configuration
+4. peek_file() - Quick previews before full analysis
+5. git_recent_files() - Identify core components
+6. file_read() - Detailed analysis of key files
+
+Navigation Strategy:
+- Use change_directory() to explore subdirectories
+- list_directory() to see complete file system view
+- find_files_by_pattern() for targeted file discovery
+
+================================================================================
+DEPLOYMENT ARCHITECTURE
+================================================================================
+
+AWS Lambda Deployment:
+- Single function with comprehensive tool arsenal
+- CDK-based infrastructure deployment
+- Lambda layers for dependencies
+- ARM64 architecture for cost efficiency
+- Bedrock permissions for model access
+
+Handler Pattern:
+```python
+def lambda_handler(event, context):
+    try:
+        repo_path = event.get('repo_path', '.')
+        documentation = analyze_repository(repo_path)
+        return {'statusCode': 200, 'body': documentation}
+    finally:
+        reset_execution_timer()  # Critical for accurate timing
+```
+
+================================================================================
+MAGIC MIRROR AGENT IMPLEMENTATION
+================================================================================
+
+Magic Mirror: "Mirror, mirror on the wall, tell me about this codebase, once and for all!"
+
+Core Implementation:
+- Single intelligent agent with comprehensive tool access
+- Time-aware progressive analysis with quality assessment  
+- Adaptive behavior based on Lambda execution constraints
+- Themed as enchanted mirror that reveals repository truth
+
+Main Functions:
+```python
+# Primary analysis function
+analyze_repository(repo_path) -> str
+
+# Progressive multi-phase analysis
+progressive_analysis(repo_path) -> dict
+
+# Specialized analysis agents
+create_focused_mirror(analysis_type) -> Agent
+
+# AWS Lambda deployment
+lambda_handler(event, context) -> dict
+```
+
+Tool Arsenal:
+```python
+magic_mirror = Agent(
+    system_prompt=MAGIC_MIRROR_PROMPT,
+    tools=[
+        # Time management
+        execution_time_status, quick_time_check, current_time,
+        # Git analysis  
+        git_repo_stats, git_files, git_recent_files, git_log,
+        git_contributors, git_branch_info, find_key_files,
+        # File system exploration
+        explore_project_structure, list_directory, peek_file,
+        change_directory, find_files_by_pattern, get_file_info,
+        # File operations
+        file_read, file_write
+    ]
+)
+```
+
+Quality Progression Implementation:
+1. Run initial analysis for current phase
+2. Assess quality with dedicated quality check prompt
+3. Apply improvements with focused improvement prompt  
+4. Move to next phase or finalize based on time
+
+================================================================================
+SECURITY & PERFORMANCE
+================================================================================
+
+Security Measures:
+- Path validation and sanitization in all file system operations
+- No shell injection vulnerabilities
+- Timeout protection on all subprocess operations
+- Proper error handling and graceful degradation
+
+Performance Optimization:
+- peek_file() much faster than file_read() for quick checks
+- Progressive analysis prevents unnecessary deep dives
+- Time-based decision making prevents runaway execution
+- Tool selection based on analysis phase
+
+================================================================================
+SUCCESS CRITERIA
+================================================================================
+
+Primary Goals:
+- Always deliver documentation within time limits
+- Adaptive quality based on available time  
+- Actionable content for developers
+- Intelligent prioritization using git insights
+
+Quality Benchmarks:
+- 100% include project setup instructions (Getting Started always runs)
+- 80%+ include architecture overview (when time permits)
+- 60%+ include project evolution context (when time abundant)  
+- All documentation includes git-derived insights and context
+
+================================================================================
+LOGGING & OBSERVABILITY
+================================================================================
+
+AWS-Compatible Logging:
+- Standard Python logging module with CloudWatch integration
+- Environment-based log level control (LOG_LEVEL=DEBUG|INFO|WARNING|ERROR)
+- Comprehensive analysis flow tracking with emojis for clarity
+- Proper error handling with stack traces
+
+Logging Strategy:
+```python
+# Setup
+logger = setup_logging()  # AWS Lambda compatible configuration
+
+# Usage patterns
+logger.info("🪞 Magic Mirror: Starting analysis...")
+logger.warning("⚠️ Time constraint reached, wrapping up...")
+logger.error("❌ Analysis failed", exc_info=True)
+```
+
+Log Categories:
+- Analysis Flow: Phase tracking and milestones
+- Time Management: Execution status and constraints
+- Lambda Operations: Handler lifecycle and parameters
+- Error Handling: Failures with full context
+
+CloudWatch Integration:
+- All logs automatically captured in /aws/lambda/function-name
+- Structured logging for monitoring and debugging
+- Performance tracking and bottleneck identification
+
+================================================================================
+USAGE PATTERNS
+================================================================================
+
+Command Line Usage:
+```bash
+LOG_LEVEL=DEBUG python magic_mirror.py /path/to/repository
+```
+
+Programmatic Usage:
+```python
+from coderipple.magic_mirror import analyze_repository, progressive_analysis
+
+# Simple analysis
+docs = analyze_repository("/path/to/repo")
+
+# Progressive analysis with phase tracking
+results = progressive_analysis("/path/to/repo")
+```
+
+Lambda Event Format:
+```json
+{
+    "repo_path": "/path/to/repository",
+    "analysis_type": "complete"  // or "progressive", "getting_started", etc.
+}
+```
+
+Lambda Response Format:
+```json
+{
+    "statusCode": 200,
+    "body": {
+        "success": true,
+        "documentation": "# Project Documentation...",
+        "analysis_type": "complete",
+        "execution_info": {
+            "start_time": "2024-01-15T10:30:45Z",
+            "final_time_status": "GOOD - Analysis completed successfully"
+        }
+    }
+}
+```
+
+================================================================================
+EXTENSION POINTS
+================================================================================
+
+Future Enhancements:
+- Additional specialized prompts (API documentation, testing guide)
+- Language-specific analysis modules  
+- Integration with external documentation systems
+- Multi-repository analysis capabilities
+- Custom documentation templates
+- Streaming analysis for very large repositories
+- Integration with CI/CD pipelines for automated documentation updates
+
+The modular design supports easy extension while maintaining the core 
+time-aware, quality-progressive analysis approach with full observability.
+
+================================================================================
+RECENT UPDATES & ENHANCEMENTS
+================================================================================
+
+CLI Output Management (Latest):
+- Fixed --output parameter to properly suppress console output when saving to file
+- Added quiet mode: when --output specified, agent uses null_callback_handler
+- Clean file output with verbose console logging for debugging
+
+Path Validation & Error Handling:
+- Added comprehensive path validation in analyze_repository() function
+- Raises ValueError for invalid paths (both CLI and library usage)
+- Consistent error handling across all usage modes (CLI, library, Lambda)
+
+Configuration Externalization:
+- Created config.py for centralized configuration management
+- Externalized model settings: MODEL_STRING, AWS_REGION
+- Easy provider switching (Bedrock, OpenAI, Ollama examples)
+- Helper functions: get_agent_config(), get_time_config(), get_file_system_config()
+
+Model Configuration (Bedrock):
+- Configured for Claude 3.5 Sonnet using inference profile
+- Model string: "us.anthropic.claude-3-5-sonnet-20240620-v1:0"
+- Region: us-east-1 (configurable in config.py)
+- Proper inference profile usage for Bedrock access
+
+Enhanced Documentation Generation:
+- Comprehensive analysis with ALL phases required (Getting Started, Architecture, Evolution)
+- Added ASCII architecture diagram requirements with specific formatting
+- Enhanced prompts for more detailed analysis
+- Removed time-based shortcuts - always thorough analysis
+
+Response Cleaning & Filtering:
+- Automatic removal of ```markdown code block wrappers
+- Filters phase announcements (🔍 PHASE 1, 🏗️ PHASE 2, etc.) from final output
+- Removes processing artifacts ("Based on", "Let me", "I'll")
+- Clean documentation output while preserving verbose logging
+
+Verbose Analysis Logging:
+- Added detailed progress logging throughout analysis phases
+- Phase announcements: 🔍 PHASE 1, 🏗️ PHASE 2, 📈 PHASE 3, ✨ QUALITY IMPROVEMENT
+- Time expectations and progress tracking
+- Enhanced debugging capability while maintaining clean output
+
+Architecture Analysis Improvements:
+- Mandatory architecture section with ASCII diagrams
+- Component relationship visualization using box-drawing characters
+- Detailed project structure breakdown
+- Technology stack identification
+- Data flow and design pattern analysis
+
+File Structure:
+```
+coderipple/
+├── magic_mirror.py          # Main agent with comprehensive analysis
+├── config.py               # Centralized configuration (NEW)
+├── git_tools.py            # Git repository analysis
+├── generic_tools.py        # Time management for Lambda
+├── file_system_tools.py    # Complete file system access  
+├── prompts.py              # Progressive analysis prompts
+├── requirements.txt        # Dependencies
+├── README.md              # Quick start guide
+└── context.txt            # This comprehensive reference
+```
+
+Usage Examples:
+```bash
+# Test with output to file (quiet mode)
+python3 magic_mirror.py /path/to/repo --output ./docs
+
+# Test with console output (verbose mode)  
+python3 magic_mirror.py /path/to/repo
+
+# Library usage with error handling
+from coderipple.magic_mirror import analyze_repository
+try:
+    docs = analyze_repository("/path/to/repo", quiet=True)
+except ValueError as e:
+    print(f"Invalid path: {e}")
+```
+
+Current Status:
+- ✅ Complete Magic Mirror implementation with enhanced analysis
+- ✅ Proper Bedrock model configuration with inference profiles
+- ✅ Clean CLI interface with file output support
+- ✅ Comprehensive error handling and path validation
+- ✅ Verbose logging with clean documentation output
+- ✅ ASCII architecture diagrams in generated documentation
+- ✅ All phases required for thorough analysis
+
+Ready for production use with comprehensive repository analysis capabilities.
+
+================================================================================
+SMART PROJECT DETECTION INTEGRATION
+================================================================================
+
+Project Type Detection System:
+- Integrated better_prompts.py with smart framework detection
+- Automatically detects 23+ project types based on file patterns and content
+- Generates specialized prompts for framework-specific documentation
+- Falls back gracefully to generic analysis for unrecognized projects
+
+Supported Framework Detection:
+```
+Frontend: React, Vue, Angular, Svelte, Next.js
+Backend: Django, FastAPI, Flask, Express, Spring Boot, .NET  
+Mobile: React Native, Flutter
+Systems: Rust, Go, C
+Data/ML: Jupyter notebooks, ML projects
+Infrastructure: Docker, Kubernetes
+Packages: Homebrew formulas, NPM libraries, Python packages
+```
+
+Framework-Specific Features:
+- **React**: Component architecture, hooks, development workflow
+- **Django**: Models, admin interface, ORM capabilities
+- **FastAPI**: Automatic API docs at /docs, type hints, Pydantic models
+- **Next.js**: File-based routing, SSR/SSG, automatic code splitting
+- **Homebrew**: Formula structure, package management, dependency resolution
+- **And 18+ more specialized analyses**
+
+Integration Implementation:
+- detect_project_type() function analyzes file structure and content
+- Enhanced Magic Mirror queries with framework-specific context
+- Specialized logging: "🎯 Detected react project! 🌟 Focusing on: component reusability"
+- Automatic wow factor highlighting for each framework
+
+Technical Details:
+- File pattern matching: package.json, requirements.txt, Cargo.toml, etc.
+- Content analysis: import statements, configuration patterns, framework signatures
+- Scoring system: file matches (2 points) + content matches (1 point)
+- Graceful fallback: generic analysis if no framework detected
+
+Enhanced Analysis Flow:
+```
+1. Repository path validation
+2. Smart project type detection
+3. Framework-specific prompt selection
+4. Specialized Magic Mirror analysis
+5. Framework-focused documentation generation
+```
+
+Better Prompts File Structure:
+```python
+class ProjectTypeDetector:
+    detection_rules = {
+        'framework_name': {
+            'files': ['pattern1', 'pattern2'],
+            'content_patterns': ['import X', 'config Y'],
+            'wow_factor': 'Key feature that makes this framework special'
+        }
+    }
+    
+    def detect_project_type() -> Optional[str]
+    def generate_specialized_prompt() -> str
+
+def enhance_coderipple_analysis() -> Dict
+```
+
+Usage Examples:
+```bash
+# React project automatically detected and analyzed
+python3 magic_mirror.py /path/to/react-app --output ./docs
+# Output: "🎯 Detected react project! 🌟 Focusing on: component reusability"
+
+# Django project gets Django-specific analysis  
+python3 magic_mirror.py /path/to/django-project --output ./docs
+# Output: "🎯 Detected django project! 🌟 Focusing on: Django admin interface"
+```
+
+File Updates:
+```
+coderipple/
+├── better_prompts.py           # Smart project detection (NEW)
+├── magic_mirror.py            # Enhanced with smart detection integration
+├── config.py                 # Model configuration
+├── [other existing files...]
+```
+
+Benefits:
+- ✅ Instant framework recognition and specialized analysis
+- ✅ Framework-specific "wow factors" highlighted immediately  
+- ✅ Developer-relevant documentation tailored to each technology
+- ✅ 23+ frameworks supported with room for easy expansion
+- ✅ Maintains backward compatibility with generic analysis
+
+Error Handling:
+- Fixed syntax errors in original better_prompts.py (malformed indentation, missing braces)
+- Graceful fallback to generic analysis if detection fails
+- Proper exception handling in detection process
+- Import error handling if better_prompts.py not available
+
+Current Status:
+- ✅ Smart detection fully integrated and tested
+- ✅ All 23 project types working correctly
+- ✅ Framework-specific prompts generating specialized documentation
+- ✅ Enhanced logging with detection results and wow factors
+- ✅ Maintains all existing functionality while adding intelligence
+
+The Magic Mirror now provides intelligent, framework-aware analysis that delivers immediately relevant documentation for developers working with specific technologies.

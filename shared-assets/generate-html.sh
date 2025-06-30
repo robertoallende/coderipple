@@ -21,7 +21,7 @@ case $SITE_TYPE in
     "showroom")
         SITE_NAME="CodeRipple"
         SITE_TITLE="CodeRipple - Code Analysis Platform"
-        SITE_DESCRIPTION="CodeRipple - Professional code analysis results and insights"
+        SITE_DESCRIPTION="CodeRipple - documentation that evolves with your code, automatically"
         LOADING_MESSAGE="Professional code analysis"
         LOAD_SIDEBAR="false"
         SEARCH_PLACEHOLDER="Search analyses..."

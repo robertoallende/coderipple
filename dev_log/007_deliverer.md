@@ -151,7 +151,7 @@ async def update_analysis_list(repo_info, analysis_path):
   <div class="repo-name">
     <a href="/analyses/{owner}/{repo}/{commit}/">{owner}/{repo}</a>
   </div>
-  <div class="analysis-time">⏰ Analyzed: {timestamp}</div>
+  <div class="analysis-time">Analyzed: {timestamp}</div>
   <div class="analysis-links">
     <a href="/analyses/{owner}/{repo}/{commit}/">View Analysis</a>
     <a href="/analyses/{owner}/{repo}/{commit}/analysis.zip">Download Results</a>

@@ -29,7 +29,7 @@
 
 ## 📦 Download Complete Analysis
 
-<a href="analysis.zip" class="download-btn">📥 Download Analysis Archive</a>
+<a href="analysis.zip" class="download-btn">Download Analysis Archive</a>
 
 The complete analysis archive includes:
 - Detailed analysis reports

@@ -99,9 +99,51 @@ def create_error_log(event, error_message):
     
     return f"{timestamp} | Error | processing_failed | {error_message} | {raw_event}"
 
+def clean_table_empty_lines(content):
+    """
+    Remove empty lines within the table after the header separator.
+    Preserves the original table structure but removes any blank table rows.
+    """
+    lines = content.split('\n')
+    cleaned_lines = []
+    in_table = False
+    header_separator_found = False
+    
+    for line in lines:
+        # Detect if we're in the table section
+        if '| Timestamp | Component | Event | Repository |' in line:
+            in_table = True
+            cleaned_lines.append(line)
+        elif '|-----------|-----------|-------|------------|' in line:
+            header_separator_found = True
+            cleaned_lines.append(line)
+        elif in_table and header_separator_found:
+            # We're in the table data section
+            if line.strip() == '' or line.strip() == '|':
+                # Skip empty lines in table
+                continue
+            elif line.startswith('|') and line.endswith('|'):
+                # Valid table row
+                cleaned_lines.append(line)
+            elif line.strip() == '':
+                # Empty line after table - keep it and stop processing table
+                in_table = False
+                header_separator_found = False
+                cleaned_lines.append(line)
+            else:
+                # Non-table content - stop processing table
+                in_table = False
+                header_separator_found = False
+                cleaned_lines.append(line)
+        else:
+            # Not in table or before table
+            cleaned_lines.append(line)
+    
+    return '\n'.join(cleaned_lines)
+
 def write_to_inventory(log_entry):
     """
-    Write log entry to README.md in Docsify table format
+    Write log entry to README.md in the existing table format
     """
     
     s3_key = "README.md"
@@ -112,15 +154,8 @@ def write_to_inventory(log_entry):
             response = s3_client.get_object(Bucket=INVENTORY_BUCKET, Key=s3_key)
             existing_content = response['Body'].read().decode('utf-8')
         except s3_client.exceptions.NoSuchKey:
-            # File doesn't exist, create initial README with table header
-            existing_content = """# CodeRipple Event Log
-
-Real-time event logging for the CodeRipple analysis pipeline.
-
-## Event History
-
-| Timestamp | Component | Event | Details |
-|-----------|-----------|-------|---------|"""
+            logger.error("README.md doesn't exist - it should be pre-created")
+            return
         
         # Parse log entry and format as table row
         parts = log_entry.split(' | ')
@@ -131,19 +166,17 @@ Real-time event logging for the CodeRipple analysis pipeline.
             # Fallback for malformed entries
             table_row = f"| {log_entry} | | | |"
         
-        # Check if this is the initial table (ends with header separator)
-        if existing_content.strip().endswith('|-----------|-----------|-------|---------|'):
-            # First entry - append directly after header without extra newline
-            new_content = existing_content + '\n' + table_row
-        else:
-            # Subsequent entries - append new row
-            new_content = existing_content + '\n' + table_row
+        # Add the new table row to the content
+        new_content = existing_content + '\n' + table_row
+        
+        # Clean up any empty lines in the table
+        cleaned_content = clean_table_empty_lines(new_content)
         
         # Write updated README back to S3
         s3_client.put_object(
             Bucket=INVENTORY_BUCKET,
             Key=s3_key,
-            Body=new_content.encode('utf-8'),
+            Body=cleaned_content.encode('utf-8'),
             ContentType='text/markdown'
         )
         

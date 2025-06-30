@@ -63,9 +63,9 @@ s3://coderipple-showroom/
 For each repository analysis:
 ```
 📊 repository-owner/repository-name
-   ⏰ Analyzed: 2025-06-30 at 14:30 UTC
-   🔗 View Analysis → /analyses/owner/repo/commit-sha/
-   📥 Download Results → /analyses/owner/repo/commit-sha/analysis.zip
+   Analyzed: 2025-06-30 at 14:30 UTC
+   View Analysis → /analyses/owner/repo/commit-sha/
+   Download Results → /analyses/owner/repo/commit-sha/analysis.zip
 ```
 
 ### 3. Hardcoded Examples Structure
