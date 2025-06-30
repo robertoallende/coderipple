@@ -104,6 +104,25 @@ lambda_receptionist/lambda-arn.txt
 lambda_*/python/
 python/
 
+# Lambda environment configuration (sensitive)
+lambda_*/env-vars.json
+env-vars.json
+
+# Lambda deployment policies (generated)
+lambda_*/*-policy.json
+*-policy.json
+
+# Lambda test files (temporary)
+lambda_*/test-*.json
+lambda_*/test_*.py
+lambda_*/response.json
+test-payload*.json
+response.json
+
+# Lambda temporary/cache files
+lambda_*/__pycache__/
+lambda_*/.*cache/
+
 # S3 Drawer deployment artifacts
 s3_drawer/bucket-name.txt
 
