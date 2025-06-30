@@ -125,6 +125,12 @@ response*.json
 lambda_*/__pycache__/
 lambda_*/.*cache/
 
+# Strands/Magic Mirror temporary files
+lambda_analyst/context.txt
+lambda_analyst/CODERIPPLE_DESIGN.md
+**/coderipple_analysis_*/
+**/magic_mirror_temp_*/
+
 # S3 Drawer deployment artifacts
 s3_drawer/bucket-name.txt
 

@@ -180,6 +180,12 @@ if aws lambda get-function --function-name $FUNCTION_NAME --region $REGION >/dev
     --function-name $FUNCTION_NAME \
     --zip-file fileb://analyst-lambda.zip \
     --region $REGION
+  
+  # Update environment variables
+  aws lambda update-function-configuration \
+    --function-name $FUNCTION_NAME \
+    --environment Variables="{DRAWER_BUCKET=$DRAWER_BUCKET,MODEL_STRING=us.anthropic.claude-3-5-sonnet-20241022-v2:0,AWS_REGION=us-east-1,LOG_LEVEL=INFO}" \
+    --region $REGION
 else
   echo "Creating new function..."
   aws lambda create-function \
@@ -191,7 +197,7 @@ else
     --timeout 900 \
     --memory-size 1024 \
     --ephemeral-storage Size=5120 \
-    --environment Variables="{DRAWER_BUCKET=$DRAWER_BUCKET}" \
+    --environment Variables="{DRAWER_BUCKET=$DRAWER_BUCKET,MODEL_STRING=us.anthropic.claude-3-5-sonnet-20241022-v2:0,AWS_REGION=us-east-1,LOG_LEVEL=INFO}" \
     --tags Project=coderipple \
     --region $REGION
 fi
