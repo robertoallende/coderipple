@@ -1,0 +1,1 @@
+{"source":"coderipple.system","detail-type":"repo_ready","detail":{"component":"Receptionist","repository":{"owner":"test-user","name":"test-repo","commit_sha":"abc123","default_branch":"main"},"s3_location":"bucket/test/","timestamp":"2025-06-30T12:30:00Z"}}

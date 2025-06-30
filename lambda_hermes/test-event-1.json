@@ -1,0 +1,15 @@
+{
+  "source": "coderipple.system",
+  "detail-type": "repo_ready",
+  "detail": {
+    "component": "Receptionist",
+    "repository": {
+      "owner": "test-user",
+      "name": "test-repo",
+      "commit_sha": "abc123def456",
+      "default_branch": "main"
+    },
+    "s3_location": "bucket/repos/test-user/test-repo/abc123def456/",
+    "timestamp": "2025-06-30T12:30:00Z"
+  }
+}

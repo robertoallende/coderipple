@@ -1,0 +1,1 @@
+{"statusCode": 500, "body": "\"Error processing event: An error occurred (NoSuchBucket) when calling the GetObject operation: The specified bucket does not exist\""}

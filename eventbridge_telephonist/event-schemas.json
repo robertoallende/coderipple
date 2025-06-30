@@ -3,6 +3,7 @@
     "source": "coderipple.system",
     "detail-type": "repo_ready",
     "detail": {
+      "component": "Receptionist",
       "repository": {
         "owner": "username",
         "name": "repo-name",
@@ -17,6 +18,7 @@
     "source": "coderipple.system", 
     "detail-type": "analysis_complete",
     "detail": {
+      "component": "Analyst",
       "repository": {
         "owner": "username",
         "name": "repo-name",
@@ -31,6 +33,7 @@
     "source": "coderipple.system",
     "detail-type": "pr_created", 
     "detail": {
+      "component": "Deliverer",
       "repository": {
         "owner": "username",
         "name": "repo-name",

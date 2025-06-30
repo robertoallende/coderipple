@@ -126,10 +126,10 @@ This applies to all components: Lambda functions, API Gateway, EventBridge rules
 ### Units In Progress
 
 #### 003. Hermes Implementation (The Bureaucrat)
-**Status:** Planning
-- **Subunit 001**: Hermes Lambda function for event logging
-- **Subunit 002**: Inventory S3 bucket for log storage  
-- **Subunit 003**: EventBridge integration and testing
+**Status:** In Progress
+- **Subunit 001**: ✅ Hermes Lambda function for event logging - COMPLETE
+- **Subunit 002**: 🔄 Inventory S3 bucket for log storage - IN PROGRESS
+- **Subunit 003**: Planned - EventBridge integration and testing
 
 ## Planned Units
 

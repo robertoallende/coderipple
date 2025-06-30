@@ -16,6 +16,7 @@ Create EventBridge custom bus and routing rules for CodeRipple service communica
   "source": "coderipple.system",
   "detail-type": "repo_ready|analysis_complete|pr_created",
   "detail": {
+    "component": "Receptionist|Analyst|Deliverer",
     "repository": {
       "owner": "string",
       "name": "string", 
