@@ -2,26 +2,6 @@
 
 Future improvements and known limitations to address after MVP completion.
 
-## Repository Size Limitations
-
-**Problem**: Lambda has 512MB ephemeral storage limit, but some repositories might be larger than this when cloned.
-
-**Current Status**: Accepted as MVP limitation - repositories larger than 512MB will fail during Receptionist processing.
-
-**Impact**: Large repositories cannot be analyzed by the current system.
-
-**Future Solutions**:
-- Stream processing of large repos without full local storage
-- Selective file analysis (skip binary files, focus on code files only)
-- Use EFS (Elastic File System) or other storage solutions for larger capacity
-- Split large repos into chunks for analysis
-- Implement repository size pre-check before cloning
-- Add configuration for maximum repository size limits
-
-**Priority**: Medium - affects usability for large codebases
-
-**Related Components**: Receptionist Lambda (Unit 004)
-
 ## Logs Cabinet Storage Improvement
 
 **Problem**: Hermes currently appends all events to a single README.md file, which will become unwieldy as the system scales.
@@ -402,8 +382,6 @@ Features aimed at improving contextual project insights and actionable developer
 - Lambda layers for dependencies
 
 **Priority**: High - Critical for production readiness and team scalability
-
-**Estimated Effort**: 2-3 weeks for complete implementation and testing
 
 **Related Components**: All system components, deployment infrastructure
 
