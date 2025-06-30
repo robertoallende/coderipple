@@ -22,7 +22,8 @@ Professional team metaphor with specialized services:
 - **Telephonist** (EventBridge) - Event routing and coordination
 - **Analyst** (Lambda) - Code analysis using Strands
 - **Drawer** (S3 Private) - Private document storage and retrieval
-- **Deliverer** (Lambda) - Pull request creation
+- **Deliverer** (Lambda) - Analysis results packaging and delivery
+- **Showroom** (S3 Public) - Public documentation delivery via website
 - **Hermes** (Lambda) - Event logging and status tracking bureaucrat
 - **Cabinet** (S3 Public) - Public event logs and pipeline status
 - **GitHub Diplomat** - Repository interaction layer
@@ -42,16 +43,18 @@ Drawer (S3 Private) ────── Receptionist (Lambda) ─────┐
                      │        | Route: "Repo Ready"   │                 
                      │        ↓                       │                 
                      ├───  Analyst (Lambda)           │  Hermes (Lambda)               
-                     │     Analyze                    │   - Log events to Inventory               
+                     │     Analyze                    │   - Log events to Cabinet               
                      │        ↓                       │
                      │ Telephonist (EventBridge) ─────┤
                      │ Route: "Analysis Complete"     │
                      │        ↓                       │
-                     └── Deliverer (Lambda)           │
-                            PR Creation               | 
-                              ↓                       ↓
-                          Pull Request       Cabinet (S3 Public)
-                                             - Event logs & status
+                     └── Deliverer (Lambda) ──────────┤
+                            | Package & Deliver       │
+                            ↓                         ↓
+                     Showroom (S3 Public)     Cabinet (S3 Public)
+                     - Analysis documentation  - Event logs & status
+                     - Docsify website        - Pipeline monitoring
+                     - Direct download links
 
 
 
@@ -155,8 +158,9 @@ This logging standard ensures complete observability across the pipeline, enabli
 ## Planned Units
 
 * **005**: Analyst Implementation - Strands integration and analysis generation
-* **006**: Deliverer Implementation - GitHub PR creation and file delivery
-* **007**: Integration Testing - End-to-end workflow validation
+* **006**: Showroom Implementation - Public S3 bucket with Docsify website for analysis delivery
+* **007**: Deliverer Implementation - Analysis packaging and Showroom delivery
+* **008**: Integration Testing - End-to-end workflow validation
 
 ## Detailed Flow Reference
 
@@ -180,14 +184,33 @@ This logging standard ensures complete observability across the pipeline, enabli
 11. Tell Telephonist: "Analysis Complete"
 ```
 
-### Deliverer - Pull Request Creation
+### Deliverer - Analysis Results Delivery
 ```
 12. Telephonist notifies Deliverer
 13. Ask Librarian to retrieve generated files from S3
-14. Create new branch in GitHub
-15. Add analysis files to branch
-16. Create Pull Request with results
+14. Package analysis files into structured ZIP archive
+15. Upload to Showroom S3 bucket with public access
+16. Generate direct download links for analysis results
+17. Update Showroom website with new analysis entry
 ```
+
+## S3 Delivery Mechanism Summary
+
+**Context:** Pivoted from GitHub Pull Request delivery to S3 bucket delivery for simplified serverless implementation.
+
+**Key Decision Points:**
+- **Complexity Reduction:** Eliminates GitHub API authentication, branch creation, PR management, and git operations on delivery side
+- **Architecture Benefits:** Cleaner serverless flow, removes external API dependencies, eliminates GitHub rate limiting concerns  
+- **User Experience:** Direct download access, no GitHub permissions needed, works with any git hosting platform
+- **Technical Implementation:** Public S3 bucket with structured paths `/{repo-owner}/{repo-name}/{commit-sha}/analysis-files`
+
+**Flow Change:**
+- **Before:** Webhook → Analysis → GitHub PR with results
+- **After:** Webhook → Analysis → Public S3 storage → Direct download links
+
+**Value Preservation:** Maintains all core serverless architecture (Lambda orchestration, EventBridge routing, automated analysis) while simplifying delivery mechanism. Results in faster implementation, cleaner demo, and better scalability through S3's native download capabilities.
+
+**Strategic Rationale:** Focus serverless complexity on AWS-native services rather than external API integration, allowing more time for core pipeline quality and analysis functionality.
 
 ## Event Flow Specification
 
