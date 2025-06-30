@@ -115,9 +115,11 @@ lambda_*/*-policy.json
 # Lambda test files (temporary)
 lambda_*/test-*.json
 lambda_*/test_*.py
-lambda_*/response.json
+lambda_*/response*.json
+lambda_*/test_*_payload*.txt
+lambda_*/*_b64.txt
 test-payload*.json
-response.json
+response*.json
 
 # Lambda temporary/cache files
 lambda_*/__pycache__/
@@ -125,6 +127,10 @@ lambda_*/.*cache/
 
 # S3 Drawer deployment artifacts
 s3_drawer/bucket-name.txt
+
+# S3 Showroom deployment artifacts  
+s3_showroom/bucket-name.txt
+s3_showroom/website-url.txt
 
 # EventBridge deployment artifacts
 eventbridge_telephonist/event-bus-name.txt
