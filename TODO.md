@@ -22,7 +22,7 @@ Future improvements and known limitations to address after MVP completion.
 
 **Related Components**: Receptionist Lambda (Unit 004)
 
-## Logs Inventory Storage Improvement
+## Logs Cabinet Storage Improvement
 
 **Problem**: Hermes currently appends all events to a single README.md file, which will become unwieldy as the system scales.
 
@@ -45,7 +45,7 @@ Future improvements and known limitations to address after MVP completion.
 
 **Priority**: Low - Current approach works for MVP, but will need addressing as system scales
 
-**Related Components**: Hermes Lambda (Unit 003), Inventory S3 Bucket
+**Related Components**: Hermes Lambda (Unit 003), Cabinet S3 Bucket
 
 ## Unit Testing Implementation
 

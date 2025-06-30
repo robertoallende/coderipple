@@ -14,7 +14,7 @@ I am the event logging and status tracking service for the CodeRipple analysis p
 - **Status Logging**: Record timestamps, component names, and event descriptions
 - **Audit Trail**: Maintain chronological record of all system activities
 - **Debugging Support**: Provide detailed logs for troubleshooting pipeline issues
-- **System Transparency**: Make pipeline status visible through public S3 bucket
+- **System Transparency**: Make pipeline status visible through public S3 cabinet
 
 ### Event Log Format
 

@@ -12,7 +12,7 @@ logger.setLevel(logging.INFO)
 s3_client = boto3.client('s3')
 
 # Environment variables
-INVENTORY_BUCKET = os.environ.get('INVENTORY_BUCKET', 'coderipple-inventory')
+INVENTORY_BUCKET = os.environ.get('INVENTORY_BUCKET', 'coderipple-cabinet')
 
 def lambda_handler(event, context):
     """
@@ -131,8 +131,13 @@ Real-time event logging for the CodeRipple analysis pipeline.
             # Fallback for malformed entries
             table_row = f"| {log_entry} | | | |"
         
-        # Append new row to README
-        new_content = existing_content + '\n' + table_row
+        # Check if this is the initial table (ends with header separator)
+        if existing_content.strip().endswith('|-----------|-----------|-------|---------|'):
+            # First entry - append directly after header without extra newline
+            new_content = existing_content + '\n' + table_row
+        else:
+            # Subsequent entries - append new row
+            new_content = existing_content + '\n' + table_row
         
         # Write updated README back to S3
         s3_client.put_object(

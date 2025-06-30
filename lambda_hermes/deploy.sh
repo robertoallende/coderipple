@@ -10,7 +10,7 @@ echo "📋 Deploying Hermes The Bureaucrat Lambda..."
 # Variables
 FUNCTION_NAME="coderipple-hermes"
 REGION="us-east-1"  # Change as needed
-INVENTORY_BUCKET="coderipple-inventory"
+INVENTORY_BUCKET="coderipple-cabinet"
 
 # 1. Create deployment package
 echo "📦 Creating deployment package..."

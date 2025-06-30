@@ -91,3 +91,10 @@ aws/lambda_orchestrator/coderipple/
 
 # API Gateway deployment artifacts
 api_gatekeeper/api-id.txt
+
+# EventBridge deployment artifacts
+eventbridge_telephonist/event-bus-name.txt
+
+# Lambda deployment artifacts
+lambda_hermes/lambda-arn.txt
+lambda_hermes/website-url.txt
