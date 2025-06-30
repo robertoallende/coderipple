@@ -18,38 +18,45 @@ An automated code analysis pipeline triggered by GitHub webhooks. When code is c
 ### Architecture
 Professional team metaphor with specialized services:
 - **Gatekeeper** (API Gateway) - Webhook endpoint security and validation
-- **Receptionist** (Lambda) - Webhook intake and repository cloning
+- **Receptionist** (Lambda) - Webhook processing and repository cloning
 - **Telephonist** (EventBridge) - Event routing and coordination
 - **Analyst** (Lambda) - Code analysis using Strands
-- **Librarian** (S3) - Document storage and retrieval
+- **Librarian** (S3 Private) - Private document storage and retrieval
 - **Deliverer** (Lambda) - Pull request creation
+- **Hermes** (Lambda) - Event logging and status tracking bureaucrat
+- **Inventory** (S3 Public) - Public event logs and pipeline status
 - **GitHub Diplomat** - Repository interaction layer
 
+``` 
+                        GitHub Repo
+                             |
+                             | Webhook
+                             ↓
+                        Gatekeeper (API Gateway)
+                             | Validate & Authenticate
+                             ↓
+Library (S3 Private) ───── Receptionist (Lambda) ─────┐  
+- Cloned repositories        | Clone Code             │  
+- Analysis files             ↓                        │
+- Temporary storage ─┐   Telephonist (EventBridge) ───┤ 
+                     │        | Route: "Repo Ready"   │                 
+                     │        ↓                       │                 
+                     ├───  Analyst (Lambda)           │  Hermes (Lambda)               
+                     │     Analyze                    │   - Log events to Inventory               
+                     │        ↓                       │
+                     │ Telephonist (EventBridge) ─────┤
+                     │ Route: "Analysis Complete"     │
+                     │        ↓                       │
+                     └── Deliverer (Lambda)           │
+                            PR Creation               | 
+                              ↓                       ↓
+                          Pull Request       Inventory (S3 Public)
+                                             - Event logs & status
+
+
+
 ```
-GitHub Repo
-     |
-     | Webhook
-     ↓
-Gatekeeper (API Gateway)
-     | Validate & Authenticate
-     ↓
-Receptionist (Lambda)
-     | Clone Code via Librarian
-     ↓
-Telephonist (EventBridge)
-     | Route: "Repo Ready"
-     ↓
-Analyst (Lambda)
-     | Analyze via Librarian
-     ↓
-Telephonist (EventBridge)
-     | Route: "Analysis Complete"
-     ↓
-Deliverer (Lambda)
-     | PR Creation
-     ↓
-Pull Request
-```
+
 
 ### Technical Stack
 - **AWS Lambda** - Serverless compute for Receptionist, Analyst, Deliverer
