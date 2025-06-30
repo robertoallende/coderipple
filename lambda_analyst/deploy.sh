@@ -103,6 +103,25 @@ cat > eventbridge-policy.json << EOF
 }
 EOF
 
+# Bedrock policy for Strands analysis
+cat > bedrock-policy.json << EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeModel",
+        "bedrock:InvokeModelWithResponseStream"
+      ],
+      "Resource": [
+        "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0"
+      ]
+    }
+  ]
+}
+EOF
+
 # Create and attach policies
 aws iam put-role-policy \
   --role-name $ROLE_NAME \
@@ -116,6 +135,12 @@ aws iam put-role-policy \
   --policy-document file://eventbridge-policy.json \
   --region $REGION
 
+aws iam put-role-policy \
+  --role-name $ROLE_NAME \
+  --policy-name BedrockAccess \
+  --policy-document file://bedrock-policy.json \
+  --region $REGION
+
 echo "✅ Lambda policies attached"
 
 # 3. Install dependencies
@@ -124,7 +149,17 @@ python3 -m pip install --platform manylinux2014_x86_64 --only-binary=:all: --tar
 
 # 4. Create deployment package
 echo "📦 Creating deployment package..."
-zip -r analyst-lambda.zip lambda_function.py python/
+zip -r analyst-lambda.zip \
+  lambda_function.py \
+  magic_mirror.py \
+  config.py \
+  git_tools.py \
+  file_system_tools.py \
+  generic_tools.py \
+  prompts.py \
+  better_prompts.py \
+  context.txt \
+  python/
 
 echo "✅ Deployment package created"
 
