@@ -98,3 +98,15 @@ eventbridge_telephonist/event-bus-name.txt
 # Lambda deployment artifacts
 lambda_hermes/lambda-arn.txt
 lambda_hermes/website-url.txt
+
+# S3 Drawer deployment artifacts
+s3_drawer/bucket-name.txt
+
+# EventBridge deployment artifacts
+eventbridge_telephonist/event-bus-name.txt
+lambda_hermes/eventbridge-rule-arn.txt
+
+# General deployment artifacts
+response.json
+test-policy.json
+*.zip
