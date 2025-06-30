@@ -1,0 +1,235 @@
+/* CodeRipple Brand Colors */
+:root {
+  --coderipple-light: #FEEED0;
+  --coderipple-dark: #021A2D;
+  --coderipple-blue: #1EA3B7;
+  --coderipple-blue-hover: #178a9c;
+}
+
+/* Custom font */
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('../fonts/JetBrainsMono-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Remove sidebar and adjust main content */
+body {
+  background-color: var(--coderipple-light);
+}
+
+.sidebar {
+  display: none !important;
+}
+
+.content {
+  left: 0 !important;
+  max-width: none !important;
+}
+
+/* Hide hamburger menu button */
+.sidebar-toggle {
+  display: none !important;
+}
+
+/* Create custom header - increased size */
+.app-name {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background-color: var(--coderipple-dark);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.app-name-link {
+  color: var(--coderipple-light) !important;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.app-name img {
+  height: 50px;
+}
+
+.app-name-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.app-name-title {
+  font-weight: bold;
+  font-size: 1.5em;
+  margin-bottom: 3px;
+}
+
+.app-name-tagline {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  opacity: 0.8;
+  font-weight: normal;
+}
+
+/* Position search box in header */
+.search {
+  position: fixed !important;
+  top: 25px !important;
+  right: 20px !important;
+  left: auto !important;
+  width: 250px !important;
+  z-index: 1001;
+}
+
+.search input {
+  background-color: rgba(254, 238, 208, 0.9) !important;
+  border: 1px solid var(--coderipple-blue) !important;
+  color: var(--coderipple-dark) !important;
+  border-radius: 4px;
+  padding: 8px 12px;
+  width: 100%;
+}
+
+.search input:focus {
+  outline: none;
+  border-color: var(--coderipple-blue);
+  box-shadow: 0 0 0 2px rgba(30, 163, 183, 0.2);
+}
+
+.search .results-panel {
+  background-color: white !important;
+  border: 1px solid var(--coderipple-blue) !important;
+  border-radius: 4px;
+  margin-top: 2px;
+}
+
+/* Adjust main content to account for larger fixed header */
+main {
+  padding-top: 100px !important;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+  min-height: calc(100vh - 180px);
+}
+
+/* Footer positioning - fixed to bottom */
+.footer-content {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--coderipple-light);
+  border-top: 1px solid #ddd;
+  padding: 15px 20px;
+  text-align: center;
+  color: #666;
+  z-index: 999;
+  box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+}
+
+/* Add bottom padding to main content to account for fixed footer */
+main {
+  padding-bottom: 120px !important;
+}
+
+/* Simple analysis list - Google-style links */
+.analysis-item {
+  padding: 15px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.analysis-item:last-child {
+  border-bottom: none;
+}
+
+.repo-name {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: var(--coderipple-dark);
+  margin-bottom: 5px;
+}
+
+.repo-name a {
+  color: var(--coderipple-blue);
+  text-decoration: none;
+}
+
+.repo-name a:hover {
+  text-decoration: underline;
+}
+
+.analysis-time {
+  color: #666;
+  font-size: 0.9em;
+  margin-bottom: 8px;
+}
+
+.analysis-links {
+  font-size: 0.9em;
+}
+
+.analysis-links a {
+  color: var(--coderipple-blue);
+  text-decoration: none;
+  margin-right: 15px;
+}
+
+.analysis-links a:hover {
+  text-decoration: underline;
+}
+
+/* Links */
+a {
+  color: var(--coderipple-blue);
+}
+
+a:hover {
+  color: var(--coderipple-blue-hover);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .app-name {
+    padding: 0 15px;
+    height: 70px;
+  }
+  
+  .app-name img {
+    height: 40px;
+  }
+  
+  .app-name-title {
+    font-size: 1.2em;
+  }
+  
+  .app-name-tagline {
+    font-size: 0.7em;
+  }
+  
+  .search {
+    width: 200px !important;
+    right: 15px !important;
+    top: 20px !important;
+  }
+  
+  main {
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-top: 90px !important;
+    padding-bottom: 110px !important;
+  }
+  
+  .footer-content {
+    padding: 12px 15px;
+  }
+}

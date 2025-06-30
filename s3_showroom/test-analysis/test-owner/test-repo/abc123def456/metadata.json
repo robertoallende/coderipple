@@ -1,0 +1,41 @@
+{
+  "repository": {
+    "owner": "test-owner",
+    "name": "test-repo",
+    "commit_sha": "abc123def456",
+    "branch": "main"
+  },
+  "analysis": {
+    "id": "analysis_processing_1751274965",
+    "type": "mock_analysis",
+    "status": "completed",
+    "generated_at": "2025-06-30T09:30:00Z",
+    "processing_time_ms": 175,
+    "component": "analyst"
+  },
+  "pipeline": {
+    "version": "1.0.0",
+    "stage": "foundation_testing",
+    "event_flow": [
+      "repo_ready",
+      "task_started", 
+      "analysis_processing",
+      "task_completed",
+      "analysis_ready"
+    ]
+  },
+  "results": {
+    "files_generated": [
+      "README.md",
+      "metadata.json",
+      "analysis.zip"
+    ],
+    "total_size_bytes": 1024,
+    "download_url": "analysis.zip"
+  },
+  "delivery": {
+    "method": "showroom_website",
+    "public_url": "http://coderipple-showroom.s3-website-us-east-1.amazonaws.com/analyses/test-owner/test-repo/abc123def456/",
+    "direct_download": "http://coderipple-showroom.s3-website-us-east-1.amazonaws.com/analyses/test-owner/test-repo/abc123def456/analysis.zip"
+  }
+}

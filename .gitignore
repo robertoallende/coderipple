@@ -131,6 +131,22 @@ s3_drawer/bucket-name.txt
 # S3 Showroom deployment artifacts  
 s3_showroom/bucket-name.txt
 s3_showroom/website-url.txt
+s3_showroom/build/
+s3_showroom/bucket-policy.json
+
+# S3 Cabinet deployment artifacts (future)
+s3_cabinet/bucket-name.txt
+s3_cabinet/website-url.txt
+s3_cabinet/build/
+s3_cabinet/bucket-policy.json
+
+# Shared assets build artifacts (future)
+shared-assets/build/
+*/build/
+
+# Temporary deployment files
+**/website-url.txt
+**/bucket-policy.json
 
 # EventBridge deployment artifacts
 eventbridge_telephonist/event-bus-name.txt

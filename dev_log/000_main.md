@@ -146,24 +146,28 @@ This logging standard ensures complete observability across the pipeline, enabli
 * **001**: Gatekeeper Implementation - API Gateway REST API for GitHub webhook endpoint
 * **002**: Telephonist Implementation - EventBridge configuration for event routing and service coordination
 * **003**: Hermes Implementation - Event logging Lambda with Cabinet S3 bucket and Docsify integration
+* **004**: Repository Processing System - Drawer S3 storage with Receptionist webhook processing Lambda
+* **005**: Analyst Implementation - Code analysis engine with mock implementation and EventBridge integration
+  - **Subunit 5.1**: ✅ Analyst Foundation and EventBridge Integration
+  - **Subunit 5.2**: ✅ Mock Analysis Implementation  
+  - **Subunit 5.3**: Analysis Results Storage and Event Publishing (integrated in 5.2)
+  - **Subunit 5.4**: Performance Optimization and Error Resilience (integrated in 5.2)
+  - **Subunit 5.5**: Real Strands Integration (Final Implementation - pending)
+* **006**: Showroom Implementation - Public S3 bucket with Docsify website for analysis delivery
+  - **Subunit 6.1**: ✅ CodeRipple UI Content Enhancement
+  - **Subunit 6.2**: 🔄 Shared Assets Architecture Implementation
+  - **Subunit 6.3**: Cabinet Bucket Shared Assets Integration (planned)
 
-### Units In Progress
+## Units In Progress
 
-#### 004. Repository Processing System
-**Status:** Planning Complete - Ready for Implementation
-- **Subunit 001**: ✅ Drawer S3 bucket deployment and IAM setup - PLANNED
-- **Subunit 002**: ✅ Receptionist Lambda implementation with git operations - PLANNED
-- **Subunit 003**: Planned - Integration testing and EventBridge event publishing
+### 006. Showroom Implementation
+**Status:** Subunit 6.2 In Progress - Shared Assets Architecture
+- **Subunit 6.1**: ✅ CodeRipple UI Content Enhancement - COMPLETED
+- **Subunit 6.2**: 🔄 Shared Assets Architecture Implementation - IN PROGRESS
+- **Subunit 6.3**: Cabinet Bucket Shared Assets Integration - PLANNED
 
 ## Planned Units
 
-* **005**: Analyst Implementation - Code analysis engine with Strands integration
-  - **Subunit 5.1**: Analyst Foundation and EventBridge Integration
-  - **Subunit 5.2**: Mock Analysis Implementation  
-  - **Subunit 5.3**: Analysis Results Storage and Event Publishing
-  - **Subunit 5.4**: Performance Optimization and Error Resilience
-  - **Subunit 5.5**: Real Strands Integration (Final Implementation)
-* **006**: Showroom Implementation - Public S3 bucket with Docsify website for analysis delivery
 * **007**: Deliverer Implementation - Analysis packaging and Showroom delivery
 * **008**: Integration Testing - End-to-end workflow validation
 
