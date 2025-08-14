@@ -30,6 +30,12 @@ git push
 Your analysis will be available within minutes at:
 **🌐 [CodeRipple Showroom](http://coderipple-showroom.s3-website-us-east-1.amazonaws.com/)**
 
+## 🎥 Demo Video
+
+[![CodeRipple Demo](https://img.youtube.com/vi/v90v7DCC_yk/maxresdefault.jpg)](https://www.youtube.com/watch?v=v90v7DCC_yk)
+
+*Click the image above to watch a complete demonstration of CodeRipple's automated code analysis pipeline.*
+
 ## ✨ Features
 
 - **🤖 AI-Powered Analysis** - Real code analysis using Strands framework with Claude 3.5 Sonnet
